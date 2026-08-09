@@ -61,7 +61,7 @@ function renderProfile() {
       const editBtn = canEditUrls
         ? `<button class="url-edit-btn" data-field="${field}" type="button">Labot</button>`
         : "";
-      return `<div class="profile-url-row"><a href="${url}" target="_blank" rel="noopener"><img class="profile-logo" src="${logo}" alt="${label}"></a>${editBtn}</div>`;
+      return `<div class="profile-url-row"><a href="${url}" target="_blank" rel="noopener"><img class="profile-logo profile-logo-${field}" src="${logo}" alt="${label}"></a>${editBtn}</div>`;
     }
     return `<span class="muted">— Nav norādīts</span>`;
   }
