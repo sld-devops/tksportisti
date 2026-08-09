@@ -89,39 +89,126 @@ function extractIntervalLengths(details) {
   return out;
 }
 
+// The athlete's own record of an unplanned training is free text, so there is
+// no "Pamatdaļa:" line to anchor on — the repetition itself is the only
+// reliable marker. Both orders are read ("9x400m", "400m x 9", "400mx9"), and
+// the side carrying a unit is the length. A bare number on its own is never
+// taken: the logged interval times sitting in the same text ("72, 74.2") would
+// otherwise be read as 72 metres and invent a tab of their own.
+// Spaces only, never \s — a line break must not be allowed to glue two
+// unrelated numbers together ("...caur 2min" + "200 m x 4" on the next line
+// once read as one length, and the 200m was lost).
+const IV_TEXT_NUM = String.raw`\d+(?:[.,]\d+)?(?::\d{1,2})?`;
+const IV_TEXT_UNIT = String.raw`(?:km|min(?:ūtes)?|m|sek|sec|s|['′"″])`;
+const IV_TEXT_LEN = String.raw`${IV_TEXT_NUM}[ ]?${IV_TEXT_UNIT}?(?:\d+[ ]?${IV_TEXT_UNIT}?)?`;
+const IV_TEXT_REP_RE = new RegExp(String.raw`(${IV_TEXT_LEN})[ ]*[x×][ ]*(${IV_TEXT_LEN})`, "gi");
+
+function hasIntervalUnit(token) {
+  return /[^\d.,:\s]/.test(token);
+}
+
+function extractIntervalLengthsFromText(text) {
+  const out = { distances: [], durations: [] };
+  if (!text) return out;
+  IV_TEXT_REP_RE.lastIndex = 0;
+  let m;
+  while ((m = IV_TEXT_REP_RE.exec(text)) !== null) {
+    const a = m[1].trim();
+    const b = m[2].trim();
+    // "400m x 9" -> the unit is on the left; "9x400m" and the unitless "9x400"
+    // both put the length on the right.
+    classifyIntervalLength(hasIntervalUnit(a) && !hasIntervalUnit(b) ? a : b, out);
+  }
+  return out;
+}
+
 // One pass over the athlete's history -> two Maps (distance in meters, and
 // duration in seconds) of length to its most recent sessions. A length only
 // appears once the athlete has actually logged that session, so every tab is
-// guaranteed to have at least one card.
+// guaranteed to have at least one card. Both sources count: a training the
+// coach planned and the athlete logged, and a training the athlete recorded
+// themselves.
 function buildIntervalHistory() {
   const today = formatDateISO(new Date());
   const logByPlanId = new Map();
+  const selfLogs = [];
   allLogEntries.forEach(l => {
-    // Skip the athlete's own records of unplanned trainings — they have no
-    // plan_id, so they would all pile up under one null key.
-    if (!l.plan_id) return;
+    // The athlete's own records have no plan_id, so they can never be matched
+    // to a plan — their lengths are read from their free text instead.
+    if (!l.plan_id) {
+      if (isSelfLog(l)) selfLogs.push(l);
+      return;
+    }
     if (!logByPlanId.has(l.plan_id)) logByPlanId.set(l.plan_id, l);
   });
 
-  const history = { dist: new Map(), time: new Map() };
-  const add = (map, key, session) => {
-    if (!map.has(key)) map.set(key, []);
-    const sessions = map.get(key);
-    if (sessions.length < MAX_INTERVAL_SESSIONS) sessions.push(session);
-  };
-
+  const sessions = [];
   for (const plan of allPlans) {
     if (plan.date > today) continue;
     const log = logByPlanId.get(plan.id);
     if (!log) continue;
     const lengths = extractIntervalLengths(plan.details);
-    new Set(lengths.distances).forEach(d => add(history.dist, d, { plan, log }));
-    new Set(lengths.durations).forEach(s => add(history.time, s, { plan, log }));
+    if (!lengths.distances.length && !lengths.durations.length) continue;
+    sessions.push({ date: plan.date, lengths, plan, log });
+  }
+  for (const log of selfLogs) {
+    if (!log.date || log.date > today) continue;
+    const lengths = extractIntervalLengthsFromText(getSelfLogData(log).text);
+    if (!lengths.distances.length && !lengths.durations.length) continue;
+    sessions.push({ date: log.date, lengths, selfLog: log });
+  }
+  // Newest first across both sources, so the 5-per-tab cap keeps the most
+  // recent sessions however each of them was recorded.
+  sessions.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+
+  const history = { dist: new Map(), time: new Map() };
+  const add = (map, key, session) => {
+    if (!map.has(key)) map.set(key, []);
+    const list = map.get(key);
+    if (list.length < MAX_INTERVAL_SESSIONS) list.push(session);
+  };
+
+  for (const session of sessions) {
+    new Set(session.lengths.distances).forEach(d => add(history.dist, d, session));
+    new Set(session.lengths.durations).forEach(s => add(history.time, s, session));
   }
   return history;
 }
 
+// The athlete's own record has no plan behind it — no main-part line, no pace
+// bounds, no per-interval boxes — so it is drawn the way it is drawn in the
+// calendar (panels/self-log.js), minus the two things that belong to the
+// calendar only: the edit/delete buttons and the coach's comment box. That box
+// is bound to the day, and exactly one of them may exist per day.
+function renderIntervalHistorySelfCard(log) {
+  const d = getSelfLogData(log);
+  const title = d.title || "";
+  const textHtml = (d.text || "")
+    .split("\n")
+    .filter(l => l.trim())
+    .map(l => `<div>${escapeHtml(l)}</div>`)
+    .join("");
+  const todBadge = d.tod ? `<span class="tod-badge tod-${d.tod}">${todLabel(d.tod)}</span>` : "";
+  const feelingBadge = log.feeling || log.feeling_tags ? feelingBadgeHtml(log.feeling, log.feeling_tags) : "";
+  const notesHtml = log.notes ? `<div class="log-notes">${escapeHtml(log.notes)}</div>` : "";
+
+  return `
+    <article class="session-card interval-history-card">
+      <div style="font-size:0.82rem;color:var(--muted);margin-bottom:4px;">${formatDateLV(log.date)} ${todBadge}</div>
+      <span class="plan-type-badge">${d.icon || badgeForTitle(title)}</span>
+      <div class="self-log-badge">📝 Sportista ieraksts</div>
+      <div class="task-card">
+        <strong>${escapeHtml(displayTitle(title))}</strong>
+      </div>
+      ${textHtml ? `<div class="task-card self-log-text-view">${textHtml}</div>` : ""}
+      ${feelingBadge}
+      ${notesHtml}
+    </article>
+  `;
+}
+
 function renderIntervalHistoryCard(session) {
+  if (session.selfLog) return renderIntervalHistorySelfCard(session.selfLog);
   const { plan, log } = session;
   const notCompleted = plan.completed === false;
   const mainLine = extractMainPart(plan.details);
@@ -228,7 +315,7 @@ function renderIntervalHistory() {
       try {
         html += renderIntervalHistoryCard(s);
       } catch (err) {
-        console.error("Intervālu vēsture: neizdevās uzzīmēt " + s.plan.date, err);
+        console.error("Intervālu vēsture: neizdevās uzzīmēt " + s.date, err);
       }
     });
     html += "</div>";
