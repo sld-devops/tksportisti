@@ -134,6 +134,17 @@ Choosing anything in the "Izveidot jaunu treniņu" dropdown calls `clearCustomBu
 - Colours are fixed per zone (1 grey, 2 light blue, 3 yellow, 4 orange, 5 red, "Maks." row violet) via `zone-c1`…`zone-c5`/`zone-max` classes. When `max_hr` is empty the percent boxes render blank and a `.zone-hint` line explains why — typing a percent with no max HR is a deliberate no-op, not a crash.
 - **Thresholds ("Sliekšņvērtības", `renderThresholds()`) reuse the same palette as gradients**, one row per threshold via `thr-a`/`thr-b`/`thr-c`: aerobic blends zone 2→3, anaerobic 3→4, lactate 4→5, so the three rows climb blue→red the same way the zones above them do. Same scoping rule — everything sits under `#thresholdsBody`, because `.field-grid` is used all over the app. Panel order in the sidebar is deliberately zones → pace/HR → thresholds (moved 2026-08-02).
 
+### A profile URL row that is not on screen must not be saved
+
+Garmin / Strava / the plan archive (`urlRow()` in `panels/profile.js`) render as an **input while empty or being edited, and as a clickable logo otherwise** — so at most one of the three inputs normally exists. `saveProfileUrls()` used to read all three ids and send all three columns, and a missing input read as `""`: entering Strava wrote an empty string over the saved Garmin link, and the two logos could never be shown at the same time. Fixed 2026-08-09 — it now builds the patch from the inputs that actually exist (`updateProfile` writes only the columns it is handed). Any new field in that section must follow the same rule.
+
+Two things sit on top of that fix and are easy to undo by accident:
+
+- **`savingProfileUrls` is a re-entrancy guard, not decoration.** Saving runs on `blur`, and Chrome fires a *second* `blur` when the focused input is removed — which is exactly what this function's own `renderProfile()` does. Without the guard, restoring focus after the render makes the two feed each other in an endless loop of database writes. Measured, not assumed: removing a focused input via `innerHTML` fires `blur` and leaves `document.activeElement` on `<body>`.
+- **The re-render restores both focus and the half-typed values.** The athlete pastes one link, clicks into the next box and starts typing while the first save is still in flight; a plain re-render would swap that box for a fresh empty one mid-paste.
+
+The "Labot" button's own focus call needs `capitalize()` — the state key is `garmin`, the input id is `editGarminUrl`. It had been looking up `editgarminUrl` and silently focusing nothing.
+
 ### The zone palette lives in `:root`, because JS reads it too
 
 `--zone1-tint/-line/-text` … `--zone6-*` in `styles.css` are the single source of truth for the HR colour scale (`zone6` = "above zone 5" / max HR violet). Don't hardcode those hexes anywhere — `zoneToken()` in `panels/profile.js` reads them back with `getComputedStyle(document.documentElement)` (memoised in `zoneTokenCache`), so a hex written straight into JS or into another rule would silently drift.
@@ -489,5 +500,12 @@ Scouting it surfaced a bigger dead-fetch problem than Profile's: `weeklyStats`, 
 - **The plausibility ranges are load-bearing, not decoration.** The length field in the training builder is free text with no validation, so `"3"` (meaning 3 min) parses as 3 metres. `MIN/MAX_INTERVAL_METERS` (50m–20km) and `MIN/MAX_INTERVAL_SECONDS` (10s–60min) are what stop junk from becoming a visible tab — with a hardcoded tab list this never mattered, with derived tabs it does.
 - **A session appears in every tab whose length it contains.** `3x400m + 2x200m` shows up under both 400m and 200m; `400m + 3min` shows up under Attālums 400m *and* Laiks 3min. Confirmed intended with the owner.
 - **`.interval-tabs` must stay `flex-wrap: wrap`** — the tab count is unbounded now. And `#intervalHistoryPanel:not(.collapsed) .panel-body` overrides the shared 2000px collapse cap to 4000px because five full cards measure ~1944px; the `:not(.collapsed)` part is required, since an id selector would otherwise beat `.panel.collapsed .panel-body` and the panel could never close again.
+
+**The athlete's own records count too (2026-08-09).** A self-log (`panels/self-log.js`) has no plan behind it, so there is no `Pamatdaļa:` line to anchor on — `extractIntervalLengthsFromText()` reads its free text instead, and `buildIntervalHistory()` now merges both sources and sorts by date before the 5-per-tab cap (it used to lean on `allPlans` already being date DESC).
+
+- **The repetition is the only marker, and it is read both ways round** — `9x400m`, `1×300m`, `8x1km`, `6x3min`, and equally `400m x 9`, `400mx9`, `200 m x 4`. Whichever side carries a unit is the length; with no unit anywhere (`9x400`) the first number is the count.
+- **A bare number is never a length.** The executed times sit in the same text (`9x400m- 72, 74.2, 72.5`) and `72` clears the 50m plausibility floor, so it would open a phantom "72m" tab. This was the owner's decision when the feature was specified — don't loosen it. For the same reason a unit-carrying token on its own (`paskrēju uz 10km tempu`) is not enough either.
+- **`IV_TEXT_*` use `[ ]`, never `\s`.** A line break gluing two unrelated numbers together is not hypothetical: `caur 2min` ending one line and `200 m x 4` starting the next parsed as one length and lost the 200m. Caught only because the check listed the expected answer per case rather than eyeballing the output.
+- The self-log card is drawn by `renderIntervalHistorySelfCard()`, deliberately **without** the coach-comment textarea `renderSelfLogCard()` has: that box is bound to the day, and exactly one of them may exist per day.
 
 All TODO.md candidates are now done. Next candidates haven't been scouted yet — look for another panel with its own isolated state var + `render*()` fn + dialog/save/delete handlers, the same way the panels above were identified, before starting.

@@ -37,7 +37,10 @@ profileCard.addEventListener("click", (e) => {
   if (!btn) return;
   urlEditState[btn.dataset.field] = true;
   renderProfile();
-  const input = document.getElementById(`edit${btn.dataset.field}Url`);
+  // The state key is lowercase ("garmin"), the input id is not ("editGarminUrl")
+  // - without capitalize() this looked up an element that does not exist and the
+  // field silently stayed unfocused.
+  const input = document.getElementById(`edit${capitalize(btn.dataset.field)}Url`);
   if (input) input.focus();
 });
 
@@ -359,21 +362,59 @@ function getViewedProfile() {
   return currentProfile;
 }
 
+const PROFILE_URL_FIELDS = [
+  ["editGarminUrl", "garmin_url"],
+  ["editStravaUrl", "strava_url"],
+  ["editSpreadsheetUrl", "spreadsheet_url"],
+];
+
+// Chrome fires a second "blur" when the focused input is removed, and this
+// function's own renderProfile() removes it - so a save always calls itself
+// once more. Harmless while nothing is refocused afterwards; an endless loop of
+// database writes the moment anything is.
+let savingProfileUrls = false;
+
+// Only the fields actually on screen are written. A saved URL is drawn as its
+// logo and has no input at all, so reading all three and sending them wholesale
+// stored an empty string over every link that was not being edited - entering
+// Strava wiped Garmin, and the two could never be set at the same time.
 async function saveProfileUrls() {
+  if (savingProfileUrls) return;
   const profile = getViewedProfile();
+  const updates = {};
+  PROFILE_URL_FIELDS.forEach(([id, column]) => {
+    const el = document.getElementById(id);
+    if (el) updates[column] = el.value.trim();
+  });
+  if (!Object.keys(updates).length) return;
+
+  savingProfileUrls = true;
   try {
-    await updateProfile(profile.id, {
-      garmin_url: document.getElementById("editGarminUrl")?.value?.trim() || "",
-      strava_url: document.getElementById("editStravaUrl")?.value?.trim() || "",
-      spreadsheet_url: document.getElementById("editSpreadsheetUrl")?.value?.trim() || "",
-    });
+    await updateProfile(profile.id, updates);
     if (profile.id === currentUser.id) {
       currentProfile = await getProfile(currentUser.id);
     }
     Object.keys(urlEditState).forEach((k) => (urlEditState[k] = false));
+    // A save runs on blur, i.e. once the athlete has already clicked into the
+    // next box - so the re-render must not throw away what they are in the
+    // middle of pasting there, nor leave them typing into a box that is no
+    // longer on the page.
+    const focusedId = document.activeElement?.id;
+    const typed = {};
+    PROFILE_URL_FIELDS.forEach(([id]) => {
+      const el = document.getElementById(id);
+      if (el) typed[id] = el.value;
+    });
     renderProfile();
+    Object.entries(typed).forEach(([id, value]) => {
+      const el = document.getElementById(id);
+      if (el && el.value !== value) el.value = value;
+    });
+    if (focusedId) document.getElementById(focusedId)?.focus();
   } catch (e) {
     console.error(e);
+  } finally {
+    savingProfileUrls = false;
   }
 }
 
