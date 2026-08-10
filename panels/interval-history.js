@@ -9,9 +9,27 @@ const MIN_INTERVAL_SECONDS = 10;
 const MAX_INTERVAL_SECONDS = 3600;
 const MAX_INTERVAL_SESSIONS = 5;
 
-let intervalHistoryMode = "dist"; // "dist" | "time"
-let intervalHistoryActiveDist = null;
-let intervalHistoryActiveDur = null;
+// A tempo run has no "Nx" to anchor on, so its length is read from a single
+// field (the plan) or from free text (the athlete's own record). These ranges
+// are deliberately much narrower than the interval ones: they are the only
+// thing stopping a stride ("100m"), a rest ("2min") or a pace from being read
+// as the length of the run.
+const MIN_TEMPO_METERS = 1000;
+const MAX_TEMPO_METERS = 60000;
+const MIN_TEMPO_SECONDS = 600;
+const MAX_TEMPO_SECONDS = 10800;
+
+const TEMPO_TYPE = "Tempa skrējiens";
+
+let intervalHistoryKind = "interval"; // "interval" | "tempo"
+// Each kind remembers its own Garums/Laiks choice and its own length tab.
+// Shared state would be wrong in both directions: intervals are usually looked
+// at by length and tempo runs by time, so one shared choice means switching
+// kinds regularly lands on the side that happens to be empty for the other one.
+const intervalHistoryActive = {
+  interval: { mode: "dist", dist: null, time: null },
+  tempo: { mode: "dist", dist: null, time: null },
+};
 
 function parseDistanceMeters(str) {
   str = (str || "").trim().toLowerCase().replace(",", ".");
@@ -71,6 +89,66 @@ function classifyIntervalLength(raw, out) {
   if (isPlausibleIntervalDuration(seconds)) out.durations.push(seconds);
 }
 
+// Same idea as classifyIntervalLength, but for a tempo run, whose length is a
+// single written value rather than the "Nx" half of a repetition.
+//
+// The token is put through normalizeTrainingDetails() (app.js) first, which is
+// where every way the coach writes minutes — "60 min", "60min", "60'",
+// "60 min.", "60 minūtes" — is already folded into one form. Reusing it means
+// there is no second list of spellings to keep in step. app.js loads after this
+// file, so it must be called at render time, never at load time.
+function classifyTempoLength(raw, out) {
+  const token = normalizeTrainingDetails(raw || "");
+  const meters = parseDistanceMeters(token);
+  if (meters !== null && meters >= MIN_TEMPO_METERS && meters <= MAX_TEMPO_METERS) {
+    out.distances.push(meters);
+    return;
+  }
+  const seconds = parseDurationSeconds(token);
+  if (seconds !== null && seconds >= MIN_TEMPO_SECONDS && seconds <= MAX_TEMPO_SECONDS) {
+    out.durations.push(seconds);
+  }
+}
+
+// A planned tempo run reads its length from the first field of the main part —
+// "Pamatdaļa: 10 km; 150-160; 4:00/km" -> "10 km" — the same positional slot
+// loadTemplateToForm()/parsePlanToForm() read it from.
+//
+// Deliberately not extractMainPart(): that falls back to the first line when
+// there is no main part, and "Iesildīšanās: 15min" would then be read as a
+// 15-minute tempo run.
+function extractTempoLengthsFromPlan(details) {
+  const out = { distances: [], durations: [] };
+  if (!details) return out;
+  const line = details.split("\n").find(l => l.includes("Pamatdaļa:"));
+  if (!line) return out;
+  classifyTempoLength(splitDetailFields(line)[0], out);
+  return out;
+}
+
+// The athlete's own record is free text with no fields at all, so only a number
+// carrying a unit is considered — "12km", "40 min", "1500m". A bare number is
+// never a length here: the same sentence routinely holds a pulse ("165") and a
+// pace ("4:00/km"), and either would otherwise invent a tab of its own. The
+// pace is safe for a second reason too — the unit must follow the number
+// directly, and "4:00" has a colon in the way.
+// Spaces only, never \s, for the same reason as IV_TEXT_REP_RE above: a line
+// break must not be allowed to glue a number to the next line's word.
+const TEMPO_TEXT_TOKEN_RE = /\d+(?:[.,]\d+)?[ ]*(?:km|min\.?|minūt\p{L}*|stund\p{L}*|sek|s|h|m|['′])(?![\p{L}\d])/giu;
+
+function extractTempoLengthsFromText(text) {
+  const out = { distances: [], durations: [] };
+  if (!text) return out;
+  TEMPO_TEXT_TOKEN_RE.lastIndex = 0;
+  let m;
+  while ((m = TEMPO_TEXT_TOKEN_RE.exec(text)) !== null) classifyTempoLength(m[0], out);
+  return out;
+}
+
+function isTempoTitle(title) {
+  return (title || "").trim() === TEMPO_TYPE;
+}
+
 function extractIntervalLengths(details) {
   const out = { distances: [], durations: [] };
   if (!details) return out;
@@ -122,12 +200,17 @@ function extractIntervalLengthsFromText(text) {
   return out;
 }
 
-// One pass over the athlete's history -> two Maps (distance in meters, and
-// duration in seconds) of length to its most recent sessions. A length only
-// appears once the athlete has actually logged that session, so every tab is
-// guaranteed to have at least one card. Both sources count: a training the
-// coach planned and the athlete logged, and a training the athlete recorded
-// themselves.
+// One pass over the athlete's history -> for each kind (intervals, tempo runs)
+// two Maps (distance in meters, and duration in seconds) of length to its most
+// recent sessions. A length only appears once the athlete has actually logged
+// that session, so every tab is guaranteed to have at least one card. Both
+// sources count: a training the coach planned and the athlete logged, and a
+// training the athlete recorded themselves.
+//
+// The two kinds are told apart by the training type, not by the content: only
+// the exact type "Tempa skrējiens" is a tempo run. Everything else keeps going
+// through the interval reader, which needs an "Nx" and so simply finds nothing
+// in a training that has none.
 function buildIntervalHistory() {
   const today = formatDateISO(new Date());
   const logByPlanId = new Map();
@@ -147,21 +230,31 @@ function buildIntervalHistory() {
     if (plan.date > today) continue;
     const log = logByPlanId.get(plan.id);
     if (!log) continue;
-    const lengths = extractIntervalLengths(plan.details);
+    const tempo = isTempoTitle(plan.title);
+    const lengths = tempo
+      ? extractTempoLengthsFromPlan(plan.details)
+      : extractIntervalLengths(plan.details);
     if (!lengths.distances.length && !lengths.durations.length) continue;
-    sessions.push({ date: plan.date, lengths, plan, log });
+    sessions.push({ date: plan.date, kind: tempo ? "tempo" : "interval", lengths, plan, log });
   }
   for (const log of selfLogs) {
     if (!log.date || log.date > today) continue;
-    const lengths = extractIntervalLengthsFromText(getSelfLogData(log).text);
+    const data = getSelfLogData(log);
+    const tempo = isTempoTitle(data.title);
+    const lengths = tempo
+      ? extractTempoLengthsFromText(data.text)
+      : extractIntervalLengthsFromText(data.text);
     if (!lengths.distances.length && !lengths.durations.length) continue;
-    sessions.push({ date: log.date, lengths, selfLog: log });
+    sessions.push({ date: log.date, kind: tempo ? "tempo" : "interval", lengths, selfLog: log });
   }
   // Newest first across both sources, so the 5-per-tab cap keeps the most
   // recent sessions however each of them was recorded.
   sessions.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 
-  const history = { dist: new Map(), time: new Map() };
+  const history = {
+    interval: { dist: new Map(), time: new Map() },
+    tempo: { dist: new Map(), time: new Map() },
+  };
   const add = (map, key, session) => {
     if (!map.has(key)) map.set(key, []);
     const list = map.get(key);
@@ -169,8 +262,9 @@ function buildIntervalHistory() {
   };
 
   for (const session of sessions) {
-    new Set(session.lengths.distances).forEach(d => add(history.dist, d, session));
-    new Set(session.lengths.durations).forEach(s => add(history.time, s, session));
+    const buckets = history[session.kind];
+    new Set(session.lengths.distances).forEach(d => add(buckets.dist, d, session));
+    new Set(session.lengths.durations).forEach(s => add(buckets.time, s, session));
   }
   return history;
 }
@@ -257,7 +351,15 @@ function renderIntervalHistoryCard(session) {
   `;
 }
 
-function renderIntervalHistory() {
+// `keep` is passed only by the panel's own buttons — "kind" or "mode", naming
+// the switch that was just pressed. Without it the auto-switches below ran on
+// the render the click itself caused, so pressing an empty side bounced
+// straight back and the button looked dead; the "nothing on this side" message
+// was unreachable. Pressing the kind switch deliberately does NOT keep the
+// mode, so that a side whose remembered Garums/Laiks is empty still lands
+// somewhere with content. Switching athletes auto-switches both, because that
+// render comes from app.js with no argument at all.
+function renderIntervalHistory(keep) {
   const body = document.getElementById("intervalHistoryBody");
   const athleteId = getSelectedAthleteId();
   if (!athleteId) {
@@ -266,40 +368,57 @@ function renderIntervalHistory() {
   }
 
   const history = buildIntervalHistory();
-  const distances = [...history.dist.keys()].sort((a, b) => a - b);
-  const durations = [...history.time.keys()].sort((a, b) => a - b);
+  const countOf = kind => history[kind].dist.size + history[kind].time.size;
 
-  if (distances.length === 0 && durations.length === 0) {
-    body.innerHTML = '<p class="interval-empty">Nav neviena intervālu treniņa</p>';
+  if (countOf("interval") === 0 && countOf("tempo") === 0) {
+    body.innerHTML = '<p class="interval-empty">Nav neviena intervālu vai tempa treniņa</p>';
     return;
   }
 
-  // Only auto-switch when the current side has nothing at all for this
-  // athlete; a deliberate click on an empty side is left alone.
-  if (intervalHistoryMode === "dist" && distances.length === 0) intervalHistoryMode = "time";
-  if (intervalHistoryMode === "time" && durations.length === 0 && distances.length) intervalHistoryMode = "dist";
+  // Land on a side that actually has something, so an athlete is never shown an
+  // empty panel just because the last athlete looked at was different.
+  if (!keep && countOf(intervalHistoryKind) === 0) {
+    intervalHistoryKind = intervalHistoryKind === "interval" ? "tempo" : "interval";
+  }
 
-  const isTime = intervalHistoryMode === "time";
+  const buckets = history[intervalHistoryKind];
+  const slot = intervalHistoryActive[intervalHistoryKind];
+  const distances = [...buckets.dist.keys()].sort((a, b) => a - b);
+  const durations = [...buckets.time.keys()].sort((a, b) => a - b);
+
+  if (keep !== "mode") {
+    if (slot.mode === "dist" && distances.length === 0 && durations.length) slot.mode = "time";
+    if (slot.mode === "time" && durations.length === 0 && distances.length) slot.mode = "dist";
+  }
+
+  const isTime = slot.mode === "time";
   const keys = isTime ? durations : distances;
-  const map = isTime ? history.time : history.dist;
+  const map = isTime ? buckets.time : buckets.dist;
   const label = isTime ? formatIntervalDurLabel : formatIntervalDistLabel;
-  let activeKey = isTime ? intervalHistoryActiveDur : intervalHistoryActiveDist;
+  let activeKey = isTime ? slot.time : slot.dist;
 
   // The previously selected length may not exist for this athlete.
   if (!keys.includes(activeKey)) {
     activeKey = keys.length ? keys[0] : null;
-    if (isTime) intervalHistoryActiveDur = activeKey;
-    else intervalHistoryActiveDist = activeKey;
+    if (isTime) slot.time = activeKey;
+    else slot.dist = activeKey;
   }
 
+  const isTempo = intervalHistoryKind === "tempo";
   let html = `
     <div class="view-tabs interval-mode-tabs">
-      <button type="button" data-mode="dist"${isTime ? "" : ' class="active"'}>Attālums</button>
+      <button type="button" data-kind="interval"${isTempo ? "" : ' class="active"'}>Intervāli</button>
+      <button type="button" data-kind="tempo"${isTempo ? ' class="active"' : ""}>Tempa skr.</button>
+    </div>
+    <div class="view-tabs interval-mode-tabs">
+      <button type="button" data-mode="dist"${isTime ? "" : ' class="active"'}>Garums</button>
       <button type="button" data-mode="time"${isTime ? ' class="active"' : ""}>Laiks</button>
     </div>`;
 
-  if (keys.length === 0) {
-    html += `<p class="interval-empty">${isTime ? "Nav neviena laika intervāla" : "Nav neviena attāluma intervāla"}</p>`;
+  if (distances.length === 0 && durations.length === 0) {
+    html += `<p class="interval-empty">${isTempo ? "Nav neviena tempa skrējiena" : "Nav neviena intervālu treniņa"}</p>`;
+  } else if (keys.length === 0) {
+    html += `<p class="interval-empty">${isTime ? "Nav neviena pēc laika" : "Nav neviena pēc garuma"}</p>`;
   } else {
     html += '<div class="interval-tabs">';
     keys.forEach(k => {
@@ -315,7 +434,7 @@ function renderIntervalHistory() {
       try {
         html += renderIntervalHistoryCard(s);
       } catch (err) {
-        console.error("Intervālu vēsture: neizdevās uzzīmēt " + s.date, err);
+        console.error("Intervālu/tempa vēsture: neizdevās uzzīmēt " + s.date, err);
       }
     });
     html += "</div>";
@@ -323,19 +442,27 @@ function renderIntervalHistory() {
 
   body.innerHTML = html;
 
-  body.querySelectorAll(".interval-mode-tabs button").forEach(btn => {
+  body.querySelectorAll("[data-kind]").forEach(btn => {
     btn.addEventListener("click", () => {
-      intervalHistoryMode = btn.dataset.mode;
-      renderIntervalHistory();
+      intervalHistoryKind = btn.dataset.kind;
+      renderIntervalHistory("kind");
+    });
+  });
+
+  body.querySelectorAll("[data-mode]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      intervalHistoryActive[intervalHistoryKind].mode = btn.dataset.mode;
+      renderIntervalHistory("mode");
     });
   });
 
   body.querySelectorAll(".interval-tab").forEach(btn => {
     btn.addEventListener("click", () => {
       const len = parseInt(btn.dataset.len);
-      if (intervalHistoryMode === "time") intervalHistoryActiveDur = len;
-      else intervalHistoryActiveDist = len;
-      renderIntervalHistory();
+      const active = intervalHistoryActive[intervalHistoryKind];
+      if (active.mode === "time") active.time = len;
+      else active.dist = len;
+      renderIntervalHistory("mode");
     });
   });
 }

@@ -884,6 +884,45 @@ async function deleteRuffierTest(id) {
   if (error) throw error;
 }
 
+async function getLactateTests(athleteId) {
+  const { data } = await supabase
+    .from("lactate_tests")
+    .select("*")
+    .eq("athlete_id", athleteId)
+    .order("date", { ascending: false });
+  return data || [];
+}
+
+async function insertLactateTest(data) {
+  const { data: result, error } = await supabase
+    .from("lactate_tests")
+    .insert(data)
+    .select()
+    .single();
+  if (error) throw error;
+  return result;
+}
+
+async function updateLactateTest(id, updates) {
+  const { data, error } = await supabase
+    .from("lactate_tests")
+    .update(updates)
+    .eq("id", id)
+    .select();
+  if (error) throw error;
+  if (!data || data.length === 0) {
+    throw new Error("Saglabāšana neizdevās (iespējams, trūkst tiesību) — izmaiņas netika saglabātas.");
+  }
+}
+
+async function deleteLactateTest(id) {
+  const { error } = await supabase
+    .from("lactate_tests")
+    .delete()
+    .eq("id", id);
+  if (error) throw error;
+}
+
 async function getNotCompletedAthleteIds() {
   const { data } = await supabase
     .from("plans")

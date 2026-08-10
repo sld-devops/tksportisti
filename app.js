@@ -704,6 +704,7 @@ async function loadNonTemplateData() {
     healthEntriesRes,
     labTestsRes,
     ruffierTestsRes,
+    lactateTestsRes,
     allPlansRes,
     allLogEntriesRes,
   ] = await Promise.all([
@@ -724,6 +725,7 @@ async function loadNonTemplateData() {
     safeGet(getHealthEntries(athleteId), []),
     safeGet(getLabTests(athleteId), []),
     safeGet(getRuffierTests(athleteId), []),
+    safeGet(getLactateTests(athleteId), []),
     safeGet(getAllPlans(athleteId), []),
     safeGet(getAllLogEntries(athleteId), []),
   ]);
@@ -745,6 +747,7 @@ async function loadNonTemplateData() {
   healthEntries = healthEntriesRes;
   labTests = labTestsRes;
   ruffierTests = ruffierTestsRes;
+  lactateTests = lactateTestsRes;
   allPlans = allPlansRes;
   allLogEntries = allLogEntriesRes;
 
@@ -2620,6 +2623,7 @@ function render() {
     renderHealthJournal();
     renderLabTests();
     renderRuffierTests();
+    renderLactateTests();
     renderAdminAthleteList();
   } else {
     calendarGrid.innerHTML = '<p class="empty-state">Nav sportistu. Pievienojiet lietotājus.</p>';
@@ -2636,6 +2640,7 @@ function render() {
     document.getElementById("polarTestsBody").innerHTML = "";
     document.getElementById("healthJournalBody").innerHTML = "";
     document.getElementById("labTestsBody").innerHTML = "";
+    document.getElementById("lactateTestsBody").innerHTML = "";
   }
   document.getElementById("hrZonesPanel").hidden = !hasAthletes;
   document.getElementById("thresholdsPanel").hidden = !hasAthletes;
@@ -2647,6 +2652,7 @@ function render() {
   document.getElementById("polarTestsPanel").hidden = !hasAthletes;
   document.getElementById("healthJournalPanel").hidden = !hasAthletes;
   document.getElementById("labTestsPanel").hidden = !hasAthletes;
+  document.getElementById("lactateTestsPanel").hidden = !hasAthletes;
   updateSidebarPanelLock();
 }
 
@@ -3002,6 +3008,17 @@ document.querySelectorAll(".collapse-toggle").forEach((btn) => {
           panel.classList.toggle("has-entries", false);
           panel.querySelector(".panel-header").dataset.count = "0";
         }
+      }
+    }
+
+    // Not gated on the coach: a lactate test is entered by either side, so
+    // both need their own badge cleared when they open the panel.
+    if (panel.id === "lactateTestsPanel" && wasCollapsed && !panel.classList.contains("collapsed")) {
+      const athleteId = getSelectedAthleteId();
+      if (athleteId && lactateTests.length) {
+        markAllLactateTestsSeen(athleteId, lactateTests);
+        panel.classList.toggle("has-entries", false);
+        panel.querySelector(".panel-header").dataset.count = "0";
       }
     }
 

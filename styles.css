@@ -5602,6 +5602,197 @@ textarea:disabled {
   background: var(--fbg);
 }
 
+/* Laktāta tests. The panel itself borrows .selftest-* like the other test
+   panels; everything below belongs to the dialog, which is wider than the
+   sidebar because a stage table does not fit in 300px. */
+#lactateTestsPanel.has-entries .panel-header {
+  position: relative;
+}
+#lactateTestsPanel.has-entries .panel-header::after {
+  content: attr(data-count);
+  position: absolute;
+  top: -6px;
+  right: 4px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.lactate-dialog {
+  max-width: 620px;
+  width: calc(100vw - 32px);
+}
+
+.lactate-dialog-title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.lactate-steps {
+  margin-top: 12px;
+}
+
+/* Six columns: number, pace, HR, lactate, RPE, remove. The header row uses the
+   same track list so the labels stay over their own boxes. */
+.lactate-step-head,
+.lactate-step-row {
+  display: grid;
+  grid-template-columns: 22px 1fr 1fr 1fr 1fr 28px;
+  gap: 6px;
+  align-items: center;
+}
+
+.lactate-step-head {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: 4px;
+}
+
+.lactate-step-row + .lactate-step-row {
+  margin-top: 6px;
+}
+
+.lactate-step-num {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.lactate-step-row input {
+  width: 100%;
+  min-width: 0;
+  text-align: center;
+}
+
+.lactate-result {
+  margin-top: 14px;
+}
+
+.lactate-chart svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* The two fixed reference concentrations, drawn over the plain mmol grid. */
+.lactate-guide {
+  stroke: var(--muted);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 5;
+  opacity: 0.6;
+  vector-effect: non-scaling-stroke;
+}
+
+.lactate-marker {
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+  vector-effect: non-scaling-stroke;
+}
+
+.lactate-marker-lt1,
+.lactate-marker-lt1b {
+  stroke: var(--info-accent);
+  fill: var(--info-accent);
+}
+
+.lactate-marker-lt2 {
+  stroke: var(--accent);
+  fill: var(--accent);
+}
+
+.lactate-marker-dot {
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-dasharray: none;
+}
+
+.lactate-y-label,
+.lactate-axis-title {
+  font-size: 0.62rem;
+  font-weight: 600;
+  fill: var(--muted);
+}
+
+.lactate-result-rows {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.lactate-result-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 10px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--info-bg);
+  font-size: 0.85rem;
+}
+
+.lactate-result-lt1,
+.lactate-result-lt1b {
+  border-color: var(--info-accent);
+  background: var(--info-accent-bg);
+}
+
+.lactate-result-lt2 {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+}
+
+.lactate-result-label {
+  font-weight: 700;
+}
+
+.lactate-result-note {
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.lactate-result-missing {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.lactate-empty {
+  margin: 0;
+  padding: 14px 10px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+@media (max-width: 560px) {
+  .lactate-step-head,
+  .lactate-step-row {
+    grid-template-columns: 18px 1fr 1fr 1fr 1fr 24px;
+    gap: 4px;
+  }
+
+  .lactate-step-head {
+    font-size: 0.6rem;
+  }
+
+  .lactate-step-row input {
+    padding-left: 2px;
+    padding-right: 2px;
+    font-size: 0.85rem;
+  }
+}
+
 .loading-overlay {
   position: fixed;
   inset: 0;

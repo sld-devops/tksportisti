@@ -87,7 +87,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=188" />
+    <link rel="stylesheet" href="styles.css?v=189" />
   </head>
   <body>
     <div id="authView">
@@ -255,11 +255,8 @@
 
           <section class="panel collapsible collapsed" id="intervalHistoryPanel">
             <div class="panel-header">
-              <div class="panel-header-text">
-                <h2>Intervālu vēsture</h2>
-                <span class="panel-subtitle">Pēdējās sesijas pa distancēm</span>
-              </div>
-              <button class="collapse-toggle" type="button" aria-label="Rādīt intervālu vēsturi">▶</button>
+              <h2>Nesenākie intervālu un tempa skrējieni</h2>
+              <button class="collapse-toggle" type="button" aria-label="Rādīt intervālu un tempa skrējienus">▶</button>
             </div>
             <div class="panel-body" id="intervalHistoryBody"></div>
           </section>
@@ -314,6 +311,17 @@
               <button class="collapse-toggle" type="button" aria-label="Rādīt Rufjē testu">▶</button>
             </div>
             <div class="panel-body" id="ruffierTestsBody"></div>
+          </section>
+
+          <section class="panel collapsible collapsed" id="lactateTestsPanel">
+            <div class="panel-header">
+              <div class="panel-header-text">
+                <h2>Laktāta tests</h2>
+                <span class="panel-subtitle">Aerobais un anaerobais slieksnis</span>
+              </div>
+              <button class="collapse-toggle" type="button" aria-label="Rādīt laktāta testus">▶</button>
+            </div>
+            <div class="panel-body" id="lactateTestsBody"></div>
           </section>
 
           </div>
@@ -973,6 +981,28 @@
       </form>
     </dialog>
 
+    <dialog class="session-dialog lactate-dialog" id="lactateTestDialog">
+      <form method="dialog">
+        <h3 class="lactate-dialog-title" id="lactateDialogTitle">Laktāta tests</h3>
+        <div class="field-grid">
+          <label>Datums <input id="ltDate" type="date" /></label>
+          <label>Posma garums (min) <input id="ltStageMin" type="number" min="1" max="15" step="0.5" /></label>
+        </div>
+        <label>Piezīmes <input id="ltNotes" type="text" placeholder="Stadions, +18°C, sauss" /></label>
+
+        <div class="lactate-steps" id="ltStepsBody"></div>
+        <button class="secondary-action panel-add-btn" id="ltAddStepBtn" type="button">Pievienot posmu</button>
+
+        <div class="lactate-result" id="ltResult"></div>
+
+        <div class="dialog-actions split-actions">
+          <button class="cancel-action" value="cancel" type="submit">Atcelt</button>
+          <button class="delete-action" id="deleteLactateTestBtn" type="button" hidden>Dzēst</button>
+          <button class="primary-action" id="saveLactateTestBtn" type="button">Saglabāt</button>
+        </div>
+      </form>
+    </dialog>
+
     <dialog class="session-dialog" id="resetPasswordDialog">
       <form method="dialog">
         <div class="dialog-header">
@@ -1011,13 +1041,14 @@
     <script src="panels/races.js?v=3"></script>
     <script src="panels/profile.js?v=8"></script>
     <script src="panels/stats.js?v=12"></script>
-    <script src="panels/interval-history.js?v=8"></script>
+    <script src="panels/interval-history.js?v=9"></script>
     <script src="panels/diary.js?v=2"></script>
     <script src="panels/records.js?v=2"></script>
     <script src="panels/admin.js?v=2"></script>
     <script src="panels/weekly-review.js?v=2"></script>
     <script src="panels/ruffier-test.js?v=2"></script>
+    <script src="panels/lactate-test.js?v=1"></script>
     <script src="panels/self-log.js?v=6"></script>
-    <script src="app.js?v=70"></script>
+    <script src="app.js?v=71"></script>
   </body>
 </html>
