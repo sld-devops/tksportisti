@@ -2552,7 +2552,11 @@ function render() {
   if (activeRole === "coach") {
     const selected = athletes.find((a) => a.id === athleteSelect.value);
     activeAthleteEl.textContent = selected ? selected.full_name : "";
-    activeAthleteEl.style.display = "block";
+    // Only once there is a name to show. The element is a solid lime pill with
+    // its own padding, so shown while empty it was a bare green stub floating in
+    // the week-nav row for as long as no athlete was picked — which is the state
+    // a coach lands in on every page load.
+    activeAthleteEl.style.display = selected ? "block" : "none";
   } else {
     activeAthleteEl.style.display = "none";
   }
@@ -3059,6 +3063,13 @@ function togglePlannerMenu(open) {
     panel.scrollTop = 0;
     const scrollEl = panel.querySelector(".planner-panel__scroll");
     if (scrollEl) scrollEl.scrollTop = 0;
+    // The drawer is `position: fixed; left: 0`, and on iOS "fixed" means the
+    // *layout* viewport, not what is currently on screen. So if the page is
+    // zoomed in and panned to the right — which is where Safari's zoom-on-focus
+    // leaves you — the drawer opens off to the left of the visible area and
+    // looks like it slid under the calendar. Panning back to the left edge puts
+    // it where the user is looking. No-op when nothing is panned.
+    window.scrollTo(0, window.scrollY);
     requestAnimationFrame(updateMobileHeaderHeight);
   }
 }

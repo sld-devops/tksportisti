@@ -89,6 +89,13 @@ html {
   background-size: cover;
   background-position: var(--page-bg-position, center);
   background-attachment: fixed;
+  /* iOS Safari "text autosizing" inflates font sizes on its own whenever the
+     layout viewport is wider than the screen — which is exactly what the
+     "Datora skats" button does (it pins the viewport to 1200px). Chrome on a
+     desktop never does this, so the page looked right there and inflated on the
+     phone. 100% means "render the size I actually wrote". */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 * {
@@ -446,7 +453,13 @@ h4 {
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
+  /* On iOS `100vh` is the *expanded* viewport — it does not subtract Safari's
+     own bottom toolbar — so the panel was taller than the visible area and its
+     last section sat underneath the toolbar with no way to scroll to it. `dvh`
+     is the height actually on screen. The `vh` line stays first as the fallback,
+     same pattern as `.planner-panel` in the mobile block below. */
   max-height: calc(100vh - 28px);
+  max-height: calc(100dvh - 28px);
   padding-bottom: 12px;
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
@@ -1022,6 +1035,13 @@ h4 {
 #weekBlockTypeSelect {
   margin: 0;
   padding: 0;
+  /* This is a wrapping flex container that is itself a flex item of
+     `.week-label-row`. WebKit sizes such an item by the width of all its
+     children on one line; Blink uses the widest single child. Without
+     `min-width: 0` the row therefore refuses to shrink on Safari and spills past
+     the right edge, while Chrome wraps it happily. Costs nothing where there is
+     already room. */
+  min-width: 0;
 }
 
 .week-nav-divider {
@@ -1100,6 +1120,11 @@ h4 {
 
 .wbt-option input {
   margin: 0;
+  /* Do NOT add `flex-shrink: 0` here. It looks like the obvious hardening, but
+     the blanket `input { width: 100% }` further down applies to radios too, and
+     this row only works because flex is allowed to shrink them back to their
+     natural size. Pinning them made each radio 61px wide and clipped the labels
+     to "Sl"/"Sa" inside their own boxes. Tried and reverted 2026-08-10. */
 }
 
 .week-block-type-select.readonly-wbt {
@@ -4226,6 +4251,34 @@ textarea:disabled {
 }
 
 @media (max-width: 1040px) {
+  /* THE phone fix. iOS Safari automatically zooms the whole page in the moment a
+     field smaller than 16px gets focus, and does not zoom back out. The page is
+     NOT re-laid-out when it zooms — it stays 393px wide and you simply see less
+     of it — so afterwards everything looks cut off at the right edge and the
+     off-canvas sidebar opens outside the visible area. Measured before this
+     rule: 95 of the app's 123 controls were under 16px (89 at 14.1, 6 at 13.6),
+     because `button, input, select, textarea { font: inherit }` makes every
+     control inherit `label { font-size: 0.88rem }`. Chrome on a desktop never
+     does any of this, which is why the app looked fine there.
+
+     `!important` is deliberate and is the smallest fix available: a handful of
+     rules set a control's size explicitly, and one of them (`#customName`) is an
+     id, so nothing short of `!important` covers them all from one place. Scoped
+     to phone/tablet widths, so the desktop layout is untouched.
+
+     16px is the threshold Safari uses — do not lower it "just a little".
+
+     Checkboxes and radios are excluded on purpose: nothing is typed into them so
+     they never trigger the zoom, but a native control's *size* follows its
+     font-size, so including them blew the circles up and clipped
+     "Slodze"/"Sacensības" down to "Sl"/"Sa" inside their own boxes. Caught in a
+     before/after screenshot, not by the measurements — keep the exclusion. */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
   #mobileMenuBtn {
     display: block;
   }
@@ -4327,6 +4380,16 @@ textarea:disabled {
 
   .planner-panel {
     box-sizing: border-box;
+    /* The drawer needs a solid backdrop of its own. On a desktop this element is
+       just a column in the grid and is meant to be see-through — the page photo
+       shows between the panels. Slid over the calendar as an overlay that reads
+       as "the panel opened *underneath* the calendar": the individual panels are
+       only 92% opaque and the gaps between them are fully transparent, so the
+       week grid and the training bar stay legible straight through it. Reported
+       exactly that way, and reproduced here. Mobile only — the desktop column
+       keeps its transparency. */
+    background: var(--surface);
+    box-shadow: 4px 0 18px rgba(0, 0, 0, 0.35);
     height: 100vh;
     height: 100dvh;
     left: 0;
@@ -6120,4 +6183,29 @@ body.is-dragging .session-card.is-draggable {
 
 .planner-panel .panel.dp-overflow-open {
   z-index: 30;
+}
+
+/* ---- Touch devices: hover must not stick ----
+   On a phone there is no pointer to move away, so WebKit leaves the last tapped
+   element in its `:hover` state until something else is tapped — a collapsible
+   header the coach opened stays pale green afterwards, which reads as "still
+   selected". A mouse never does this, so it is invisible on the desktop.
+
+   Written as an additive reset at the end of the file rather than by wrapping
+   each of the 74 `:hover` rules in place: same selectors, same specificity, so
+   source order alone decides, and nothing above has to be touched. Every one of
+   these elements has no background of its own when not hovered.
+
+   `(hover: none)` is a property of the device, not of the window width, so this
+   keeps working in "Datora skats" where the viewport is pinned to 1200px. */
+@media (hover: none) {
+  .panel .panel-header:hover,
+  .stats-collapsible .panel-header:hover,
+  .training-bar-header:hover,
+  .health-clickable:hover,
+  .diary-entry:hover,
+  .labtest-row:hover,
+  .selftest-row:hover {
+    background: transparent;
+  }
 }
