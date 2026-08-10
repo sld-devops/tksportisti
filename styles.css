@@ -3210,13 +3210,18 @@ label {
 
 /* Garmin and Strava are wordmarks, so they are matched on width, not height -
    sized to the same height the Garmin word came out a third shorter (119px vs
-   152px) and read as the smaller of the two. 152px is what the Strava logo
-   already measured, so only Garmin actually moves; neither image has any
-   transparent margin, so the boxes and the words line up. The archive's Google
-   Sheets logo is a square icon rather than a word and keeps the base height. */
+   152px) and read as the smaller of the two. Keeping both in one rule is what
+   holds them equal; neither image has any transparent margin, so the boxes and
+   the words line up. The archive's Google Sheets logo is a square icon rather
+   than a word and keeps the base height.
+
+   They started at 152px, the Strava logo's own measurement, back when this
+   section only opened on a click. Since it became always-visible (2026-08-10)
+   they are permanently on screen, and 152px each took up most of a ~300px
+   sidebar - scaled down 35% to 99px at the owner's request. */
 .profile-logo-garmin,
 .profile-logo-strava {
-  width: 152px;
+  width: 99px;
   height: auto;
   max-width: 100%;
 }
