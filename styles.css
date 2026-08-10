@@ -1119,12 +1119,18 @@ h4 {
 }
 
 .wbt-option input {
+  /* An explicit fixed size, same fix as `.checkbox-row input` uses everywhere
+     else in the app. The earlier attempt here relied on flex-shrink alone to
+     claw the radio back down from the blanket `input { width: 100% }` rule -
+     that depends on how each engine resolves a percentage flex-basis inside an
+     intrinsically-sized flex item, which Chrome and Safari do not agree on.
+     Confirmed on a real iPhone 2026-08-10: still clipped "Slodze"/"Sacensības"
+     to "Sl"/"Sa" there even though headless Chromium looked fine. A definite
+     16px sidesteps that disagreement instead of depending on it. */
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
   margin: 0;
-  /* Do NOT add `flex-shrink: 0` here. It looks like the obvious hardening, but
-     the blanket `input { width: 100% }` further down applies to radios too, and
-     this row only works because flex is allowed to shrink them back to their
-     natural size. Pinning them made each radio 61px wide and clipped the labels
-     to "Sl"/"Sa" inside their own boxes. Tried and reverted 2026-08-10. */
 }
 
 .week-block-type-select.readonly-wbt {
