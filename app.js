@@ -2568,6 +2568,13 @@ function render() {
   document.getElementById("weeklyReviewPanel").hidden = activeRole !== "coach" || !hasAthletes;
   document.getElementById("openRaceBtn").hidden = activeRole === "coach" || !hasAthletes;
   document.getElementById("raceCalendarPanel").hidden = !hasAthletes;
+  // The social-links section is the one sidebar panel that is not collapsible,
+  // so `updateSidebarPanelLock()` — which only walks `.collapsible` — does not
+  // shut it. Without this line a coach who has not picked anyone yet would be
+  // shown their *own* name and links, because renderProfile() falls back to
+  // `currentProfile` when the lookup finds no athlete.
+  profileCoachSection.hidden =
+    !hasAthletes || (activeRole === "coach" && !getSelectedAthleteId());
   document.getElementById("copyPrevWeekBtn").hidden = activeRole !== "coach" || viewMode !== "week";
   document.getElementById("copyWeekDivider").hidden = activeRole !== "coach" || viewMode !== "week";
   const isCurrentWeek = formatDateISO(currentWeekStart) === formatDateISO(getMonday(new Date()));

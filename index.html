@@ -179,11 +179,15 @@
             </div>
           </section>
 
-          <section class="panel collapsible collapsed" id="profileCoachSection">
-            <div class="panel-header">
-              <h2>Sociāli tīkli un treniņu arhīvs</h2>
-              <button class="collapse-toggle" type="button" aria-label="Rādīt profilu">▶</button>
-            </div>
+          <!-- Deliberately NOT `collapsible` and with no header row: Garmin and
+               Strava are opened constantly, and hiding them behind a click cost
+               more than it saved. The logos themselves say what they are, so the
+               "Sociāli tīkli un treniņu arhīvs" heading went with the arrow; the
+               athlete's name stays, so the coach can see whose links these are.
+               Because it is no longer `.collapsible`, `updateSidebarPanelLock()`
+               in app.js does not cover it — render() hides the whole section
+               while no athlete is picked instead. -->
+          <section class="panel" id="profileCoachSection">
             <div class="panel-body">
               <div class="profile-card" id="profileCard"></div>
             </div>

@@ -3168,6 +3168,15 @@ label {
   gap: 14px;
 }
 
+/* This section has no header row of its own (see index.html), and
+   `.planner-panel .panel` carries no vertical padding — the header used to be
+   what held the content clear of the card's top edge. Vertical only: the
+   horizontal inset stays the panel's own 6px, so `.profile-section`'s top border
+   keeps spanning the full card the way it does in every other panel. */
+#profileCoachSection .panel-body {
+  padding: 10px 0 12px;
+}
+
 .profile-header {
   display: flex;
   flex-wrap: wrap;

@@ -134,6 +134,14 @@ Choosing anything in the "Izveidot jaunu treniņu" dropdown calls `clearCustomBu
 - Colours are fixed per zone (1 grey, 2 light blue, 3 yellow, 4 orange, 5 red, "Maks." row violet) via `zone-c1`…`zone-c5`/`zone-max` classes. When `max_hr` is empty the percent boxes render blank and a `.zone-hint` line explains why — typing a percent with no max HR is a deliberate no-op, not a crash.
 - **Thresholds ("Sliekšņvērtības", `renderThresholds()`) reuse the same palette as gradients**, one row per threshold via `thr-a`/`thr-b`/`thr-c`: aerobic blends zone 2→3, anaerobic 3→4, lactate 4→5, so the three rows climb blue→red the same way the zones above them do. Same scoping rule — everything sits under `#thresholdsBody`, because `.field-grid` is used all over the app. Panel order in the sidebar is deliberately zones → pace/HR → thresholds (moved 2026-08-02).
 
+### The social-links section is the one sidebar panel that does not collapse
+
+`#profileCoachSection` (Garmin / Strava / the plan archive) lost its `collapsible` class, its `.panel-header` and its ▶ arrow on 2026-08-10: those links are opened constantly, and a click to reach them cost more than the saved space. The heading went with the arrow — the two wordmarks say what they are — and the athlete's name stayed, so the coach can see whose links these are. Empty rows still render their input, so an athlete can paste a link without opening anything.
+
+**The trap this creates is in `app.js`, not here.** `updateSidebarPanelLock()` walks `.planner-panel .collapsible`, so a non-collapsible panel silently drops out of the "pick an athlete first" lock — and `renderProfile()` falls back to `currentProfile` when the lookup finds no athlete, which means a coach who has not picked anyone would be shown **their own** name and links. `render()` therefore hides the whole section on `!hasAthletes || (coach && no selection)`. Any future panel that stops being collapsible needs the same treatment; there is no generic guard.
+
+Its `.panel-body` also carries its own vertical padding (`styles.css`), because `.planner-panel .panel` has none and the header used to be what held the content off the card's top edge.
+
 ### A profile URL row that is not on screen must not be saved
 
 Garmin / Strava / the plan archive (`urlRow()` in `panels/profile.js`) render as an **input while empty or being edited, and as a clickable logo otherwise** — so at most one of the three inputs normally exists. `saveProfileUrls()` used to read all three ids and send all three columns, and a missing input read as `""`: entering Strava wrote an empty string over the saved Garmin link, and the two logos could never be shown at the same time. Fixed 2026-08-09 — it now builds the patch from the inputs that actually exist (`updateProfile` writes only the columns it is handed). Any new field in that section must follow the same rule.
