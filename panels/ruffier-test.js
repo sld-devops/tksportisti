@@ -1,6 +1,26 @@
 let ruffierTests = [];
 let editingRuffierTestId = null;
 let seenRuffierTestIds = new Set();
+// Own small expand/collapse, separate from the panel's own ▶ - state lives
+// here (not just CSS) because renderRuffierTests() replaces the whole body
+// innerHTML on every save/edit, which would otherwise reset it closed.
+let ruffierInfoExpanded = false;
+
+const RUFFIER_INFO_HTML = `
+  Rufjē tests parāda, cik ātri sirds atgūstas pēc fiziskas slodzes, un ir
+  vienkāršs veids, kā novērtēt vispārējo fizisko sagatavotību.
+  <strong>Kā izpildīt:</strong>
+  <ol>
+    <li>Apsēdies vai apgulies un mierīgi atpūsties vismaz 5 minūtes.</li>
+    <li>Izmēri pulsu 15 sekundēs un ieraksti to laukā HR1.</li>
+    <li>45 sekundēs izpildi 30 pietupienus vienmērīgā tempā.</li>
+    <li>Uzreiz pēc slodzes izmēri pulsu 15 sekundēs un ieraksti laukā HR2.</li>
+    <li>Nosēdies mierīgi un atpūsties 1 minūti.</li>
+    <li>Pēc minūtes atkal izmēri pulsu 15 sekundēs un ieraksti laukā HR3.</li>
+  </ol>
+  Lietotne pēc tam pati aprēķina Rufjē indeksu un parāda kategoriju
+  (teicami / labi / apmierinoši / viduvēji / slikti).
+`;
 
 function loadSeenRuffierTestIds() {
   try {
@@ -54,7 +74,13 @@ function renderRuffierTests() {
   const isAthleteView = (activeRole === "athlete") && currentUser.id === athleteId;
   const isCoachView = activeRole === "coach";
 
-  let html = `<div class="ruffier-legend">`;
+  let html = `
+    <div class="ruffier-info${ruffierInfoExpanded ? " expanded" : ""}" role="button" tabindex="0">
+      <div class="ruffier-info-text">${RUFFIER_INFO_HTML}</div>
+      <span class="ruffier-info-toggle">${ruffierInfoExpanded ? "Rādīt mazāk ▲" : "Rādīt vairāk ▼"}</span>
+    </div>
+  `;
+  html += `<div class="ruffier-legend">`;
   RUFFIER_CATEGORIES.forEach(c => {
     html += `<div class="ruffier-legend-row" style="--fbg:${c.bg};--fborder:${c.border};--fcolor:${c.color}">${escapeHtml(c.rangeLabel)}</div>`;
   });
@@ -97,6 +123,11 @@ function renderRuffierTests() {
   }
 
   body.innerHTML = html;
+
+  body.querySelector(".ruffier-info")?.addEventListener("click", () => {
+    ruffierInfoExpanded = !ruffierInfoExpanded;
+    renderRuffierTests();
+  });
 
   if (isAthleteView) {
     body.querySelectorAll(".labtest-row-editable").forEach(row => {

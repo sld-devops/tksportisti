@@ -5628,6 +5628,42 @@ textarea:disabled {
   background: var(--fbg);
 }
 
+/* Collapsed to ~2 lines via line-clamp, not the big .collapsible/.panel-body
+   max-height system - this is a small card inside the panel body, not a
+   second nested panel with its own arrow. */
+.ruffier-info {
+  cursor: pointer;
+  background: var(--panel-row-hover);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.ruffier-info-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ruffier-info-text ol {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+.ruffier-info.expanded .ruffier-info-text {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+.ruffier-info-toggle {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
 .ruffier-legend {
   margin-bottom: 12px;
 }
