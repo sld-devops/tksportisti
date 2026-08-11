@@ -32,6 +32,56 @@ function markPaceHrEditSeen(athleteId, editedAt) {
 }
 
 loadSeenPaceHrEdits();
+
+// Same two-way pattern as pace/HR, now that HR zones and thresholds can also
+// be edited by both sides: who-and-when rides inside the existing hr_zones /
+// thresholds JSON under "_meta", "seen" is a per-browser timestamp map, and
+// each panel gets its own independent badge since they are two separate
+// sections that can be edited independently of one another.
+let seenHrZonesEdits = {};
+let seenThresholdsEdits = {};
+
+function loadSeenHrZonesEdits() {
+  try {
+    seenHrZonesEdits = JSON.parse(localStorage.getItem("seenHrZonesEdits")) || {};
+  } catch (e) {
+    seenHrZonesEdits = {};
+  }
+}
+function saveSeenHrZonesEdits() {
+  localStorage.setItem("seenHrZonesEdits", JSON.stringify(seenHrZonesEdits));
+}
+function isHrZonesEditSeen(athleteId, editedAt) {
+  return seenHrZonesEdits[athleteId] === editedAt;
+}
+function markHrZonesEditSeen(athleteId, editedAt) {
+  if (!athleteId || !editedAt) return;
+  seenHrZonesEdits[athleteId] = editedAt;
+  saveSeenHrZonesEdits();
+}
+
+function loadSeenThresholdsEdits() {
+  try {
+    seenThresholdsEdits = JSON.parse(localStorage.getItem("seenThresholdsEdits")) || {};
+  } catch (e) {
+    seenThresholdsEdits = {};
+  }
+}
+function saveSeenThresholdsEdits() {
+  localStorage.setItem("seenThresholdsEdits", JSON.stringify(seenThresholdsEdits));
+}
+function isThresholdsEditSeen(athleteId, editedAt) {
+  return seenThresholdsEdits[athleteId] === editedAt;
+}
+function markThresholdsEditSeen(athleteId, editedAt) {
+  if (!athleteId || !editedAt) return;
+  seenThresholdsEdits[athleteId] = editedAt;
+  saveSeenThresholdsEdits();
+}
+
+loadSeenHrZonesEdits();
+loadSeenThresholdsEdits();
+
 profileCard.addEventListener("click", (e) => {
   const btn = e.target.closest(".url-edit-btn");
   if (!btn) return;
@@ -123,9 +173,12 @@ function renderHrZones() {
     ? athletes.find((a) => a.id === athleteId) || currentProfile
     : currentProfile;
   const hrZones = profile.hr_zones || {};
-  const canEdit = isCoach();
-  const disabled = canEdit ? "" : "disabled";
   const maxHr = parseMaxHr(hrZones.max_hr);
+
+  const meta = hrZones._meta || {};
+  const myRole = isCoach() ? "coach" : "athlete";
+  const editedByOther = !!(meta.at && meta.by && meta.by !== myRole);
+  const unseen = editedByOther && !isHrZonesEditSeen(profile.id, meta.at);
 
   const zoneRowsHtml = ["1", "2", "3", "4", "5"]
     .map((z) => {
@@ -133,9 +186,9 @@ function renderHrZones() {
       return `
         <div class="zone-row zone-c${z}">
           <span class="zone-num">${z}.</span>
-          <input class="zone-no" value="${zone.no || ""}" placeholder="no" ${disabled} />
-          <input class="zone-lidz" value="${zone.lidz || ""}" placeholder="līdz" ${disabled} />
-          <input class="zone-pct" value="${hrZonePercentText(zone, maxHr)}" placeholder="%" ${disabled} />
+          <input class="zone-no" value="${zone.no || ""}" placeholder="no" />
+          <input class="zone-lidz" value="${zone.lidz || ""}" placeholder="līdz" />
+          <input class="zone-pct" value="${hrZonePercentText(zone, maxHr)}" placeholder="%" />
         </div>
       `;
     })
@@ -145,28 +198,43 @@ function renderHrZones() {
     ? ""
     : `<p class="zone-hint">Ievadi maksimālo pulsu, lai rēķinātu procentus.</p>`;
 
+  // Local time on purpose - the stored stamp is UTC, and slicing its date off
+  // would show the previous day for anything edited late in the evening here.
+  let noteHtml = "";
+  if (meta.at) {
+    const d = new Date(meta.at);
+    const when = `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}. ${
+      String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    const who = meta.by === "coach" ? "Treneris" : "Sportists";
+    noteHtml = `<p class="pace-hr-note${unseen ? " is-new" : ""}">${who} laboja ${when}</p>`;
+  }
+
   document.getElementById("hrZonesBody").innerHTML = `
     <div class="profile-section" id="hrZoneFields">${zoneRowsHtml}</div>
     <div class="zone-row zone-max">
       <span class="zone-num">Maks.</span>
-      <input id="maxHrInput" value="${hrZones.max_hr || ""}" placeholder="maks. HR" ${disabled} />
+      <input id="maxHrInput" value="${hrZones.max_hr || ""}" placeholder="maks. HR" />
     </div>
     ${hintHtml}
+    ${noteHtml}
   `;
 
-  if (canEdit) {
-    document.querySelectorAll("#hrZoneFields .zone-no, #hrZoneFields .zone-lidz").forEach((el) => {
-      el.addEventListener("input", () => refreshHrZonePercent(el.closest(".zone-row")));
-      el.addEventListener("change", saveHrZones);
-    });
-    document.querySelectorAll("#hrZoneFields .zone-pct").forEach((el) => {
-      el.addEventListener("input", () => applyHrZonePercent(el.closest(".zone-row")));
-      el.addEventListener("change", saveHrZones);
-    });
-    const maxInput = document.getElementById("maxHrInput");
-    maxInput?.addEventListener("input", refreshAllHrZonePercents);
-    maxInput?.addEventListener("change", saveHrZones);
-  }
+  const panel = document.getElementById("hrZonesPanel");
+  panel.classList.toggle("has-entries", unseen);
+  const header = panel.querySelector(".panel-header");
+  if (header) header.dataset.count = unseen ? "1" : "0";
+
+  document.querySelectorAll("#hrZoneFields .zone-no, #hrZoneFields .zone-lidz").forEach((el) => {
+    el.addEventListener("input", () => refreshHrZonePercent(el.closest(".zone-row")));
+    el.addEventListener("change", saveHrZones);
+  });
+  document.querySelectorAll("#hrZoneFields .zone-pct").forEach((el) => {
+    el.addEventListener("input", () => applyHrZonePercent(el.closest(".zone-row")));
+    el.addEventListener("change", saveHrZones);
+  });
+  const maxInput = document.getElementById("maxHrInput");
+  maxInput?.addEventListener("input", refreshAllHrZonePercents);
+  maxInput?.addEventListener("change", saveHrZones);
 }
 
 function currentMaxHrInput() {
@@ -210,33 +278,49 @@ function renderThresholds() {
     ? athletes.find((a) => a.id === athleteId) || currentProfile
     : currentProfile;
   const thresholds = profile.thresholds || {};
-  const canEdit = isCoach();
-  const disabled = canEdit ? "" : "disabled";
+
+  const meta = thresholds._meta || {};
+  const myRole = isCoach() ? "coach" : "athlete";
+  const editedByOther = !!(meta.at && meta.by && meta.by !== myRole);
+  const unseen = editedByOther && !isThresholdsEditSeen(profile.id, meta.at);
+
+  let noteHtml = "";
+  if (meta.at) {
+    const d = new Date(meta.at);
+    const when = `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}. ${
+      String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    const who = meta.by === "coach" ? "Treneris" : "Sportists";
+    noteHtml = `<p class="pace-hr-note${unseen ? " is-new" : ""}">${who} laboja ${when}</p>`;
+  }
 
   // thr-a/thr-b/thr-c carry the zone-coloured gradients - each threshold is
   // tinted with the two HR zones it physiologically sits between.
   document.getElementById("thresholdsBody").innerHTML = `
     <div class="profile-section">
       <div class="field-grid thr-row thr-a">
-        <label>Aerobais temps (min/km) <input id="editAerobicPace" value="${thresholds.aerobic_pace || ""}" ${disabled} /></label>
-        <label>Aerobais pulss <input id="editAerobicHr" value="${thresholds.aerobic_hr || ""}" ${disabled} /></label>
+        <label>Aerobais temps (min/km) <input id="editAerobicPace" value="${thresholds.aerobic_pace || ""}" /></label>
+        <label>Aerobais pulss <input id="editAerobicHr" value="${thresholds.aerobic_hr || ""}" /></label>
       </div>
       <div class="field-grid thr-row thr-b">
-        <label>Anaerobais temps (min/km) <input id="editAnaerobicPace" value="${thresholds.anaerobic_pace || ""}" ${disabled} /></label>
-        <label>Anaerobais pulss <input id="editAnaerobicHr" value="${thresholds.anaerobic_hr || ""}" ${disabled} /></label>
+        <label>Anaerobais temps (min/km) <input id="editAnaerobicPace" value="${thresholds.anaerobic_pace || ""}" /></label>
+        <label>Anaerobais pulss <input id="editAnaerobicHr" value="${thresholds.anaerobic_hr || ""}" /></label>
       </div>
       <div class="field-grid thr-row thr-c">
-        <label>Laktāta temps (min/km) <input id="editLtPace" value="${thresholds.lt_pace || ""}" ${disabled} /></label>
-        <label>Laktāta pulss <input id="editLtHr" value="${thresholds.lt_hr || ""}" ${disabled} /></label>
+        <label>Laktāta temps (min/km) <input id="editLtPace" value="${thresholds.lt_pace || ""}" /></label>
+        <label>Laktāta pulss <input id="editLtHr" value="${thresholds.lt_hr || ""}" /></label>
       </div>
     </div>
+    ${noteHtml}
   `;
 
-  if (canEdit) {
-    document.querySelectorAll("#thresholdsBody input").forEach(el => {
-      el.addEventListener("change", saveThresholds);
-    });
-  }
+  const panel = document.getElementById("thresholdsPanel");
+  panel.classList.toggle("has-entries", unseen);
+  const header = panel.querySelector(".panel-header");
+  if (header) header.dataset.count = unseen ? "1" : "0";
+
+  document.querySelectorAll("#thresholdsBody input").forEach(el => {
+    el.addEventListener("change", saveThresholds);
+  });
 }
 
 // The zone palette lives in styles.css (:root --zoneN-*) so CSS and JS can
@@ -431,8 +515,13 @@ async function saveHrZones() {
   });
   const maxHr = document.getElementById("maxHrInput")?.value?.trim();
   if (maxHr) zones.max_hr = maxHr;
+  // Stamp who saved it, so the other side can be told there is something new.
+  const editedAt = new Date().toISOString();
+  zones._meta = { by: isCoach() ? "coach" : "athlete", at: editedAt };
   try {
     await updateProfile(profile.id, { hr_zones: zones });
+    // Our own edit must never come back to us as a notification.
+    markHrZonesEditSeen(profile.id, editedAt);
     if (profile.id === currentUser.id) {
       currentProfile = await getProfile(currentUser.id);
     }
@@ -441,6 +530,7 @@ async function saveHrZones() {
     render();
   } catch (e) {
     console.error(e);
+    alert("Saglabāšana neizdevās (iespējams, trūkst tiesību).");
   }
 }
 
@@ -454,8 +544,13 @@ async function saveThresholds() {
     anaerobic_pace: document.getElementById("editAnaerobicPace").value.trim(),
     anaerobic_hr: document.getElementById("editAnaerobicHr").value.trim(),
   };
+  // Stamp who saved it, so the other side can be told there is something new.
+  const editedAt = new Date().toISOString();
+  thresholds._meta = { by: isCoach() ? "coach" : "athlete", at: editedAt };
   try {
     await updateProfile(profile.id, { thresholds });
+    // Our own edit must never come back to us as a notification.
+    markThresholdsEditSeen(profile.id, editedAt);
     if (profile.id === currentUser.id) {
       currentProfile = await getProfile(currentUser.id);
     }
@@ -464,6 +559,7 @@ async function saveThresholds() {
     render();
   } catch (e) {
     console.error(e);
+    alert("Saglabāšana neizdevās (iespējams, trūkst tiesību).");
   }
 }
 

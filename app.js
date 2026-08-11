@@ -3031,6 +3031,29 @@ document.querySelectorAll(".collapse-toggle").forEach((btn) => {
       }
     }
 
+    // Not gated on the coach like the panels above: HR zones are edited by
+    // both sides, so both need their badge cleared when they look at them.
+    if (panel.id === "hrZonesPanel" && wasCollapsed && !panel.classList.contains("collapsed")) {
+      const profile = getViewedProfile();
+      const editedAt = profile?.hr_zones?._meta?.at;
+      if (profile && editedAt) {
+        markHrZonesEditSeen(profile.id, editedAt);
+        panel.classList.toggle("has-entries", false);
+        panel.querySelector(".panel-header").dataset.count = "0";
+      }
+    }
+
+    // Same as HR zones - thresholds are edited by both sides too.
+    if (panel.id === "thresholdsPanel" && wasCollapsed && !panel.classList.contains("collapsed")) {
+      const profile = getViewedProfile();
+      const editedAt = profile?.thresholds?._meta?.at;
+      if (profile && editedAt) {
+        markThresholdsEditSeen(profile.id, editedAt);
+        panel.classList.toggle("has-entries", false);
+        panel.querySelector(".panel-header").dataset.count = "0";
+      }
+    }
+
     if (panel.id === "raceCalendarPanel" && wasCollapsed && !panel.classList.contains("collapsed")) {
       onRaceCalendarExpand();
     }
