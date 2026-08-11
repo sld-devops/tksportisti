@@ -3908,10 +3908,25 @@ label {
 
 /* ---- Threshold gradients (thresholds panel only) ----
    Each row blends the two HR zone tints it sits between, so the three rows
-   climb blue -> yellow -> orange -> red the same way the zones above do. */
-#thresholdsBody .thr-a input { background: linear-gradient(120deg, var(--zone2-tint) 0%, var(--zone3-tint) 100%); border-color: #b6cbe2; }
-#thresholdsBody .thr-b input { background: linear-gradient(120deg, var(--zone3-tint) 0%, var(--zone4-tint) 100%); border-color: #e2c88a; }
-#thresholdsBody .thr-c input { background: linear-gradient(120deg, var(--zone4-tint) 0%, var(--zone5-tint) 100%); border-color: #eeb193; }
+   climb blue -> yellow -> orange -> red the same way the zones above do.
+   background-image (not the "background" shorthand), same reason as the
+   pace/HR map's zone-no/zone-lidz pair: it leaves background-size/-position
+   free for the two-input-share-one-gradient split below, instead of each
+   input redrawing the full row gradient on its own. */
+#thresholdsBody .thr-a input { background-image: linear-gradient(120deg, var(--zone2-tint) 0%, var(--zone3-tint) 100%); border-color: #b6cbe2; }
+#thresholdsBody .thr-b input { background-image: linear-gradient(120deg, var(--zone3-tint) 0%, var(--zone4-tint) 100%); border-color: #e2c88a; }
+#thresholdsBody .thr-c input { background-image: linear-gradient(120deg, var(--zone4-tint) 0%, var(--zone5-tint) 100%); border-color: #eeb193; }
+
+#thresholdsBody .thr-row input {
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+}
+#thresholdsBody .thr-row label:first-child input {
+  background-position: left;
+}
+#thresholdsBody .thr-row label:last-child input {
+  background-position: right;
+}
 
 #thresholdsBody .thr-a > label { color: var(--zone2-text); }
 #thresholdsBody .thr-b > label { color: var(--zone3-text); }
