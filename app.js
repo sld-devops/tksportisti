@@ -1779,16 +1779,13 @@ function averageIntervalTime(paceStrings) {
   let anyClock = false;
   paceStrings.forEach((raw) => {
     const s = String(raw || "").trim();
-    if (/^\d+:\d+$/.test(s)) anyClock = true;
+    if (/^\d+:\d+(?:\.\d+)?$/.test(s)) anyClock = true;
     const p = parseAthleteInput(s);
     if (p) seconds.push(p.m * 60 + p.s);
   });
   if (seconds.length < 2) return "";
   const avg = seconds.reduce((a, b) => a + b, 0) / seconds.length;
-  if (anyClock) {
-    const total = Math.round(avg);
-    return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
-  }
+  if (anyClock) return formatClockSeconds(avg);
   return String(Math.round(avg * 10) / 10);
 }
 
@@ -4411,7 +4408,7 @@ function paceLt(a, b) {
 function parseAthleteInput(str) {
   if (!str) return null;
   let s = str.trim().replace(/\s*\/\s*km\s*$/i, "").replace(/\s*(sek|sec|s)\s*$/i, "").trim();
-  const mmss = s.match(/^(\d+):(\d+)$/);
+  const mmss = s.match(/^(\d+):(\d+(?:\.\d+)?)$/);
   if (mmss) return { m: +mmss[1], s: +mmss[2] };
   const num = s.match(/^(\d+(?:\.\d+)?)$/);
   if (num) return { m: 0, s: +num[1] };
@@ -4481,12 +4478,26 @@ function intervalTargetMiddle(targetStr) {
   return ((b.min.m * 60 + b.min.s) + (b.max.m * 60 + b.max.s)) / 2;
 }
 
+// One decimal place of precision, formatted as "m:ss" or "m:ss.s" - shared by
+// the stepper and by averageIntervalTime() so the two can never format the
+// same value two different ways. Not snapped to the 0.5s step grid: a step
+// moves an existing value by 0.5s regardless of what it started from, and an
+// average of two 0.5s-apart values can land exactly between two grid points
+// (e.g. 3:47.5 and 3:48 average to 3:47.75, which reads better as "3:47.8"
+// than rounded away to one or the other).
+function formatClockSeconds(totalSec) {
+  if (totalSec < 0) totalSec = 0;
+  const t = Math.round(totalSec * 10) / 10;
+  const m = Math.floor(t / 60);
+  // Rounded again, or float subtraction leaves 47.699999999999996.
+  const secs = Math.round((t - m * 60) * 10) / 10;
+  const secStr = Number.isInteger(secs) ? String(secs).padStart(2, "0") : secs.toFixed(1).padStart(4, "0");
+  return m + ":" + secStr;
+}
+
 function formatIntervalStep(totalSec, useClock) {
   if (totalSec < 0) totalSec = 0;
-  if (useClock) {
-    const t = Math.round(totalSec);
-    return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0");
-  }
+  if (useClock) return formatClockSeconds(totalSec);
   // Rounded, or 73 + 0.2 + 0.2 comes out as 73.39999999999999.
   return (Math.round(totalSec * 10) / 10).toFixed(1);
 }
@@ -4500,9 +4511,9 @@ function attachIntervalStepper(inp, targetStr) {
   inp.dataset.stepWired = "1";
 
   // A target written as minutes:seconds (3:20-3:25 for 1000m intervals) steps
-  // by a whole second - 0.2 of a second cannot be written in that notation.
+  // by half a second too, same as the bare-seconds boxes - written as "3:20.5".
   const useClock = !!targetStr && targetStr.indexOf(":") > -1;
-  const stepBy = useClock ? 1 : INTERVAL_STEP_SECONDS;
+  const stepBy = useClock ? 0.5 : INTERVAL_STEP_SECONDS;
   const middle = intervalTargetMiddle(targetStr);
 
   function step(dir) {
