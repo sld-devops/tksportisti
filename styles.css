@@ -3350,6 +3350,23 @@ label {
   color: var(--muted);
 }
 
+/* The "no"/"līdz" pair in one row share a single gradient (JS sets it as one
+   background-image, twice the box width) so the colour flows from the first
+   box into the second instead of restarting - "no" shows the gradient's left
+   half, "līdz" the right half. #hrZonesBody's own zone-c1..c5 rows use a
+   different, flat-colour mechanism and are untouched by this. */
+#paceHrFields .zone-no,
+#paceHrFields .zone-lidz {
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+}
+#paceHrFields .zone-no {
+  background-position: left;
+}
+#paceHrFields .zone-lidz {
+  background-position: right;
+}
+
 .edit-record-btn {
   background: none;
   border: 0;

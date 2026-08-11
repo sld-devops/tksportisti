@@ -379,8 +379,12 @@ function hrZoneTintStyle(pulse, hrZones) {
     ? zoneToken(spot.index, "line")
     : zoneToken(spot.index + 1, "line");
   const text = zoneToken(spot.index + (spot.progress < 0.5 ? 0 : 1), "text");
+  // background-image (not the "background" shorthand) on purpose - the
+  // shorthand would reset background-size/-position/-repeat back to their
+  // initial values, and those are what let .zone-no/.zone-lidz (styles.css)
+  // each show one half of this same gradient instead of both restarting it.
   return {
-    row: `background: linear-gradient(120deg, ${own} 0%, ${own} ${share}%, ${next} 100%); border-color: ${line};`,
+    row: `background-image: linear-gradient(120deg, ${own} 0%, ${own} ${share}%, ${next} 100%); border-color: ${line};`,
     num: `color: ${text};`,
   };
 }
