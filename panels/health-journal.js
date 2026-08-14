@@ -1,3 +1,9 @@
+// "Veselības žurnāls" panelis - tāda pati "seen" izsekošana kā self-tests.js
+// (skat. tā komentārus), bet pievienošanas/rediģēšanas forma nav dialogā -
+// tā zīmējas TIEŠI PAŠĀ PANELĪ (`.health-form` HTML zemāk renderHealthJournal
+// iekšā), atkarībā no `editingHealthId` (null = jauna ieraksta forma, id =
+// rediģē to konkrēto ierakstu). `end_date: null` nozīmē "viena diena", nevis
+// "bez beigu datuma" - skat. CLAUDE.md par šo konvenciju.
 let healthEntries = [];
 let editingHealthId = null;
 let seenHealthIds = new Set();
@@ -26,6 +32,10 @@ function markAllHealthSeen(entries) {
 
 loadSeenHealthIds();
 
+// Zīmē visu paneli uzreiz - saraksts + (ja sportists skatās savu profilu)
+// forma zem tā. Tā kā šī funkcija pati sevi izsauc no jauna pēc katras
+// darbības (startHealthEdit, cancelHealthEdit, saveHealthEntry), forma vienmēr
+// rāda pareizo stāvokli (tukša / aizpildīta rediģēšanai).
 function renderHealthJournal() {
   const body = document.getElementById("healthJournalBody");
   if (!body) return;

@@ -1,3 +1,7 @@
+// "Polar testi" panelis - tieši tāds pats paraugs kā panels/self-tests.js
+// (state, "seen" izsekošana localStorage, saraksts + dialogs, badge), tikai
+// citi lauki (MAS temps, MAP vati, VO2max, laktāts). Skat. self-tests.js
+// komentārus par to, kā šis paraugs strādā.
 let polarTests = [];
 let editingPolarTestId = null;
 let seenPolarTestIds = new Set();

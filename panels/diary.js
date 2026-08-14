@@ -1,3 +1,8 @@
+// "Dienasgrāmata" panelis. Sportists raksta ierakstus (forma vienmēr redzama
+// apakšā), treneris tos lasa. "readDiaryEntryIds" ir tā pati "seen izsekošana
+// localStorage" ideja kā self-tests.js, tikai treneris ir tas, kurš "redz"
+// (nevis sportists) - un šī paša Set-a stāvokli izmanto arī app.js, lai
+// zīmētu 📒 ikonu pie sportista vārda sānjoslā.
 let diaryEntries = [];
 let readDiaryEntryIds = new Set();
 
@@ -127,6 +132,11 @@ function renderDiary() {
 }
 
 // Diary body delegated click handler — added once, not per render
+//
+// `e.target.closest(".klase")` sākot no elementa, uz kura tieši klikšķināts,
+// iet UZ AUGŠU pa DOM koku un atrod tuvāko priekšteci (vai pašu elementu),
+// kam ir šī klase - noderīgi, ja pogas iekšā ir vēl citi elementi (piem.,
+// ikona), jo klikšķis uz ikonas "target" būtu ikona, nevis pati poga.
 document.getElementById("diaryBody")?.addEventListener("click", async (e) => {
   const editBtn = e.target.closest(".diary-edit-btn");
   if (editBtn) {

@@ -1,3 +1,8 @@
+// "Paštesti" panelis - sportists ieraksta rezultātus, treneris tos redz.
+// `seenSelfTestIds` (localStorage, PER PĀRLŪKU, nevis datubāzē) atceras,
+// kurus ierakstus treneris jau ir redzējis, lai sarkanais "N" skaitlītis pie
+// paneļa virsraksta rādītu, cik JAUNU ierakstu ir - skat. CLAUDE.md
+// "Notification badges" par šo atkārtoto sešu paneļu paraugu.
 let selfTests = [];
 let editingSelfTestId = null;
 let seenSelfTestIds = new Set();
@@ -35,6 +40,8 @@ const ST_KEYS = [
   "plank_labais", "plank_kreisais", "paleciens_laba", "paleciens_kreisa",
 ];
 
+// Zīmē sarakstu sānjoslas panelī (tikai datumi - viss pārējais atveras
+// dialogā). Sportists redz savus, treneris redz izvēlētā sportista.
 function renderSelfTests() {
   const body = document.getElementById("selfTestsBody");
   if (!body) return;
@@ -87,6 +94,9 @@ function renderSelfTests() {
   }
 }
 
+// Atver/aizpilda dialogu vienam paštestam. `existing` ir null jaunam
+// ierakstam vai esošs objekts rediģēšanai. Treneris redz to pašu dialogu,
+// bet visi lauki ir `.disabled` - viņš var tikai skatīties, nevis labot.
 function openSelfTestDialog(existing) {
   const dlg = document.getElementById("selfTestDialog");
   const athleteId = getSelectedAthleteId();

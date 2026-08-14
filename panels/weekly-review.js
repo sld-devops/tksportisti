@@ -1,3 +1,8 @@
+// Dialogs ar tabulu - rindas ir sportisti, kolonnas ir pēdējās 13 nedēļas,
+// ķeksītis rādās, ja treneris tai nedēļai jau ir atzīmējis "Nedēļa
+// apskatīta" (skat. #weekBlockTypeSelect ķeksīti app.js). Šis panelis tikai
+// LASA weekly_reviews tabulu, lai trenerim uzreiz redzamu pārskatu par visu
+// komandu - pati atzīmēšana notiek pa vienai nedēļai app.js kalendāra pusē.
 let weeklyReviewedSet = new Set();
 
 const weeklyReviewDialog = document.getElementById("weeklyReviewDialog");
