@@ -1,3 +1,12 @@
+// ===================================================================
+// GLOBĀLAIS STĀVOKLIS UN DOM ELEMENTU ATSAUCES
+// ===================================================================
+// Šī faila augšpusē ir visi "globālie" mainīgie - vērtības, ko lasa un maina
+// funkcijas visur citur failā. Nav klašu/objektu kā Python OOP - vienkārši
+// koplietoti mainīgie. `let` nozīmē, ka vērtību var vēlāk pārrakstīt (kā
+// parasts Python mainīgais); `const` nozīmē, ka pati mainīgā "kastīte"
+// vairs netiek pārrakstīta uz citu vērtību (bet, ja tas ir masīvs vai
+// objekts, tā *saturu* joprojām var mainīt - piem. .push() masīvam).
 const days = [
   "Pirmdiena", "Otrdiena", "Trešdiena", "Ceturtdiena",
   "Piektdiena", "Sestdiena", "Svētdiena",
@@ -15,8 +24,20 @@ let activeRole = "athlete";
 let calendarMode = localStorage.getItem("calendarMode") || (window.matchMedia("(max-width: 1040px)").matches ? "mobile" : "desktop");
 
 // check for existing session on load
+//
+// (async () => { ... })() ir "uzreiz izsaukta funkcija": `() => {...}` ir bulta-
+// funkcija (arrow function) - īsāks veids kā uzrakstīt funkciju, aptuveni kā
+// Python `lambda`, tikai ar `{}` bloku var saturēt vairākas rindas, nevis tikai
+// vienu izteiksmi. `async` priekšā nozīmē, ka funkcijas iekšā drīkst lietot
+// `await` - "pagaidi, kamēr šis solis (piem., pieprasījums serverim) pabeidzas,
+// tad turpini nākamo rindu", līdzīgi Python `async def` + `await`. Iekavas
+// `(...)()` uzreiz izsauc šo funkciju vienu reizi, tiklīdz fails ielādējas.
 (async () => {
   const { data } = await supabase.auth.getSession();
+  // `const { data } = ...` ir "destrukturēšana" - no atbildes objekta uzreiz
+  // paņem tikai `data` lauku. `data?.session` ("optional chaining") nozīmē
+  // "ja `data` ir null/undefined, neskaties tālāk, atgriezt undefined" -
+  // pasargā no kļūdas, ja mēģinātu paņemt `.session` no null.
   if (data?.session) {
     currentUser = data.session.user;
     currentProfile = await getProfile(currentUser.id);
@@ -37,12 +58,25 @@ let calendarMode = localStorage.getItem("calendarMode") || (window.matchMedia("(
 })();
 
 // Click outside any <dialog> (on its ::backdrop) closes it, app-wide.
+//
+// `document.querySelectorAll(...)` atrod visus elementus, kas atbilst CSS
+// selektoram (šeit - visus <dialog> tagus) un atgriež tos kā sarakstu.
+// `.forEach((dialog) => {...})` izpilda doto funkciju katram atrastajam
+// elementam pēc kārtas - kā Python `for dialog in dialogs:`.
+// `.addEventListener("click", (e) => {...})` piesaista funkciju, kas
+// izpildīsies katru reizi, kad lietotājs uz šī elementa uzklikšķinās; `e` ir
+// notikuma objekts ar informāciju par klikšķi (t.sk. `e.target` - uz kā
+// tieši tika klikšķināts).
 document.querySelectorAll("dialog").forEach((dialog) => {
   dialog.addEventListener("click", (e) => {
     if (e.target === dialog) dialog.close();
   });
 });
 
+// Turpmākie mainīgie ir lietotnes "atmiņa" - kurš skats ir aktīvs, kura
+// nedēļa/mēnesis ir uz ekrāna, un vietējais treniņu/plānu saraksta kešs
+// (dati no Supabase, ko lietotne patur šeit, lai nevajadzētu pārlādēt no
+// servera pēc katras darbības - skat. CLAUDE.md "Data flow pattern").
 const MIN_WEEK_START = new Date(2026, 5, 1);
 let currentWeekStart = getMonday(new Date());
 let viewMode = "week";
@@ -125,6 +159,10 @@ function updateMenuBtnArrow() {
 updateMenuBtnArrow();
 window.addEventListener("resize", updateMenuBtnArrow);
 
+// No šejienes līdz funkcijai getMonday() - vienreizējas atsauces uz HTML
+// elementiem no index.html (pēc to `id`), lai vēlāk kodā varētu īsi rakstīt
+// `mainDuration.value` u.tml., nevis katru reizi no jauna meklēt elementu.
+// `document.getElementById("x")` atgriež to elementu, kura HTML ir `id="x"`.
 const athleteSelect = document.getElementById("athleteSelect");
 const athleteSelectorPanel = document.getElementById("athleteSelectorPanel");
 const calendarGrid = document.getElementById("calendarGrid");
