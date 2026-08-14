@@ -214,14 +214,26 @@ const spikesRow = document.getElementById("spikesRow");
 const raceShoes = document.getElementById("raceShoes");
 const raceShoesRow = document.getElementById("raceShoesRow");
 
+// ===================================================================
+// DATUMU UN FORMATĒŠANAS PALĪGFUNKCIJAS
+// ===================================================================
+// Mazas, atkārtoti izmantojamas funkcijas datumu rēķināšanai un teksta
+// pierakstīšanai vienādā formātā (piem., "2026-08-14" vai "14.8.2026.").
+// Tās sauc gandrīz visur pārējā failā.
+
+// Atgriež tās pašas nedēļas pirmdienu dotajam datumam.
 function getMonday(date) {
   const d = new Date(date);
+  // (d.getDay() + 6) % 7 pārvērš JS nedēļas dienu numerāciju (0=svētdiena)
+  // par "cik dienu atpakaļ līdz pirmdienai" (0=pirmdiena ... 6=svētdiena).
   d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
   d.setHours(0, 0, 0, 0);
   return d;
 }
 
 function getWeekStartFromStr(dateStr) {
+  // "2026-08-14".split("-") -> ["2026","08","14"]; .map(Number) pārvērš katru
+  // masīva elementu ar doto funkciju - kā Python `list(map(int, parts))`.
   const parts = dateStr.split("-").map(Number);
   const d = new Date(parts[0], parts[1] - 1, parts[2]);
   const mon = getMonday(d);
@@ -230,6 +242,10 @@ function getWeekStartFromStr(dateStr) {
 
 function formatDateISO(d) {
   const y = d.getFullYear();
+  // Template string (ar ` ` pēdiņām, nevis ' vai ") ļauj mainīgos ielikt
+  // teksta vidū ar ${...} - kā Python f-string `f"{y}-{m}"`.
+  // .padStart(2, "0") piepilda skaitli ar priekšā liktu "0" līdz 2 zīmēm
+  // (piem. "8" -> "08") - kā Python `str(x).zfill(2)`.
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
