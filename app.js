@@ -2137,7 +2137,18 @@ function renderLogCard(log, dayCommentTaken) {
   const logActions = athleteIsOwner ? `<div class="log-actions"><button class="edit-log-btn icon-action-btn" data-log-day="${log.date}" type="button" title="Rediģēt">✏️</button><button class="log-delete-btn icon-action-btn is-delete" data-delete-log="${log.id}" type="button" title="Dzēst">✕</button></div>` : "";
   return `<div class="session-card log-card">${items}${feelingBadge}${logNotes}${athleteIsOwner ? `<div class="card-actions">${logActions}</div>` : ""}</div>`;
 }
+// #endregion
 
+// #region Nedēļas kalendāra zīmēšana
+// renderCalendar() ir viena no lielākajām un biežāk izsauktajām funkcijām -
+// tā uzbūvē visu septiņu dienu kolonnu HTML (plāni, izpildes ieraksti,
+// ierobežojumi, veselības ieraksti, sacensības, "pievienot pašam" pogas) un
+// ieraksta to `calendarGrid.innerHTML`. Katru reizi, kad kaut kas mainās
+// (izvēlēts cits sportists, saglabāts komentārs, u.c.), šī funkcija tiek
+// izsaukta no jauna un uzzīmē visu kalendāru no jauna, nevis maina tikai to
+// vienu mainījušos gabalu - vienkāršāk, bet nozīmē arī, ka pēc jebkuras
+// izmaiņas ir jāatceras vēlreiz izsaukt render*() funkciju, kas attiecīgo
+// ekrāna daļu zīmē (skat. CLAUDE.md "Data flow pattern").
 function renderCalendar() {
   const athleteId = getSelectedAthleteId();
   const weekStart = currentWeekStart;
@@ -2314,10 +2325,20 @@ function growAllCommentBoxes() {
 }
 
 // Grow while typing too, so a coach writing a long comment sees all of it.
+//
+// Šis ir "notikumu deleģēšana" (event delegation): tā vietā, lai piesaistītu
+// klausītāju katram atsevišķam komentāra lodziņam (kuru var būt desmitiem, un
+// jauni parādās ikreiz, kad renderCalendar() no jauna uzzīmē kalendāru),
+// klausītājs tiek piesaistīts VIENU reizi visam dokumentam, un katrā
+// klikšķī/rakstīšanā pārbauda, vai notikums nāca tieši no vajadzīgā elementa
+// (`e.target.matches?.(selektors)`). Tā strādā arī elementiem, kas parādās
+// vēlāk, jo klausītājs neatkarīgs no konkrēta elementa.
 document.addEventListener("input", (e) => {
   if (e.target.matches?.(COMMENT_BOX_SELECTOR)) growCommentBox(e.target);
 });
+// #endregion
 
+// #region Nedēļas kopsavilkuma (skaitļi, komentāri, "nedēļa apskatīta") zīmēšana
 // One weekly_summaries row is now drawn in two different places: the four
 // figures inside the "Paveiktā statistika" panel (they are exactly what those
 // charts are made of), and the two comments in their own band above Monday, so
@@ -2486,7 +2507,13 @@ function escapeHtml(str) {
   div.textContent = str;
   return div.innerHTML;
 }
+// #endregion
 
+// #region Mēneša skata zīmēšana
+// Tas pats, ko renderCalendar() dara nedēļas skatam, bet vienam veselam
+// mēnesim uzreiz (7×N rūtiņu režģis, ieskaitot iepriekšējā/nākamā mēneša
+// dienas, kas pilda pirmo/pēdējo nedēļas rindu - skat. getMonthGridStart/End
+// augstāk failā).
 function renderMonthViewInline() {
   const grid = document.getElementById("monthGridInline");
   const label = document.getElementById("monthViewTitleInline");
@@ -2638,6 +2665,13 @@ function renderMonthViewInline() {
   `;
 }
 
+// #endregion
+
+// #region Galvenā render() funkcija un skatu pārslēgi
+// render() ir "diriģents" - tā neko pati nezīmē, bet izsauc pareizās
+// render*() funkcijas pareizajā secībā atkarībā no tā, kāds skats (nedēļa/
+// mēnesis) un kāda loma (treneris/sportists) ir aktīvi. To izsauc pēc
+// gandrīz katras darbības, kas maina redzamos datus.
 function renderViewTabs() {
   document.querySelectorAll("[data-view]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.view === viewMode);
@@ -2800,7 +2834,15 @@ function resetNewTrainingForm() {
     if (toggleBtn) toggleBtn.setAttribute("aria-label", "Rādīt treniņa izvēli");
   }
 }
+// #endregion
 
+// #region Notikumu piesaiste: sportista izvēlne, treniņa veidotāja lodziņi, pogas
+// No šejienes tālāk failā vairs nav gandrīz nevienas jaunas render*()
+// funkcijas - ir simtiem `elements.addEventListener("click"/"change"/...,
+// () => {...})` izsaukumu, kas piesaista rīcību katrai pogai, izvēlnei un
+// laukam lapā. Tie tiek izpildīti VIENU reizi, kad fails ielādējas (nevis
+// katrā render() reizē), jo statiskie elementi (pogas, dialogi) index.html
+// pastāv visu laiku - mainās tikai to saturs/redzamība.
 athleteSelect.addEventListener("change", async () => {
   const gen = ++loadGen;
   selectedTemplateId = null;
