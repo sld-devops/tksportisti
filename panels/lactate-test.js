@@ -55,6 +55,7 @@ const LACTATE_LT2 = 4.0;
 const LACTATE_BASELINE_RISE = 1.0;
 const LACTATE_DEFAULT_STAGE_MIN = 4;
 
+// #region Ievadītā nolasīšana un pārbaude
 /* ---------- reading what was typed ---------- */
 
 // "4:30" -> 270. A pace is written min:sec; a bare number is taken as whole
@@ -97,6 +98,9 @@ function lactateUsableSteps(steps) {
     .sort((a, b) => b.paceSec - a.paceSec);
 }
 
+// #endregion
+
+// #region Sliekšņvērtību aprēķins
 /* ---------- the thresholds ---------- */
 
 // Walks the stages in order and returns the point where lactate first crosses
@@ -170,6 +174,9 @@ function lactateLt2Label(test) {
   return `${lactateSecToPace(r.paceSec)}/km`;
 }
 
+// #endregion
+
+// #region Līknes zīmēšana (SVG)
 /* ---------- the curve ---------- */
 
 // Own constants, not the ones in panels/stats.js - those are `const` at global
@@ -252,6 +259,9 @@ function buildLactateChart(points, results) {
   return `<div class="lactate-chart chart-series-2">${svg}</div>`;
 }
 
+// #endregion
+
+// #region Sānjoslas saraksts
 /* ---------- the panel ---------- */
 
 function renderLactateTests() {
@@ -304,6 +314,9 @@ function renderLactateTests() {
   }
 }
 
+// #endregion
+
+// #region Testa ievades dialogs (posmu tabula)
 /* ---------- the dialog ---------- */
 
 function openLactateTestDialog(existing) {
@@ -454,6 +467,10 @@ async function saveLactateTest() {
     if (editingLactateTestId) {
       await updateLactateTest(editingLactateTestId, payload);
     } else {
+      // `{ atslēga: vērtība, ...objekts }` ir OBJEKTA spread - tas pats
+      // paņēmiens kā `[...masīvs]`, tikai objektiem: "izklāj" visus
+      // `payload` laukus jaunajā objektā, un `athlete_id` klāt to papildina.
+      // Ērtāk nekā rakstīt katru `payload` lauku atsevišķi vēlreiz.
       await insertLactateTest({ athlete_id: athleteId, ...payload });
     }
   } catch (e) {
@@ -493,3 +510,4 @@ document.getElementById("ltAddStepBtn")?.addEventListener("click", () => {
 });
 document.getElementById("saveLactateTestBtn")?.addEventListener("click", saveLactateTest);
 document.getElementById("deleteLactateTestBtn")?.addEventListener("click", deleteLactateTestEntry);
+// #endregion
