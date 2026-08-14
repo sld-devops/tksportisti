@@ -1,3 +1,14 @@
+// ===================================================================
+// AUTH.JS - pieteikšanās, sesija, konta pārslēgšana, paroles maiņa
+// ===================================================================
+// `currentUser`/`currentProfile` (zemāk) ir divi no svarīgākajiem globālajiem
+// mainīgajiem visā lietotnē - gandrīz katra funkcija app.js/panels/*.js
+// failos kaut kur pārbauda `currentProfile.role` vai `isCoach()`. Lietotāji
+// piesakās nevis ar e-pastu, bet ar lietotājvārdu, kas šeit tiek pārvērsts
+// par "izdomātu" e-pastu (`lietotajvards@skmitauer.app`) - Supabase Auth
+// prasa e-pasta formātu, bet trenerim un sportistiem e-pasts nav vajadzīgs.
+
+// #region Pieteikšanās un sesijas pamati
 const appEl = document.getElementById("appView");
 const authViewEl = document.getElementById("authView");
 const loginBtn = document.getElementById("loginBtn");
@@ -100,7 +111,9 @@ async function logout() {
   currentProfile = null;
   showAuth();
 }
+// #endregion
 
+// #region Konta pārslēgšana (treneris ⇄ sportists uz viena ierīces)
 /* ---------------------------------------------------------------------------
    "Sportista skats" / "Trenera skats"
 
@@ -296,7 +309,9 @@ async function linkAndSwitchAccount() {
   setStashedSessions(sessions);
   location.reload();
 }
+// #endregion
 
+// #region Paroles maiņa
 async function changePassword() {
   const newPwd = newPasswordInput.value;
   const confirmPwd = confirmPasswordInput.value;
@@ -324,7 +339,9 @@ async function changePassword() {
   newPasswordInput.value = "";
   confirmPasswordInput.value = "";
 }
+// #endregion
 
+// #region Notikumu piesaiste
 authForm.addEventListener("submit", function(e){ e.preventDefault(); login(); });
 logoutBtn.addEventListener("click", logout);
 
@@ -344,3 +361,4 @@ changePasswordBtn.addEventListener("click", () => {
   changePasswordDialog.showModal();
 });
 savePasswordBtn.addEventListener("click", changePassword);
+// #endregion
