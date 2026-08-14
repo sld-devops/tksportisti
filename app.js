@@ -1,6 +1,4 @@
-// ===================================================================
-// GLOBĀLAIS STĀVOKLIS UN DOM ELEMENTU ATSAUCES
-// ===================================================================
+// #region Globālais stāvoklis un DOM elementu atsauces
 // Šī faila augšpusē ir visi "globālie" mainīgie - vērtības, ko lasa un maina
 // funkcijas visur citur failā. Nav klašu/objektu kā Python OOP - vienkārši
 // koplietoti mainīgie. `let` nozīmē, ka vērtību var vēlāk pārrakstīt (kā
@@ -213,10 +211,9 @@ const spikes = document.getElementById("spikes");
 const spikesRow = document.getElementById("spikesRow");
 const raceShoes = document.getElementById("raceShoes");
 const raceShoesRow = document.getElementById("raceShoesRow");
+// #endregion
 
-// ===================================================================
-// DATUMU UN FORMATĒŠANAS PALĪGFUNKCIJAS
-// ===================================================================
+// #region Datumu un formatēšanas palīgfunkcijas
 // Mazas, atkārtoti izmantojamas funkcijas datumu rēķināšanai un teksta
 // pierakstīšanai vienādā formātā (piem., "2026-08-14" vai "14.8.2026.").
 // Tās sauc gandrīz visur pārējā failā.
@@ -305,6 +302,20 @@ function parseHoursMinutesInput(str) {
   }
   return parseFloat(v) || 0;
 }
+// #endregion
+
+// #region Treniņa "details" teksta būvēšana un lasīšana
+// Šī ir visdelikātākā koda daļa (skat. arī CLAUDE.md "A training's `details`
+// string is positional - treat it as a record, not prose"). Katrs treniņš
+// (plāns vai sagatave) datubāzē glabājas nevis kā atsevišķi lauki, bet kā
+// VIENS garš teksts ar rindiņām ("Iesildīšanās: 15min; 120-130", "Pamatdaļa:
+// 6x400m (76-78s); caur 2min" utt.), kur katrā rindā lauki ir atdalīti ar ";"
+// FIKSĒTĀ SECĪBĀ. Funkcijas šeit veido šo tekstu no veidotāja lodziņiem
+// (formatPart, getGeneratedTraining) un vēlāk to atkal sadala atpakaļ
+// lodziņos (splitDetailFields, parsePlanToForm, loadTemplateToForm tālāk
+// failā). Ja kāds lauks tiek izlaists vidū, visi nākamie lauki "nobīdās" un
+// nonāk nepareizajā lodziņā - tāpēc tukšs lauks jāatstāj kā tukšs ("; ;"),
+// nevis jāizlaiž pavisam.
 
 function formatPart(label, duration, pulse, pace, additional) {
   const dur = duration.trim();
@@ -323,6 +334,11 @@ function getDrillsPart() {
   return includeDrills.checked ? "Drill" : "";
 }
 
+// Salasa "Izveidot jaunu treniņu" veidotāja lodziņus vienā "details" tekstā
+// (skat. paskaidrojumu augstāk). Atgriež objektu { title, details, ... } -
+// `{ a, b }` te ir "objekta literālis", aptuveni kā Python `dict`, tikai
+// atslēgas raksta bez pēdiņām un lasa ar punktu (`obj.title`, nevis
+// `obj["title"]`).
 function getGeneratedTraining() {
   const type = customType.value;
 
@@ -330,6 +346,8 @@ function getGeneratedTraining() {
     const warmup = formatPart("Iesildīšanās", warmupDuration.value, warmupPulse.value, null, warmupAdditional.value);
     const drills = getDrillsPart();
     const cooldown = formatPart("Atsildīšanās", cooldownDuration.value, cooldownPulse.value, null, cooldownAdditional.value);
+    // [a, b].filter(Boolean) izmet visus "tukšos" elementus (tukšu tekstu,
+    // null, undefined) - īss veids kā `[x for x in [a,b] if x]` Python.
     const lines = [warmup, drills].filter(Boolean);
     const mainText = customFreeText.value.trim();
     if (mainText) lines.push(`Pamatdaļa: ${mainText}`);
@@ -646,7 +664,9 @@ function parseVarIntervalMain(mainText, segmentListEl, lapsEl, restEl) {
   lapsEl.value = String(result.laps);
   if (result.restBetween) restEl.value = result.restBetween;
 }
+// #endregion
 
+// #region Nedēļas/mēneša diapazona palīgfunkcijas
 function getSelectedAthleteId() {
   return athleteSelect.value;
 }
@@ -693,7 +713,16 @@ const monthNamesLV = [
 function getMonthNameLV(date) {
   return monthNamesLV[date.getMonth()] + " " + date.getFullYear();
 }
+// #endregion
 
+// #region Datu ielāde no Supabase
+// Funkcijas šeit paņem datus no Supabase (skat. db.js) un ieraksta tos
+// globālajos mainīgajos no faila sākuma (`plans`, `templates`, u.c.) -
+// skat. CLAUDE.md "Data flow pattern". `async function` + `await` nozīmē,
+// ka funkcija drīkst "apstāties" un pagaidīt tīkla atbildi, neapturot visu
+// lapu; `try { ... } catch (e) { ... }` ir kā Python `try/except` - ja
+// pieprasījums neizdodas, `catch` bloks nosaka, kas notiek tā vietā (šeit -
+// tukšs saraksts), lai lapa nesalūztu.
 async function loadAllData() {
   const athleteId = getSelectedAthleteId();
   if (!athleteId) return;
@@ -716,6 +745,10 @@ async function refreshWeekStatuses(athleteIds) {
   }
   if (!athleteIds.length) return;
   const startStr = formatDateISO(getMonday(new Date()));
+  // Promise.all([...]) izpilda vairākus `await`-us VIENLAICĪGI, nevis
+  // secīgi (ātrāk, jo abi ir neatkarīgi tīkla pieprasījumi), un pagaida,
+  // kamēr abi pabeidzas; `const [a, b] = [...]` ir masīva destrukturēšana -
+  // paņem rezultātus pēc secības.
   const [statuses, blockTypes] = await Promise.all([
     getWeekStatuses(athleteIds, startStr),
     getWeekBlockTypesForAthletes(athleteIds, startStr),
@@ -924,7 +957,13 @@ async function initApp() {
 }
 
 window.initApp = initApp;
+// #endregion
 
+// #region Sportistu saraksts, sagataves un "Biežāk lietotie"
+// renderAthleteDropdown zīmē sportistu izvēlni sānjoslā (t.sk. četrus
+// nedēļas kvadrātiņus un ⚕/!/📒 ikonas pie vārda); renderTemplates un
+// renderFrequentTable zīmē sagatavju un "Biežāk lietotie" sarakstus, ko
+// treneris var uzklikšķināt, lai ielādētu treniņa veidotājā.
 function renderAthleteDropdown() {
   const trigger = document.getElementById("dropdownTrigger");
   const list = document.getElementById("dropdownList");
