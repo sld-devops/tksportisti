@@ -1,3 +1,32 @@
+// ===================================================================
+// DATU PIEKĻUVES SLĀNIS (skat. arī CLAUDE.md "db.js")
+// ===================================================================
+// Šis ir VIENĪGAIS fails, kas runā ar Supabase (mākoņa datubāzi). Katra
+// funkcija ir maza apvalka funkcija ap vienu darbību ar vienu tabulu:
+// getX (izlasīt), insertX (izveidot), updateX (labot), deleteX (dzēst).
+// app.js un panels/*.js failos NEKAD nesauc `supabase.from(...)` tieši -
+// tie vienmēr izsauc kādu no šejienes funkcijām.
+//
+// Vaicājuma "ķēde" (piemēram, zemāk `getProfile`) izskatās kā virkne
+// punktu-metožu, kas katra pievieno vienu SQL nosacījumu, un beigās
+// `await` pagaida atbildi no servera - aptuveni kā SQL:
+//   SELECT * FROM profiles WHERE id = userId
+// pierakstīts kā:
+//   supabase.from("profiles").select("*").eq("id", userId)
+// Biežākās metodes: .select("lauki") - ko atlasīt (vai "*" visu); .eq/.neq/
+// .gte/.lte/.in - nosacījumi (=, ≠, ≥, ≤, "ir iekš saraksta"); .order() -
+// kārtošana; .single() - sagaidi tieši VIENU rezultātu (nevis sarakstu);
+// .range(no, līdz) - lapošana (skat. getPlanTitlesSince zemāk, kur tas
+// tiešām vajadzīgs). Atbilde vienmēr atgriežas kā `{ data, error }` -
+// `const { data } = await ...` paņem tikai `data` daļu (destrukturēšana).
+//
+// Konvencija visā failā: `getX` funkcijas klusi atgriež tukšu sarakstu
+// (`data || []`), ja kaut kas neizdodas - saucējam nav jāapstrādā kļūda,
+// lai lapa nesalūztu. `insertX`/`updateX`/`deleteX` funkcijas OTRĀDI - tās
+// pārmet kļūdu tālāk (`if (error) throw error`), lai saucējs (parasti
+// dialoga "Saglabāt" poga) var pateikt lietotājam, ka saglabāšana
+// neizdevās, nevis izlikties, ka viss ir kārtībā.
+
 const SUPABASE_URL = "https://yqaabswcvwkiimpoxsfj.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlxYWFic3djdndraWltcG94c2ZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NDMwMzEsImV4cCI6MjA5NzExOTAzMX0.lp-MqwLJiiHyMyITkQ59BoNvKWHtHl14FevIa3PtnF4";
@@ -23,6 +52,7 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, 
   },
 });
 
+// #region Profili un sportistu saraksts
 async function getProfile(userId) {
   const { data } = await supabase
     .from("profiles")
@@ -68,6 +98,9 @@ async function getAllProfiles() {
   return data || [];
 }
 
+// #endregion
+
+// #region Plāni un sagataves
 async function getPlans(athleteId, weekStart, weekEnd) {
   const { data } = await supabase
     .from("plans")
@@ -177,6 +210,9 @@ async function updateTemplate(id, updates) {
   return data;
 }
 
+// #endregion
+
+// #region Sacensības un rekordi
 async function getRaces(athleteId) {
   const { data } = await supabase
     .from("races")
@@ -261,6 +297,9 @@ async function deleteRecord(id) {
   if (error) throw error;
 }
 
+// #endregion
+
+// #region Izpildes ieraksti, nedēļas kopsavilkumi un statistikas grafiku dati
 async function getLogEntries(athleteId, weekStart, weekEnd) {
   const { data } = await supabase
     .from("log_entries")
@@ -352,6 +391,9 @@ async function getWeeklyTrend(athleteId, numWeeks) {
   }
 
   if (logs) {
+    // `for (const x of masīvs)` iet cauri masīva elementiem pēc kārtas - kā
+    // Python `for x in masīvs:` (atšķirībā no `.forEach()`, šeit drīkst
+    // lietot `continue`/`break` iekšā, tāpēc šeit izvēlēts šis, nevis tas).
     for (const entry of logs) {
       const d = new Date(entry.date + "T00:00:00");
       const mon = trendMonday(d);
@@ -510,7 +552,9 @@ async function upsertWeeklySummary(data) {
     .single();
   if (error) throw error;
 }
+// #endregion
 
+// #region Dienas piezīmes un nedēļas statuss (kvadrātiņi pie sportista vārda)
 async function getDayNotes(athleteId, weekStart, weekEnd) {
   const { data } = await supabase
     .from("day_notes")
@@ -613,7 +657,9 @@ async function getWeekBlockTypesForAthletes(athleteIds, weekStartStr) {
   });
   return result;
 }
+// #endregion
 
+// #region Ierobežojumi un dienasgrāmata
 function isoLocal(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -700,7 +746,9 @@ async function deleteDiaryEntry(id) {
     .eq("id", id);
   if (error) throw error;
 }
+// #endregion
 
+// #region Testi: paštesti, Polar, veselības žurnāls, lab, Rufjē, laktāta
 async function getSelfTests(athleteId) {
   const { data } = await supabase
     .from("self_tests")
@@ -922,7 +970,9 @@ async function deleteLactateTest(id) {
     .eq("id", id);
   if (error) throw error;
 }
+// #endregion
 
+// #region Trenera atgādinājumi (⚕/!/📒 ikonas) un nedēļas pārskati
 async function getNotCompletedAthleteIds() {
   const { data } = await supabase
     .from("plans")
@@ -1017,5 +1067,6 @@ async function unmarkWeekReviewed(athleteId, weekStart) {
     .eq("week_start", weekStart);
   if (error) throw error;
 }
+// #endregion
 
 
