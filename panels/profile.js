@@ -1,3 +1,10 @@
+// Sportista profila sānjoslas kartiņa un tai piederošie paneļi: saites
+// (Garmin/Strava/arhīvs), HR darba zonas, sliekšņvērtības, "Temps pret
+// sirdsritmu". Lielākā daļa "kāpēc" komentāru šeit jau ir no iepriekšēja
+// darba (skat. arī CLAUDE.md par visiem šiem paneļiem) - šī piegāja galvenokārt
+// pievieno struktūru (#region) un trūkstošos JS sintakses skaidrojumus.
+
+// #region Divvirzienu "seen" izsekošana (temps/pulss, HR zonas, sliekšņvērtības)
 const profileCard = document.getElementById("profileCard");
 const urlEditState = { garmin: false, strava: false, spreadsheet: false };
 
@@ -81,7 +88,9 @@ function markThresholdsEditSeen(athleteId, editedAt) {
 
 loadSeenHrZonesEdits();
 loadSeenThresholdsEdits();
+// #endregion
 
+// #region Profila kartiņa un saites (Garmin/Strava/arhīvs)
 profileCard.addEventListener("click", (e) => {
   const btn = e.target.closest(".url-edit-btn");
   if (!btn) return;
@@ -102,6 +111,10 @@ function renderProfile() {
   const canEdit = currentUser.id === athleteId;
   const canEditUrls = profile.role === "athlete" && canEdit;
 
+  // Funkciju var deklarēt arī CITAS funkcijas iekšā (šeit - renderProfile()
+  // iekšā). urlRow ir redzama tikai šeit, iekšpusē, un pastāv tikai uz laiku,
+  // kamēr izpildās renderProfile - ērti, jo tā izmanto renderProfile mainīgos
+  // (canEditUrls) un citur šī palīgfunkcija nav vajadzīga.
   function urlRow(id, label, field, url, logo, placeholder) {
     const editing = canEditUrls && (urlEditState[field] || !url);
     if (editing) {
@@ -139,6 +152,9 @@ function renderProfile() {
   });
 }
 
+// #endregion
+
+// #region Sirdsritma darba zonas
 // The percent column is derived from max HR, never stored - hr_zones keeps
 // holding plain pulse numbers, so nothing already saved changes shape.
 function hrPercentOf(value, maxHr) {
@@ -272,6 +288,9 @@ function applyHrZonePercent(row) {
   if (to > 0 && lidzInput) lidzInput.value = String(Math.round((to / 100) * maxHr));
 }
 
+// #endregion
+
+// #region Sliekšņvērtības
 function renderThresholds() {
   const athleteId = getSelectedAthleteId();
   const profile = isCoach()
@@ -323,6 +342,9 @@ function renderThresholds() {
   });
 }
 
+// #endregion
+
+// #region Temps pret sirdsritmu (krāsu gradients pēc zonas)
 // The zone palette lives in styles.css (:root --zoneN-*) so CSS and JS can
 // never drift apart; index 0..4 are zones 1-5, index 5 is "above zone 5".
 const zoneTokenCache = {};
@@ -441,6 +463,9 @@ function renderPaceHrMap() {
   });
 }
 
+// #endregion
+
+// #region Saglabāšana (saites, HR zonas, sliekšņvērtības, temps/pulss)
 function getViewedProfile() {
   const athleteId = getSelectedAthleteId();
   if (isCoach()) {
@@ -482,6 +507,11 @@ async function saveProfileUrls() {
     if (profile.id === currentUser.id) {
       currentProfile = await getProfile(currentUser.id);
     }
+    // Object.keys(objekts) atgriež objekta atslēgu sarakstu kā masīvu (kā
+    // Python `dict.keys()`), lai to varētu iet cauri ar .forEach(); tālāk
+    // Object.entries() dara to pašu, bet katram atslēgas+vērtības pārim
+    // uzreiz atgriež abus kopā kā [atslēga, vērtība] (kā Python
+    // `dict.items()`).
     Object.keys(urlEditState).forEach((k) => (urlEditState[k] = false));
     // A save runs on blur, i.e. once the athlete has already clicked into the
     // next box - so the re-render must not throw away what they are in the
@@ -606,3 +636,4 @@ async function savePaceHrMap() {
     alert("Saglabāšana neizdevās (iespējams, trūkst tiesību).");
   }
 }
+// #endregion
