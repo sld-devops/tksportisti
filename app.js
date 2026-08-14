@@ -499,7 +499,7 @@ function parseVarIntervalPaceBounds(line) {
   const segments = line.split(" + ");
   let segIdx = 0;
   segments.forEach((seg) => {
-    const m = seg.match(/(?:(\d+)x)?\S+\(([^)]+)\)/);
+    const m = seg.match(/(?:(?:\d+-)?(\d+)x)?\S+\(([^)]+)\)/);
     if (!m) return;
     const reps = parseInt(m[1]) || 1;
     const segBounds = parsePaceBounds(m[2].trim());
@@ -540,7 +540,10 @@ function parseSegmentsFromVarLine(line) {
   // count on an ungrouped line, which turned "400m + 200m × 3"
   // (400,200,400,200,400,200) into "3x400m + 3x200m" (400,400,400,200,200,200)
   // as soon as the coach reopened and saved it - a different session.
-  const segRegex = /^(?:(\d+)x)?(\S+)\(([^)]+)\)(?:\s*caur\s+(.+))?$/;
+  // Reps can also be written as a range ("10-12x300m") - the coach's real
+  // answer once the athlete gets to pick how many they manage; always read
+  // as the upper number, same as the plain (non-Var) interval regexes.
+  const segRegex = /^(?:(?:\d+-)?(\d+)x)?(\S+)\(([^)]+)\)(?:\s*caur\s+(.+))?$/;
   const segments = parts.map(p => {
     const m = p.match(segRegex);
     if (m) {
@@ -1555,10 +1558,10 @@ function parsePlanToForm(plan) {
               document.getElementById("epVarLaps"),
               document.getElementById("epVarRestBetweenLaps")
             );
-          } else if (/^(\d+)x([^\s;()]+)/.test(mainContent) && isIntervalType(plan.title)) {
+          } else if (/^(?:\d+-)?(\d+)x([^\s;()]+)/.test(mainContent) && isIntervalType(plan.title)) {
             // Same length matcher as loadTemplateToForm: (\S+) used to swallow
             // the ";" and load "400m;" as the length.
-            const intervalMatch = mainContent.match(/^(\d+)x([^\s;()]+)/);
+            const intervalMatch = mainContent.match(/^(?:\d+-)?(\d+)x([^\s;()]+)/);
             document.getElementById("epRepeatCount").value = intervalMatch[1];
             document.getElementById("epIntervalLength").value = intervalMatch[2];
             const paceMatch = mainContent.match(/\(([^)]+)\)/);
@@ -1704,7 +1707,7 @@ function loadTemplateToForm(template) {
       } else {
         // Stop the length at ";" / "(" — with no pace written, "6x400m; caur 2min"
         // used to load the length as "400m;" (\S+ ran straight through the ";").
-        const intervalMatch = rest.match(/(\d+)x([^\s;()]+)/);
+        const intervalMatch = rest.match(/(?:\d+-)?(\d+)x([^\s;()]+)/);
         if (intervalMatch) {
           setVal("repeatCount", intervalMatch[1]);
           setVal("intervalLength", intervalMatch[2]);
@@ -1765,7 +1768,7 @@ function getPlannedIntervalBlocks(planDetails) {
       for (let lap = 0; lap < Math.max(1, result.laps); lap++) blocks.push(...pattern);
       return blocks;
     }
-    const m = line.match(/Pamatdaļa:\s*(\d+)x(\S+)/);
+    const m = line.match(/Pamatdaļa:\s*(?:\d+-)?(\d+)x(\S+)/);
     if (m) return [parseInt(m[1])];
   }
   return [];
@@ -4107,7 +4110,11 @@ function openPlanLogDialog(planId) {
       }
       html += `</div>`;
     } else {
-      let intervalMatch = line.match(/Pamatdaļa:\s*(\d+)x(\S+)/);
+      // "10-12x300m" is a range, not a fixed count - the coach's real answer
+      // once the athlete gets to pick how many they manage. (?:\d+-)? skips
+      // the lower end so intervalMatch[1] is always the upper number, same as
+      // getPlannedIntervalBlocks()/getPlannedIntervalCount() below.
+      let intervalMatch = line.match(/Pamatdaļa:\s*(?:\d+-)?(\d+)x(\S+)/);
       if (intervalMatch) {
         const count = parseInt(intervalMatch[1]);
         html += `<div class="log-section-row" data-log-section="Pamatdaļa">
@@ -4239,7 +4246,8 @@ function openLogDialog(dateStr) {
         }
         html += `</div>`;
       } else {
-        let intervalMatch = line.match(/Pamatdaļa:\s*(\d+)x(\S+)/);
+        // "10-12x300m" is a range, not a fixed count - see openPlanLogDialog.
+        let intervalMatch = line.match(/Pamatdaļa:\s*(?:\d+-)?(\d+)x(\S+)/);
         if (intervalMatch) {
           const count = parseInt(intervalMatch[1]);
           html += `<div class="log-section-row" data-log-section="Pamatdaļa">
@@ -4352,7 +4360,7 @@ function getPlannedMainPartSummary(details) {
       const summary = segments.map(s => (s.reps > 1 ? `${s.reps}x${s.length}` : s.length)).join(" + ");
       return laps > 1 ? `${summary} × ${laps}` : summary;
     }
-    const m = line.match(/Pamatdaļa:\s*(\d+)x(\S+)/);
+    const m = line.match(/Pamatdaļa:\s*(?:\d+-)?(\d+)x(\S+)/);
     if (m) return `${m[1]}x${m[2]}`;
   }
   return "";
@@ -4372,7 +4380,7 @@ function getPlannedIntervalCount(details) {
       count += lineCount * Math.max(1, result.laps);
       return;
     }
-    const m = line.match(/Pamatdaļa:\s*(\d+)x(\S+)/);
+    const m = line.match(/Pamatdaļa:\s*(?:\d+-)?(\d+)x(\S+)/);
     if (m) count += parseInt(m[1]);
   });
   return count;

@@ -160,7 +160,7 @@ function extractIntervalLengths(details) {
     } else {
       // Grabs the length written right after "Nx": "400m", "400 m", "1,5km",
       // a bare "400", or a duration such as "4min" / "4'" / "90s" / "1:30".
-      const m = line.match(/Pamatdaļa:\s*\d+\s*x\s*([\d.,]+(?::\d{1,2})?\s*(?:(?:min|['′])\s*(?:\d+\s*(?:s|sek|sec|["″]))?|km|sek|sec|[msh]|["″])?)/i);
+      const m = line.match(/Pamatdaļa:\s*(?:\d+-)?\d+\s*x\s*([\d.,]+(?::\d{1,2})?\s*(?:(?:min|['′])\s*(?:\d+\s*(?:s|sek|sec|["″]))?|km|sek|sec|[msh]|["″])?)/i);
       if (m) classifyIntervalLength(m[1], out);
     }
   });
