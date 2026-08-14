@@ -523,6 +523,16 @@ function displayTitle(name) {
   return name ? name.replace(/\s*\(.*?\)\s*$/, "").replace(/\//g, " un ") : "";
 }
 
+// Šeit pirmo reizi parādās paņēmiens, ko lietotne izmanto simtiem reižu:
+// uzbūvēt gabalu HTML kā parastu tekstu (template stringu ar ${} vietām) un
+// to ierakstīt `.innerHTML =` - pārlūks pats to pārvērš par īstiem
+// elementiem. Nav nekādas veidnes/komponenšu sistēmas (nav Reacta/Vue) -
+// katru reizi, kad dati mainās, atbilstošā render*() funkcija pilnībā no
+// jauna uzraksta HTML tekstu un ieliek to lapā. Ja HTML jāveido no masīva
+// (piem., viena rinda par katru sportistu), parasti redzēsi
+// `masīvs.map(x => \`<div>${x}</div>\`).join("")` - .map() katram elementam
+// atgriež HTML gabalu (kā Python list comprehension), .join("") tos visus
+// salīmē vienā tekstā.
 function createVarSegmentRow(container, lengthVal, paceVal, restVal, repsVal) {
   const row = document.createElement("div");
   row.className = "var-segment-row";
@@ -1558,6 +1568,15 @@ function renderEditPlanPreview() {
   const preview = document.getElementById("epPreview");
   preview.innerHTML = `${previewBadgeHtml(training)}<strong>${displayTitle(training.title)}</strong><span>${formatDetailsForCard(training.details).replace(/\n/g, "<br>")}</span>`;
 }
+// #endregion
+
+// #region Treniņa "details" teksta lasīšana atpakaļ formā (rediģēšana, sagataves)
+// Šī ir otra puse tam, ko dara getGeneratedTraining() augstāk failā - tur
+// lodziņi tika salikti VIENĀ tekstā, šeit tas teksts tiek atkal SADALĪTS
+// atpakaļ lodziņos (piem., atverot "Rediģēt treniņu" vai ielādējot sagatavi).
+// Lauki jālasa TIEŠI TAJĀ PAŠĀ secībā, kādā tie tika ierakstīti, citādi
+// vērtības nonāk nepareizajos lodziņos - skat. plašāku skaidrojumu pie
+// "TRENIŅA DETAILS TEKSTA BŪVĒŠANA" reģiona augstāk failā.
 
 // "Iesildīšanās: 15min; 130-145; ar Drills" -> ["15min", "130-145", "ar Drills"].
 // The fields are positional, so an empty slot must stay an empty slot.
@@ -1833,7 +1852,12 @@ function loadTemplateToForm(template) {
   renderCustomBuilder();
   renderCustomPreview();
 }
+// #endregion
 
+// #region Treniņa/izpildes kartiņu (kalendāra rūtiņas saturs) veidošana
+// Funkcijas, kas paskaidro/attēlo VIENA konkrēta treniņa vai izpildes ieraksta
+// kartiņu kalendārā - virsraksts, ikona, pamatdaļas apraksts, intervālu
+// laiki. renderCalendar (tālāk) izsauc šīs funkcijas par katru dienu/kartiņu.
 function todLabel(tod) {
   return { morning: "Rīts", afternoon: "Pusdiena", evening: "Vakars" }[tod] || tod;
 }
