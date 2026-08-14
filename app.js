@@ -4090,12 +4090,22 @@ saveLogBtn.addEventListener("click", async () => {
     console.error(e);
   }
 });
+// #endregion
+
+// #region Izpildes ierakstīšanas dialogs (log dialog)
+// Šeit ir viss, kas attiecas uz logu, kurā sportists ieraksta, ko tieši
+// izpildīja (openPlanLogDialog - atverot no konkrēta plāna; openLogDialog -
+// atverot dienu bez izvēlēta plāna), t.sk. intervālu lodziņu ģenerēšana.
+
 // A variable-interval session is drawn as one .var-seg-log-group per repeated
 // block (6x400m, 4x200m) and one .var-seg-log-row per segment run once. Each of
 // those owns its boxes, and an extra interval belongs to the block it was added
 // under - not to the section as a whole. A plain same-length session has no
 // blocks, so the section row is its own single host.
 function logDialogHosts(sectionEl) {
+  // `[...kaut_kas]` (spread operators) pārvērš saraksta veidīgu vērtību
+  // (šeit - querySelectorAll rezultātu, kas nav "īsts" masīvs) par īstu JS
+  // masīvu, lai tam varētu lietot .length, .map() u.tml.
   const segs = [...sectionEl.querySelectorAll(".var-seg-log-group, .var-seg-log-row")];
   return segs.length ? segs : [sectionEl];
 }
@@ -4544,7 +4554,14 @@ function getPlannedIntervalCount(details) {
   });
   return count;
 }
+// #endregion
 
+// #region Intervālu soļošana un tempa/pulsa krāsošana
+// Katram izpildes lodziņam, kas atbilst kādam plānotam intervālam, ir divas
+// lietas: krāsošana (zaļš/dzeltens/sarkans - cik tuvu ierakstītā vērtība ir
+// plānotajam temp/pulsam) un ▲/▼ pogas soļošanai (skat. CLAUDE.md "Interval
+// time boxes step themselves"). Abas balstās uz vienu un to pašu "mērķa"
+// vērtību (parsePaceBounds), lai tās nekad nesarunātu pretēji viena otrai.
 function secToPace(totalSec) {
   if (totalSec < 0) totalSec = 0;
   return { m: Math.floor(totalSec / 60), s: totalSec % 60 };
@@ -4776,4 +4793,5 @@ function attachIntervalPaceValidation() {
     if (paceInp && sectionBounds) attachPaceColouring(paceInp, sectionBounds);
   });
 }
+// #endregion
 
