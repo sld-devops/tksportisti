@@ -37,6 +37,9 @@ function getSelfLogData(log) {
 // to stay a function — a top-level const would run before it exists.
 // "Intervāli" is the legacy unsuffixed type name; it is kept for reading old
 // rows but must not be offered as a new choice.
+// .flatMap(fn) ir kā .map(fn), bet, ja `fn` katram elementam atgriež masīvu
+// (šeit - katras grupas `g.types` sarakstu), rezultāti tiek "izlīdzināti"
+// vienā vienkāršā sarakstā, nevis sarakstā no sarakstiem.
 function selfLogTypes() {
   return TEMPLATE_GROUPS.flatMap((g) => g.types).filter((t) => t !== "Intervāli");
 }

@@ -1,4 +1,12 @@
-// Admin — Pievienot lietotāju
+// Admin panelis (tikai trenerim) - jauna sportista izveide, sportista
+// dzēšana, paroles atiestatīšana. Šīs trīs darbības NEVAR iet caur db.js
+// parasto ceļu, jo Supabase lietotāju izveidei/dzēšanai vajag "service role"
+// atslēgu, kuru nedrīkst atklāt pārlūkā (skat. CLAUDE.md par
+// `supabase/functions/`). Tā vietā šis fails sauc trīs servera funkcijas
+// (Supabase Edge Functions) ar `fetch(...)` - parastu tīkla pieprasījumu ar
+// pieteikšanās žetonu (`Authorization: Bearer ...`), nevis `supabase.from()`.
+
+// #region Jauna sportista izveide
 const DIACRITICS = {
   ā: "a", Ā: "A", č: "c", Č: "C", ē: "e", Ē: "E",
   ģ: "g", Ģ: "G", ī: "i", Ī: "I", ķ: "k", Ķ: "K",
@@ -111,12 +119,17 @@ saveNewUserBtn?.addEventListener("click", async () => {
     createUserError.textContent = e instanceof Error ? e.message : "Nezināma kļūda";
     createUserError.hidden = false;
   } finally {
+    // `finally` bloks izpildās VIENMĒR - vienalga, vai `try` izdevās, vai
+    // `catch` noķēra kļūdu. Šeit tas atbloķē pogu abos gadījumos, lai tā
+    // nepaliktu "Izveido..." stāvoklī uz visiem laikiem, ja kaut kas nogāja greizi.
     saveNewUserBtn.disabled = false;
     saveNewUserBtn.textContent = "Izveidot";
   }
 });
 
-// Admin — athlete list with delete
+// #endregion
+
+// #region Sportistu saraksts un dzēšana
 const deleteUserConfirmDialog = document.getElementById("deleteUserConfirmDialog");
 const deleteUserConfirmBody = document.getElementById("deleteUserConfirmBody");
 const confirmDeleteUserBtn = document.getElementById("confirmDeleteUserBtn");
@@ -221,7 +234,9 @@ deleteUserConfirmDialog?.addEventListener("close", () => {
   pendingDeleteUserId = null;
 });
 
-// Reset password
+// #endregion
+
+// #region Paroles atiestatīšana
 const resetPasswordDialog = document.getElementById("resetPasswordDialog");
 const generatePwBtn = document.getElementById("generatePwBtn");
 const resetPwInput = document.getElementById("resetPwInput");
@@ -281,3 +296,4 @@ resetPasswordDialog?.addEventListener("close", () => {
   resetPwInput.value = "";
   copyResetPwFeedback.style.display = "none";
 });
+// #endregion

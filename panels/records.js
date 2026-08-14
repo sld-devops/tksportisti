@@ -1,3 +1,8 @@
+// "Rekordi" panelis - pieci standarta rindiņu attālumi (RECORD_DISTANCES)
+// vienmēr rādās fiksētā secībā, pārējie ("custom") attēlojas zem tiem.
+// Forma ir <dialog> (nevis inline panelī), jo šo dialogu izmanto arī
+// panels/races.js ("Saglabāt kā rekordu" 🏅 poga), tāpēc tas nav sadalīts
+// inline formā kā jaunākie paneļi.
 let records = [];
 let seenRecordIds = new Set();
 let editingRecordId = null;

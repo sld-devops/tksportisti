@@ -1,3 +1,15 @@
+// "Laboratorijas izmeklējumi" panelis - tāds pats saraksts+inline forma
+// paraugs kā health-journal.js/ruffier-test.js, bet ar diviem "seen"
+// izsekošanas Set-iem, nevis vienu: treneris redz JAUNUS izmeklējumus,
+// sportists redz, kad treneris ir atzīmējis "Izvērtēts" (divas dažādas
+// "jaunuma" nozīmes, tāpēc divi neatkarīgi paziņojumu skaitītāji).
+//
+// Šis ir vienīgais panelis, kas failus (PDF/attēlus) glabā Supabase
+// "Storage" (kā mākoņa mape ar failiem), NEVIS datubāzes tabulā -
+// `supabase.storage.from("spainis").upload(ceļš, fails)` augšupielādē,
+// `.createSignedUrl(ceļš, sekundes)` izveido pagaidu lejupielādes saiti
+// (60 sekundes derīga), `.remove([ceļš])` dzēš. Pati tabula (`lab_tests`,
+// db.js) glabā tikai faila NOSAUKUMU un CEĻU uz to Storage, nevis pašu failu.
 let labTests = [];
 let editingLabTestId = null;
 let seenLabTestIds = new Set();
