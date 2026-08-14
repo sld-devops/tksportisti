@@ -1,9 +1,16 @@
+// "Ierobežojumi" panelis (treneris atzīmē dienas/laikus, kad sportists NEVAR
+// trenēties). Sportists datumus izvēlas mazajā kalendārā ar klikšķiem
+// (`restrictionSelectedDates`, Set ar izvēlētajiem ISO datumiem), un
+// saglabājot tie tiek sagrupēti secīgos periodos (skat. saveRestrictionForm
+// zemāk). `end_date: null` nozīmē "viena diena", nevis "bez beigām" - skat.
+// CLAUDE.md par šo konvenciju, kas kopīga arī veselības žurnālam.
 let restrictions = [];
 let restrictionSelectedDates = new Set();
 let restrictionEditingId = null;
 let restrictionCalYear = new Date().getFullYear();
 let restrictionCalMonth = new Date().getMonth();
 
+// #region Ierobežojumu pārbaudes palīgfunkcijas (lieto arī app.js kalendārs)
 function isTimeSlotRestricted(dateStr, tod) {
   const dayRestrictions = restrictions.filter(r =>
     dateStr >= r.start_date && dateStr <= (r.end_date || r.start_date)
@@ -27,6 +34,9 @@ function getRestrictedTods(dateStr) {
   return tods.filter(tod => isTimeSlotRestricted(dateStr, tod));
 }
 
+// #endregion
+
+// #region Formas stāvoklis un mazais kalendārs
 function renderRestrictions() {
   renderRestrictionCards();
 }
@@ -156,6 +166,9 @@ function updateSaveButtonState() {
   }
 }
 
+// #endregion
+
+// #region Saglabāšana un kartiņu zīmēšana
 async function saveRestrictionForm() {
   const reason = document.getElementById("restrictionReasonInput")?.value.trim();
   if (!reason) { alert("Lūdzu, uzrakstiet iemeslu!"); return; }
@@ -165,6 +178,13 @@ async function saveRestrictionForm() {
   const tod = todRadio?.value || null;
   const athleteId = getSelectedAthleteId();
 
+  // Izvēlētie datumi ir atsevišķi punkti kalendārā (piem., 3., 4., 5. un 10.
+  // augusts), bet datubāzē katrs ieraksts ir VIENS nepārtraukts periods
+  // (start_date..end_date). Šis cikls sakārtotos datumus "salīmē" secīgos
+  // periodos: kamēr katrs nākamais datums ir tieši +1 diena no iepriekšējā,
+  // tas paplašina pašreizējo periodu; tiklīdz sanāk lēciens (piem., no 5. uz
+  // 10.), iepriekšējais periods tiek pabeigts un sākas jauns. Rezultātā 3.-5.
+  // un 10. augusts kļūst par diviem atsevišķiem `insertRestriction` izsaukumiem.
   const sorted = [...restrictionSelectedDates].sort();
   const ranges = [];
   if (sorted.length > 0) {
@@ -327,3 +347,4 @@ function renderRestrictionCards() {
     document.getElementById("cancelRestrictionEditBtn")?.addEventListener("click", cancelRestrictionEdit);
   }
 }
+// #endregion

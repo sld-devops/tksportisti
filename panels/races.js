@@ -1,3 +1,7 @@
+// "Sacensības" - divas daļas: mazie sacensību logi (jauna sacensība /
+// rezultāts) un lielais "Sacensību kalendārs" sānjoslas panelis ar
+// Gaidāmās/Notikušās cilnēm. Skat. CLAUDE.md "races un monthRaces ir
+// nedēļas/mēneša tvērumā" - tāpēc findRaceById meklē visos trīs sarakstos.
 let races = [];
 let monthRaces = [];
 // Every race of the selected athlete, cached by the race-calendar panel. races
@@ -39,6 +43,7 @@ function markAllRacesSeen(athleteId, races) {
 
 loadSeenRaceIds();
 
+// #region Sacensību dialogi (jauna/rediģēt sacensību, ierakstīt rezultātu)
 // Race dialog
 const raceDialog = document.getElementById("raceDialog");
 const raceDate = document.getElementById("raceDate");
@@ -156,6 +161,9 @@ raceResultTime.addEventListener("input", () => {
   }
 });
 
+// #endregion
+
+// #region Sacensību kalendāra panelis (saraksts, cilnes, "saglabāt kā rekordu")
 function getUpcomingRaces(allRaces) {
   return allRaces.filter((r) => !r.result_time);
 }
@@ -225,6 +233,10 @@ function renderRaceTabFromRaces(allRaces, tab) {
 function raceTimeToSeconds(text) {
   const parts = String(text || "").trim().split(":").map((p) => parseFloat(p.replace(",", ".")));
   if (!parts.length || parts.some((n) => !isFinite(n))) return 0;
+  // .reduce((acc, n) => ..., sākumvērtība) "salok" visu masīvu vienā
+  // vērtībā - kā Python `functools.reduce`. Šeit katrs solis reizina līdzšinējo
+  // rezultātu ar 60 un pieskaita nākamo daļu, kas laika daļas (stundas,
+  // minūtes, sekundes) pārvērš sekundēs neatkarīgi no tā, cik daļu ir.
   return parts.reduce((acc, n) => acc * 60 + n, 0);
 }
 
@@ -282,6 +294,10 @@ async function saveRaceAsRecord(raceId, btn) {
   }
 }
 
+// `.then(rezultāts => {...})` ir tas pats, ko citur failā dara `await` -
+// "kad šis solījums (promise) atrisinās, izpildi šo funkciju ar rezultātu".
+// Abi paņēmieni ir līdzvērtīgi; šis fails vietām lieto `.then()` tur, kur
+// nav `async function` apkārt.
 function renderRaceTab(tab) {
   const athleteId = getSelectedAthleteId();
   if (!athleteId) return;
@@ -336,3 +352,4 @@ document.querySelectorAll("#raceCalendarPanel [data-race-tab]").forEach((btn) =>
     renderRaceTab(btn.dataset.raceTab);
   });
 });
+// #endregion
