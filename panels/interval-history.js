@@ -1,3 +1,9 @@
+// "Nesenākie intervālu un tempa skrējieni" panelis. Jau ir plaši "kāpēc"
+// komentāri no iepriekšējā darba pie šī faila - šeit galvenokārt trūkstošie
+// JS sintakses skaidrojumi (Map, String.raw, regex .exec() cilpas) tur, kur
+// tie šajā failā parādās pirmo reizi.
+
+// #region Garuma pārbaude un klasifikācija (attālums/laiks, intervāls/tempo)
 // Tabs are derived per athlete from their own completed interval sessions, so
 // nothing is hardcoded here. A coach writes an interval either as a distance
 // ("6x400m") or as a duration ("6x4min"), so both kinds get their own tab
@@ -139,6 +145,12 @@ const TEMPO_TEXT_TOKEN_RE = /\d+(?:[.,]\d+)?[ ]*(?:km|min\.?|minūt\p{L}*|stund\
 function extractTempoLengthsFromText(text) {
   const out = { distances: [], durations: [] };
   if (!text) return out;
+  // Regex ar "g" (global) karodziņu atceras, KUR tā pēdējo reizi apstājās
+  // (`.lastIndex`), tāpēc `.exec()` izsaukts atkārtoti VIENAS UN TĀS PAŠAS
+  // regex objektam katru reizi atrod NĀKAMO sakritību, nevis to pašu pirmo -
+  // tā šī cilpa savāc VISAS sakritības tekstā, nevis tikai pirmo. `.lastIndex
+  // = 0` iepriekš ir droša atiestatīšana, jo šis pats regex objekts (const,
+  // definēts vienreiz augšpusē) tiek atkārtoti lietots katrā izsaukumā.
   TEMPO_TEXT_TOKEN_RE.lastIndex = 0;
   let m;
   while ((m = TEMPO_TEXT_TOKEN_RE.exec(text)) !== null) classifyTempoLength(m[0], out);
@@ -176,6 +188,10 @@ function extractIntervalLengths(details) {
 // Spaces only, never \s — a line break must not be allowed to glue two
 // unrelated numbers together ("...caur 2min" + "200 m x 4" on the next line
 // once read as one length, and the 200m was lost).
+// `String.raw` ir template-string "tags" funkcija - liek JS NEinterpretēt
+// atpakaļvērstās slīpsvītras (`\d`, `\s`) kā speciālrakstzīmes, tāpēc regulāro
+// izteiksmju gabalus var rakstīt tāpat kā parastā regex, nevis dubultot katru
+// `\` ("\\d"). Ērti, jo šīs virknes pēc tam salīmē (${...}) lielākā regex.
 const IV_TEXT_NUM = String.raw`\d+(?:[.,]\d+)?(?::\d{1,2})?`;
 const IV_TEXT_UNIT = String.raw`(?:km|min(?:ūtes)?|m|sek|sec|s|['′"″])`;
 const IV_TEXT_LEN = String.raw`${IV_TEXT_NUM}[ ]?${IV_TEXT_UNIT}?(?:\d+[ ]?${IV_TEXT_UNIT}?)?`;
@@ -211,6 +227,15 @@ function extractIntervalLengthsFromText(text) {
 // the exact type "Tempa skrējiens" is a tempo run. Everything else keeps going
 // through the interval reader, which needs an "Nx" and so simply finds nothing
 // in a training that has none.
+// #endregion
+
+// #region Vēstures izveide no plāniem un pašu ierakstiem
+// `new Map()` ir tāda pati "atslēga -> vērtība" struktūra kā Python `dict`,
+// tikai JS objektiem (`{}`) atslēgas var būt tikai teksti - `Map` pieņem
+// jebko (arī skaitli) par atslēgu, kas te ir svarīgi, jo atslēgas ir garumi
+// metros/sekundēs. `.set(atslēga, vērtība)`/`.get(atslēga)`/`.has(atslēga)`
+// ir tā ekvivalenti `map[atslēga] = vērtība` / `map[atslēga]` / `atslēga in
+// map` - tikai droši jebkura tipa atslēgām.
 function buildIntervalHistory() {
   const today = formatDateISO(new Date());
   const logByPlanId = new Map();
@@ -274,6 +299,9 @@ function buildIntervalHistory() {
 // calendar (panels/self-log.js), minus the two things that belong to the
 // calendar only: the edit/delete buttons and the coach's comment box. That box
 // is bound to the day, and exactly one of them may exist per day.
+// #endregion
+
+// #region Kartiņu zīmēšana
 function renderIntervalHistorySelfCard(log) {
   const d = getSelfLogData(log);
   const title = d.title || "";
@@ -359,6 +387,9 @@ function renderIntervalHistoryCard(session) {
 // mode, so that a side whose remembered Garums/Laiks is empty still lands
 // somewhere with content. Switching athletes auto-switches both, because that
 // render comes from app.js with no argument at all.
+// #endregion
+
+// #region Paneļa zīmēšana un cilnes (Intervāli/Tempa, Garums/Laiks)
 function renderIntervalHistory(keep) {
   const body = document.getElementById("intervalHistoryBody");
   const athleteId = getSelectedAthleteId();
@@ -466,3 +497,4 @@ function renderIntervalHistory(keep) {
     });
   });
 }
+// #endregion

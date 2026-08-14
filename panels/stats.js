@@ -1,3 +1,11 @@
+// "Paveiktā statistika" panelis - četri roku darinātie SVG grafiki (nav
+// nekādas grafiku bibliotēkas, skat. CLAUDE.md "one small multiple per
+// metric"). Fails ir matemātiskāks par citiem paneļiem (koordinātu
+// rēķināšana, izliektas līnijas), bet katrai daļai jau ir plaši "kāpēc"
+// komentāri no iepriekšējā darba - šeit galvenokārt trūkstošie JS sintakses
+// skaidrojumi tur, kur tie vēl nav bijuši.
+
+// #region Stāvoklis un metriku definīcijas
 let statsPeriod = "week";
 let trendWeeks = 8;
 let trendMonths = 8;
@@ -28,6 +36,9 @@ const STATS_METRICS = [
   { key: "velo_min", label: "Velo", short: "Velo", unit: "h", color: "chart-series-4" },
 ];
 
+// #endregion
+
+// #region Palīgfunkcijas: koordinātas, datumu formāti, izliektā līnija
 function statsData() {
   return statsPeriod === "week" ? weeklyTrend : monthlyTrend;
 }
@@ -118,11 +129,18 @@ function smoothLinePath(points, minY, maxY) {
   return d;
 }
 
+// #endregion
+
+// #region Viena grafika (facet) un tā ass zīmēšana
 function buildFacetHtml(metric, data, withYear) {
   const plotTop = PAD.top;
   const plotBottom = FACET_H - PAD.bottom;
   const plotH = plotBottom - plotTop;
   const plotRight = CHART_W - PAD.right;
+  // `Math.max(...masīvs, 0)` - spread `...` "izklāj" masīva vērtības kā
+  // atsevišķus argumentus (Math.max negrib pašu masīvu, tam vajag skaitļus
+  // vienu pēc otra), un `, 0` klāt garantē, ka rezultāts nekad nav negatīvs
+  // pat tad, ja masīvs būtu tukšs.
   const max = Math.max(...data.map((d) => d[metric.key] || 0), 0);
   // An all-zero metric would draw a flat line along the baseline and say
   // nothing; the facet keeps its heading so the reader still sees it exists.
@@ -209,10 +227,17 @@ function buildAxisLabels(data, plotBottom, withYear) {
     .join("");
 }
 
+// #endregion
+
+// #region Tabulas skats un perioda/diapazona pogas
 // Tooltips must never be the only way to read a value, so every figure is also
 // available as a plain table.
 function buildStatsTableHtml(data) {
   const head = STATS_METRICS.map((m) => `<th scope="col">${escapeHtml(m.short)}</th>`).join("");
+  // .slice() bez argumentiem uzkopē masīvu (jauns masīvs, tas pats saturs),
+  // lai .reverse() (kas maina masīvu VIETĀ, nevis atgriež jaunu) neapgrieztu
+  // otrādi arī pašu `data` - kas sabojātu grafiku, jo tas paļaujas uz
+  // hronoloģisko secību.
   const rows = data.slice().reverse().map((d) => `
     <tr>
       <th scope="row">${escapeHtml(statsTableDateLabel(d))}</th>
@@ -287,9 +312,19 @@ function renderStats() {
   attachStatsHover(data);
 }
 
+// #endregion
+
+// #region Peles/pieskāriena kursors un padoms (tooltip)
 // One crosshair and one tooltip across all four facets: splitting the metrics
 // apart gave each an honest scale, and this gives back the "what did every
 // metric do that week" reading that a single combined plot had.
+//
+// `show`/`hide`/`geometry`/`indexFromEvent` zemāk ir funkcijas TAJĀ IEKŠĀ šīs
+// funkcijas ("closures") - tās var lasīt un mainīt `activeIndex` un pārējos
+// mainīgos, kas deklarēti augšpusē (`wrap`, `crosshair`, u.c.), pat pēc tam,
+// kad tās izsauc kāds notikums (peles kustība). Tas ir veids, kā šai vienai
+// izsaukšanas reizei (attachStatsHover(data)) "iekonservēt" savu privāto
+// stāvokli, ko nekas ārpusē nevar aiztikt.
 function attachStatsHover(data) {
   const wrap = document.getElementById("chartFacets");
   if (!wrap) return;
@@ -393,6 +428,9 @@ function attachStatsHover(data) {
   });
 }
 
+// #endregion
+
+// #region Pogu piesaiste (cilnes, diapazons, tabulas poga)
 function attachStatsTableToggle() {
   statsBar.querySelector("[data-stats-table]")?.addEventListener("click", () => {
     statsTableOpen = !statsTableOpen;
@@ -433,3 +471,4 @@ async function attachStatsRangeHandlers() {
     });
   });
 }
+// #endregion
