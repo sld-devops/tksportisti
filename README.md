@@ -1,143 +1,96 @@
-# Toma Komasa Sportistu Portāls (SK Mitauer Training Planner)
+# TK Athletes Running Planner
 
-Treniņu plānošanas web lietotne trenerim un viņa ~20-25 sportistiem —
-aizvieto Google Sheets, ko treneris iepriekš izmantoja treniņu plānošanai.
-Mērķis: padarī trenera-sportista sadarbību pārskatāmāku un ātrāku — treneris
-var ātri uzbūvēt precīzu, katram sportistam individuālu treniņu plānu,
-sportists var ērti sekot līdzi savam plānam.
+A training planning web application for a coach and their ~20-25 athletes — replaces the Google Sheets the coach previously used for training planning. Goal: make coach-athlete collaboration clearer and faster — the coach can quickly build precise, personalized training plans for each athlete, and athletes can easily track their plans.
 
-Dzīvo adresē `tksportisti.netlify.app`.
+Live at `tksportisti.netlify.app`.
 
-## Ar ko strādāt, ja gribi mainīt kodu
+## How to work with the code if you want to make changes
 
-Šis fails (`README.md`) dod ātru pārskatu. Sīkāku, pastāvīgi atjaunotu
-tehnisko informāciju par konkrētām īpatnībām, agrāk atrastām kļūdām un
-lēmumu vēsturi glabā **`CLAUDE.md`** — tas ir domāts galvenokārt Claude
-Code sesijām, bet noder arī jebkuram, kas grib saprast, kāpēc kāda koda
-daļa uzbūvēta tieši tā, kā uzbūvēta. `TODO.md` seko līdzi vienam konkrētam,
-ilgtermiņa darbam — `app.js` sadalīšanai mazākos failos.
+This file (`README.md`) gives a quick overview. Detailed, continuously updated technical information about specific features, previously found bugs, and decision history is stored in **`CLAUDE.md`** — it's mainly for Claude Code sessions, but it's useful for anyone who wants to understand why a piece of code is built the way it is. `TODO.md` tracks one specific, long-term task — splitting `app.js` into smaller files.
 
-## Tehnoloģijas
+## Technologies
 
-Vienkāršs, "vecmodīgs" veidols apzināti — nav būvēšanas soļa (build step),
-nav pakešu pārvaldnieka (npm/webpack), nav ietvara (React/Vue u.c.):
+Deliberately simple, "old-fashioned" approach — no build step, no package manager (npm/webpack), no framework (React/Vue, etc.):
 
-- **Tīrs HTML/CSS/JavaScript**, ielādēts kā parasti `<script>` tagi
-  `index.html` failā — pārlūks izpilda failus tieši tā, kā tie uzrakstīti,
-  bez starpposma.
-- **Supabase** kā aizmugure (backend): datubāze (Postgres), lietotāju
-  autentifikācija un trīs nelielas servera funkcijas administrēšanas
-  darbībām (skat. zemāk).
-- Nav testu palaišanas rīka — pārbaude notiek, atverot lietotni pārlūkā.
+- **Plain HTML/CSS/JavaScript**, loaded via normal `<script>` tags in `index.html` — the browser runs the files exactly as written, with no intermediate processing.
+- **Supabase** as the backend: database (Postgres), user authentication, and three small server functions for administrative tasks (see below).
+- No test runner — testing happens by opening the app in a browser.
 
-## Palaišana lokāli
+## Running locally
 
 ```bash
 xdg-open index.html
 ```
 
-Tā kā lietotne runā ar Supabase tieši no pārlūka (`db.js`/`auth.js`), arī
-lokāli atvērts fails strādā pret **īsto, dzīvo** datubāzi — nav atsevišķas
-testa/lokālās versijas. Testēšanai izmanto kontu "Testa Sportists", nevis
-kāda reāla sportista kontu.
+Because the app talks to Supabase directly from the browser (`db.js`/`auth.js`), even a locally opened file works against the **real, live** database — there's no separate test/local version. For testing, use the "Test Athlete" account, not any real athlete's account.
 
-## Failu struktūra
+## File structure
 
 ```text
-index.html          — lapas "skelets": abi skati (pieteikšanās/lietotne),
-                       visi paneļi/dialogi jau iepriekš uzrakstīti HTML,
-                       tikai paslēpti/parādīti pēc vajadzības
-auth.js              — pieteikšanās, sesija, konta pārslēgšana, paroles maiņa
-db.js                — VIENĪGAIS fails, kas runā ar Supabase datubāzi
-date-picker.js       — pašrakstīts kalendāra logrīks datumu laukiem
-                       (pārlūka iebūvētais nerāda latviski/pirmdienu pirmo)
-app.js               — kalendāra zīmēšana, treniņu veidotājs, galvenā
-                       lietotnes loģika (skat. zemāk)
-panels/*.js          — atsevišķi izdalītas funkcionalitātes (skat. zemāk)
-styles.css           — visi stili
-images/              — logotipi u.c. attēli
-supabase/functions/  — trīs servera funkcijas (create-user, delete-user,
-                       reset-password), kas prasa slepenu atslēgu, kuru
-                       nedrīkst atklāt pārlūkā
+index.html          — page "skeleton": both views (login/app), all panels/dialogs
+                       already written in HTML, just hidden/shown as needed
+auth.js              — login, session, account switching, password change
+db.js                — THE ONLY file that talks to Supabase database
+date-picker.js       — custom-built calendar widget for date fields
+                       (browser's default doesn't show Latvian/start Monday first)
+app.js               — calendar drawing, training builder, main app logic
+                       (see below)
+panels/*.js          — separate isolated functionality (see below)
+styles.css           — all styles
+images/              — logos and other images
+supabase/functions/  — three server functions (create-user, delete-user,
+                       reset-password) that require a secret key that must
+                       not be exposed in the browser
 ```
 
-Ielādes secība `index.html`: `auth.js` → `db.js` → `date-picker.js` →
-visi `panels/*.js` → `app.js` (pēdējais). Paneļu faili ielādējas pirms
-`app.js`, jo `app.js` satur pārbaudi "vai kāds jau ir pieteicies", kas var
-uzreiz izsaukt kāda paneļa zīmēšanas funkciju.
+Load order in `index.html`: `auth.js` → `db.js` → `date-picker.js` → all `panels/*.js` → `app.js` (last). Panel files load before `app.js` because `app.js` contains a check for "is anyone logged in", which can immediately call a panel's render function.
 
-### `panels/` — pa vienam katrai lietotnes sadaļai
+### `panels/` — one for each app section
 
-| Fails | Ko dara |
+| File | What it does |
 | --- | --- |
-| `profile.js` | Sportista profila kartiņa, saites (Garmin/Strava/arhīvs), HR darba zonas, sliekšņvērtības, "Temps pret sirdsritmu" |
-| `stats.js` | "Paveiktā statistika" — nedēļas/mēneša slodzes grafiki |
-| `interval-history.js` | "Nesenākie intervālu un tempa skrējieni" |
-| `restrictions.js` | Ierobežojumi (dienas/laiki, kad sportists nedrīkst trenēties) |
-| `races.js` | Sacensību kalendārs, rezultāti |
-| `records.js` | Personīgie rekordi |
-| `diary.js` | Dienasgrāmata |
-| `health-journal.js` | Veselības žurnāls |
-| `self-tests.js` | Paštesti (lokanība/mobilitāte) |
-| `polar-tests.js` | Polar testi (MAS/MAP/VO2max/laktāts) |
-| `ruffier-test.js` | Rufjē tests (sirdsdarbības atjaunošanās pēc slodzes) |
-| `lactate-test.js` | Laktāta tests (kāpjošs tests, LT1/LT2 sliekšņi) |
-| `lab-tests.js` | Laboratorijas izmeklējumi (PDF/attēlu augšupielāde) |
-| `self-log.js` | Sportists pats ieraksta izpildītu treniņu, ko treneris nebija ieplānojis |
-| `admin.js` | Trenera: jauna sportista izveide, dzēšana, paroles atiestatīšana |
-| `weekly-review.js` | Tabula ar visiem sportistiem uzreiz — kuras nedēļas apskatītas |
+| `profile.js` | Athlete profile card, links (Garmin/Strava/archive), HR training zones, thresholds, "Pace vs Heart Rate" |
+| `stats.js` | "Completed statistics" — weekly/monthly training load graphs |
+| `interval-history.js` | "Recent interval and tempo runs" |
+| `restrictions.js` | Restrictions (days/times when athlete cannot train) |
+| `races.js` | Race calendar, results |
+| `records.js` | Personal records |
+| `diary.js` | Training diary |
+| `health-journal.js` | Health journal |
+| `self-tests.js` | Self-tests (flexibility/mobility) |
+| `polar-tests.js` | Polar tests (MAS/MAP/VO2max/lactate) |
+| `ruffier-test.js` | Ruffier test (heart rate recovery after effort) |
+| `lactate-test.js` | Lactate test (step test, LT1/LT2 thresholds) |
+| `lab-tests.js` | Laboratory tests (PDF/image uploads) |
+| `self-log.js` | Athlete manually logs a completed training that the coach didn't plan |
+| `admin.js` | Coach: create new athlete, delete, reset password |
+| `weekly-review.js` | Table with all athletes at once — which weeks have been reviewed |
 
-Katrs panelis satur savu stāvokli, savu `render*()` funkciju un savu
-saglabāšanas/dzēšanas loģiku, bet dalās vienā globālajā skatā ar `app.js`
-(nav moduļu/importu — visi faili "redz" viens otra funkcijas un
-mainīgos).
+Each panel contains its own state, its own `render*()` function, and its own save/delete logic, but they all share one global view with `app.js` (no modules/imports — all files "see" each other's functions and variables).
 
-### Kas paliek `app.js`
+### What stays in `app.js`
 
-Viss, kas nav izdalīts panelī — galvenokārt lietotnes "kodols", kas ir
-pārāk savīts, lai to droši atdalītu:
+Everything that isn't split into a panel — mainly the app's "core", which is too tightly coupled to safely separate:
 
-- Kalendāra (nedēļas un mēneša skata) zīmēšana
-- Treniņa veidotājs un sagataves ("Izveidot jaunu treniņu")
-- Treniņa izpildījuma ierakstīšanas dialogi
-- Globālais stāvoklis (izvēlētais sportists, nedēļa, ielādētie plāni utt.)
+- Calendar (weekly and monthly view) drawing
+- Training builder and templates ("Create new training")
+- Training completion entry dialogs
+- Global state (selected athlete, week, loaded plans, etc.)
 
-`app.js` pats ir sadalīts loģiskās daļās ar sakļaujamiem `// #region ...`
-komentāriem — VSCode tos rāda kā sekcijas, ko var aizvērt/atvērt.
+`app.js` itself is split into logical sections with collapsible `// #region ...` comments — VSCode shows these as sections that can be collapsed/expanded.
 
-## Galvenie principi
+## Key principles
 
-**Divas lomas: `coach` un `athlete`.** Treneris izvēlas sportistu no
-nolaižamā saraksta un redz/labo visu; sportists redz tikai savus datus.
-Daudzas `render*` funkcijas atzarojas atkarībā no lomas (`isCoach()`).
+**Two roles: `coach` and `athlete`.** The coach picks an athlete from a dropdown and sees/edits everything; an athlete sees only their own data. Many `render*` functions branch based on role (`isCoach()`).
 
-**Dati plūst vienā virzienā, ar rokas atsvaidzināšanu.** Nav automātiskas
-sinhronizācijas reāllaikā. Modelis: (1) `db.js` funkcija paņem/maina rindu
-Supabase, (2) izsaucējs pārraksta atbilstošo globālo sarakstu
-(`plans`, `templates`, `restrictions`, ...), (3) izsaucējs izsauc atbilstošo
-`render*()`, kas no jauna uzzīmē to lapas daļu. Ja pēc izmaiņas aizmirst
-izsaukt `render*()`, ekrānā redzamais un patiesie dati izklīst.
+**Data flows in one direction, with manual refreshing.** No real-time auto-sync. Model: (1) a `db.js` function gets/changes a row in Supabase, (2) the caller updates the corresponding global array (`plans`, `templates`, `restrictions`, ...), (3) the caller calls the corresponding `render*()`, which redraws that page section. If you forget to call `render*()` after a change, what's on screen and what's actually stored will diverge.
 
-**Treniņa apraksts ("details") ir strukturēts teksts, nevis brīva proza.**
-Katrs treniņš datubāzē glabājas kā viens garš teksts ar rindiņām
-("Iesildīšanās: 15min; 120-130", "Pamatdaļa: 6x400m (76-78s); caur 2min"),
-kur katrā rindā lauki ir stingri fiksētā secībā, atdalīti ar `;`. To lasošais
-un rakstošais kods jāskata kā ieraksta lauku parsēšanu, nevis kā teksta
-rediģēšanu — sīkāk CLAUDE.md.
+**Training description ("details") is structured text, not free prose.** Each training in the database is stored as one long text with lines ("Warmup: 15min; 120-130", "Main: 6x400m (76-78s); through 2min"), where each line has fields in a strict order, separated by `;`. The code that reads and writes this should be thought of as parsing record fields, not editing text — details in CLAUDE.md.
 
-**Divvirzienu labošana ar "jauns ieraksts" nozīmīti.** Vairākas sadaļas
-(HR zonas, sliekšņvērtības, temps/pulss tabula, laktāta testi) drīkst labot
-gan treneris, gan sportists. Katra glabā "kurš un kad pēdējo reizi labojis"
-datubāzes ierakstā un rāda sarkanu skaitlīti otrai pusei, kamēr tā nav
-paskatījusies — bez jaunas tabulas, jo Supabase shēmu mainīt nevar bez
-piekļuves datubāzei ārpus lietotnes.
+**Two-way editing with a "new entry" badge.** Several sections (HR zones, thresholds, pace/pulse table, lactate tests) can be edited by either coach or athlete. Each stores "who and when last edited" in the database record and shows a red badge to the other side until they've looked — without a new table, because Supabase schema can't be changed without access outside the app.
 
-**Nekas nav Supabase realtime — atsvaidzina, pārlādējot/pārslēdzot.** Ja
-divi cilvēki skatās vienlaicīgi un viens saglabā izmaiņas, otrs tās redzēs
-tikai nākamajā ielādē (cita sportista/nedēļas izvēlē vai lapas pārlādē).
+**Nothing is Supabase realtime — refreshes on switching/reloading.** If two people are viewing at the same time and one saves changes, the other will see them only on the next load (switching athlete/week or page reload).
 
-## Nākamie soļi
+## Next steps
 
-Skaties `TODO.md` — tur seko līdzi, cik tālu tikuši ar `app.js`
-sadalīšanu mazākos failos, un `CLAUDE.md`, kur ir apkopota visa pārējā
-lēmumu vēsture un zināmās "āķīgās" vietas kodā.
+See `TODO.md` — it tracks how far we've gotten with splitting `app.js` into smaller files — and `CLAUDE.md`, where all the other decision history and known "gotchas" in the code are collected.
