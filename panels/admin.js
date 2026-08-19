@@ -1,12 +1,12 @@
-// Admin panelis (tikai trenerim) - jauna sportista izveide, sportista
-// dzēšana, paroles atiestatīšana. Šīs trīs darbības NEVAR iet caur db.js
-// parasto ceļu, jo Supabase lietotāju izveidei/dzēšanai vajag "service role"
-// atslēgu, kuru nedrīkst atklāt pārlūkā (skat. CLAUDE.md par
-// `supabase/functions/`). Tā vietā šis fails sauc trīs servera funkcijas
-// (Supabase Edge Functions) ar `fetch(...)` - parastu tīkla pieprasījumu ar
-// pieteikšanās žetonu (`Authorization: Bearer ...`), nevis `supabase.from()`.
+// Admin panel (coach only) - creating a new athlete, deleting an athlete,
+// resetting a password. These three actions CANNOT go through db.js's
+// usual route, because creating/deleting Supabase users needs the "service
+// role" key, which must not be exposed in the browser (see CLAUDE.md on
+// `supabase/functions/`). Instead this file calls three server functions
+// (Supabase Edge Functions) with `fetch(...)` - a plain network request with
+// a login token (`Authorization: Bearer ...`), instead of `supabase.from()`.
 
-// #region Jauna sportista izveide
+// #region Creating a new athlete
 const DIACRITICS = {
   ā: "a", Ā: "A", č: "c", Č: "C", ē: "e", Ē: "E",
   ģ: "g", Ģ: "G", ī: "i", Ī: "I", ķ: "k", Ķ: "K",
@@ -119,9 +119,9 @@ saveNewUserBtn?.addEventListener("click", async () => {
     createUserError.textContent = e instanceof Error ? e.message : "Nezināma kļūda";
     createUserError.hidden = false;
   } finally {
-    // `finally` bloks izpildās VIENMĒR - vienalga, vai `try` izdevās, vai
-    // `catch` noķēra kļūdu. Šeit tas atbloķē pogu abos gadījumos, lai tā
-    // nepaliktu "Izveido..." stāvoklī uz visiem laikiem, ja kaut kas nogāja greizi.
+    // The `finally` block ALWAYS runs - whether `try` succeeded or
+    // `catch` caught an error. Here it re-enables the button either way, so it
+    // doesn't stay stuck in the "Izveido..." state forever if something went wrong.
     saveNewUserBtn.disabled = false;
     saveNewUserBtn.textContent = "Izveidot";
   }
@@ -129,7 +129,7 @@ saveNewUserBtn?.addEventListener("click", async () => {
 
 // #endregion
 
-// #region Sportistu saraksts un dzēšana
+// #region Athlete list and deletion
 const deleteUserConfirmDialog = document.getElementById("deleteUserConfirmDialog");
 const deleteUserConfirmBody = document.getElementById("deleteUserConfirmBody");
 const confirmDeleteUserBtn = document.getElementById("confirmDeleteUserBtn");
@@ -236,7 +236,7 @@ deleteUserConfirmDialog?.addEventListener("close", () => {
 
 // #endregion
 
-// #region Paroles atiestatīšana
+// #region Password reset
 const resetPasswordDialog = document.getElementById("resetPasswordDialog");
 const generatePwBtn = document.getElementById("generatePwBtn");
 const resetPwInput = document.getElementById("resetPwInput");

@@ -1,31 +1,31 @@
 // ===================================================================
-// DATU PIEKĻUVES SLĀNIS (skat. arī CLAUDE.md "db.js")
+// DATA ACCESS LAYER (see also CLAUDE.md "db.js")
 // ===================================================================
-// Šis ir VIENĪGAIS fails, kas runā ar Supabase (mākoņa datubāzi). Katra
-// funkcija ir maza apvalka funkcija ap vienu darbību ar vienu tabulu:
-// getX (izlasīt), insertX (izveidot), updateX (labot), deleteX (dzēst).
-// app.js un panels/*.js failos NEKAD nesauc `supabase.from(...)` tieši -
-// tie vienmēr izsauc kādu no šejienes funkcijām.
+// This is the ONLY file that talks to Supabase (the cloud database). Each
+// function is a small wrapper function around one operation on one table:
+// getX (read), insertX (create), updateX (update), deleteX (delete).
+// app.js and panels/*.js files NEVER call `supabase.from(...)` directly -
+// they always call one of the functions from here.
 //
-// Vaicājuma "ķēde" (piemēram, zemāk `getProfile`) izskatās kā virkne
-// punktu-metožu, kas katra pievieno vienu SQL nosacījumu, un beigās
-// `await` pagaida atbildi no servera - aptuveni kā SQL:
+// A query "chain" (e.g. `getProfile` below) looks like a series of
+// dot-methods, each adding one SQL condition, and finally
+// `await` waits for the response from the server - roughly like SQL:
 //   SELECT * FROM profiles WHERE id = userId
-// pierakstīts kā:
+// written as:
 //   supabase.from("profiles").select("*").eq("id", userId)
-// Biežākās metodes: .select("lauki") - ko atlasīt (vai "*" visu); .eq/.neq/
-// .gte/.lte/.in - nosacījumi (=, ≠, ≥, ≤, "ir iekš saraksta"); .order() -
-// kārtošana; .single() - sagaidi tieši VIENU rezultātu (nevis sarakstu);
-// .range(no, līdz) - lapošana (skat. getPlanTitlesSince zemāk, kur tas
-// tiešām vajadzīgs). Atbilde vienmēr atgriežas kā `{ data, error }` -
-// `const { data } = await ...` paņem tikai `data` daļu (destrukturēšana).
+// Common methods: .select("fields") - what to select (or "*" for all); .eq/.neq/
+// .gte/.lte/.in - conditions (=, ≠, ≥, ≤, "is in list"); .order() -
+// sorting; .single() - expect exactly ONE result (not a list);
+// .range(from, to) - pagination (see getPlanTitlesSince below, where it's
+// actually needed). The response always comes back as `{ data, error }` -
+// `const { data } = await ...` takes only the `data` part (destructuring).
 //
-// Konvencija visā failā: `getX` funkcijas klusi atgriež tukšu sarakstu
-// (`data || []`), ja kaut kas neizdodas - saucējam nav jāapstrādā kļūda,
-// lai lapa nesalūztu. `insertX`/`updateX`/`deleteX` funkcijas OTRĀDI - tās
-// pārmet kļūdu tālāk (`if (error) throw error`), lai saucējs (parasti
-// dialoga "Saglabāt" poga) var pateikt lietotājam, ka saglabāšana
-// neizdevās, nevis izlikties, ka viss ir kārtībā.
+// Convention throughout this file: `getX` functions silently return an empty
+// list (`data || []`) when something fails - the caller doesn't have to
+// handle the error, so the page doesn't break. `insertX`/`updateX`/`deleteX`
+// functions do the OPPOSITE - they rethrow the error (`if (error) throw
+// error`) so the caller (usually a dialog's "Save" button) can tell the
+// user that saving failed, rather than pretending everything is fine.
 
 const SUPABASE_URL = "https://yqaabswcvwkiimpoxsfj.supabase.co";
 const SUPABASE_ANON_KEY =
@@ -52,7 +52,7 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, 
   },
 });
 
-// #region Profili un sportistu saraksts
+// #region Profiles and athlete list
 async function getProfile(userId) {
   const { data } = await supabase
     .from("profiles")
@@ -100,7 +100,7 @@ async function getAllProfiles() {
 
 // #endregion
 
-// #region Plāni un sagataves
+// #region Plans and templates
 async function getPlans(athleteId, weekStart, weekEnd) {
   const { data } = await supabase
     .from("plans")
@@ -212,7 +212,7 @@ async function updateTemplate(id, updates) {
 
 // #endregion
 
-// #region Sacensības un rekordi
+// #region Races and records
 async function getRaces(athleteId) {
   const { data } = await supabase
     .from("races")
@@ -299,7 +299,7 @@ async function deleteRecord(id) {
 
 // #endregion
 
-// #region Izpildes ieraksti, nedēļas kopsavilkumi un statistikas grafiku dati
+// #region Log entries, weekly summaries and stats chart data
 async function getLogEntries(athleteId, weekStart, weekEnd) {
   const { data } = await supabase
     .from("log_entries")
@@ -391,9 +391,9 @@ async function getWeeklyTrend(athleteId, numWeeks) {
   }
 
   if (logs) {
-    // `for (const x of masīvs)` iet cauri masīva elementiem pēc kārtas - kā
-    // Python `for x in masīvs:` (atšķirībā no `.forEach()`, šeit drīkst
-    // lietot `continue`/`break` iekšā, tāpēc šeit izvēlēts šis, nevis tas).
+    // `for (const x of array)` goes through the array's elements in order - like
+    // Python's `for x in array:` (unlike `.forEach()`, this allows using
+    // `continue`/`break` inside it, which is why this is used here instead of that).
     for (const entry of logs) {
       const d = new Date(entry.date + "T00:00:00");
       const mon = trendMonday(d);
@@ -554,7 +554,7 @@ async function upsertWeeklySummary(data) {
 }
 // #endregion
 
-// #region Dienas piezīmes un nedēļas statuss (kvadrātiņi pie sportista vārda)
+// #region Day notes and weekly status (boxes next to the athlete's name)
 async function getDayNotes(athleteId, weekStart, weekEnd) {
   const { data } = await supabase
     .from("day_notes")
@@ -659,7 +659,7 @@ async function getWeekBlockTypesForAthletes(athleteIds, weekStartStr) {
 }
 // #endregion
 
-// #region Ierobežojumi un dienasgrāmata
+// #region Restrictions and diary
 function isoLocal(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -748,7 +748,7 @@ async function deleteDiaryEntry(id) {
 }
 // #endregion
 
-// #region Testi: paštesti, Polar, veselības žurnāls, lab, Rufjē, laktāta
+// #region Tests: self-tests, Polar, health journal, lab, Ruffier, lactate
 async function getSelfTests(athleteId) {
   const { data } = await supabase
     .from("self_tests")
@@ -972,7 +972,7 @@ async function deleteLactateTest(id) {
 }
 // #endregion
 
-// #region Trenera atgādinājumi (⚕/!/📒 ikonas) un nedēļas pārskati
+// #region Coach reminders (⚕/!/📒 icons) and weekly reviews
 async function getNotCompletedAthleteIds() {
   const { data } = await supabase
     .from("plans")
