@@ -588,10 +588,10 @@ function parseVarIntervalPaceBounds(line) {
   const segments = line.split(" + ");
   let segIdx = 0;
   segments.forEach((seg) => {
-    const m = seg.match(/(?:(?:\d+-)?(\d+)x)?\S+\(([^)]+)\)/);
+    const m = seg.match(/(?:(?:\d+-)?(\d+)x)?(\S+?)\(([^)]+)\)/);
     if (!m) return;
     const reps = parseInt(m[1]) || 1;
-    const segBounds = parsePaceBounds(m[2].trim());
+    const segBounds = parsePaceBounds(m[3].trim(), parseDistanceMeters(m[2]));
     if (!segBounds) return;
     for (let r = 0; r < reps; r++) {
       segIdx++;
@@ -4156,6 +4156,7 @@ function addExtraIntervalRow(hostEl, defaultDist, defaultPace) {
   paceInput.className = "log-interval-pace";
   paceInput.dataset.logInterval = "0";
   if (defaultPace) paceInput.dataset.targetPace = defaultPace;
+  if (defaultDist) paceInput.dataset.targetDist = defaultDist;
   paceInput.placeholder = defaultPace || "min/km";
   row.appendChild(distInput);
   row.appendChild(paceInput);
@@ -4175,9 +4176,10 @@ function addExtraIntervalRow(hostEl, defaultDist, defaultPace) {
   }
   renumberSectionIntervals(sectionRow);
 
-  const bounds = defaultPace ? parsePaceBounds(defaultPace) : null;
+  const defaultDistanceMeters = defaultDist ? parseDistanceMeters(defaultDist) : null;
+  const bounds = defaultPace ? parsePaceBounds(defaultPace, defaultDistanceMeters) : null;
   if (bounds) attachPaceColouring(paceInput, bounds);
-  attachIntervalStepper(paceInput, defaultPace || "");
+  attachIntervalStepper(paceInput, defaultPace || "", defaultDistanceMeters);
   return row;
 }
 
@@ -4276,7 +4278,7 @@ function openPlanLogDialog(planId) {
               <div class="log-target">${count}x${escapeHtml(seg.length)}${seg.pace ? "(" + escapeHtml(seg.pace) + ")" : ""}</div>
               <div class="field-grid">`;
             for (let r = 0; r < count; r++) {
-              html += `<label>${r + 1}. atkārtojums <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" /></label>`;
+              html += `<label>${r + 1}. atkārtojums <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}" /></label>`;
               globalIdx++;
             }
             html += `</div></div>`;
@@ -4284,7 +4286,7 @@ function openPlanLogDialog(planId) {
             const label = seg.length + (seg.pace ? " @" + seg.pace : "");
             html += `<div class="var-seg-log-row">
               <span class="var-seg-log-label">${escapeHtml(label)}</span>
-              <label>Temps <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" /></label>
+              <label>Temps <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}" /></label>
             </div>`;
             globalIdx++;
           }
@@ -4412,7 +4414,7 @@ function openLogDialog(dateStr) {
                 <div class="log-target">${count}x${escapeHtml(seg.length)}${seg.pace ? "(" + escapeHtml(seg.pace) + ")" : ""}</div>
                 <div class="field-grid">`;
               for (let r = 0; r < count; r++) {
-                html += `<label>${r + 1}. atkārtojums <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" /></label>`;
+                html += `<label>${r + 1}. atkārtojums <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}" /></label>`;
                 globalIdx++;
               }
               html += `</div></div>`;
@@ -4420,7 +4422,7 @@ function openLogDialog(dateStr) {
               const label = seg.length + (seg.pace ? " @" + seg.pace : "");
               html += `<div class="var-seg-log-row">
                 <span class="var-seg-log-label">${escapeHtml(label)}</span>
-                <label>Temps <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" /></label>
+                <label>Temps <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}" /></label>
               </div>`;
               globalIdx++;
             }
@@ -4579,18 +4581,25 @@ function secToPace(totalSec) {
   if (totalSec < 0) totalSec = 0;
   return { m: Math.floor(totalSec / 60), s: totalSec % 60 };
 }
-function parsePaceBounds(paceStr) {
+function parsePaceBounds(paceStr, distanceMeters) {
   if (!paceStr) return null;
   let s = paceStr.trim().replace(/\s*\/\s*km\s*$/i, "").replace(/\s*(sek|sec|s)\s*$/i, "").trim();
   let minTotal, maxTotal;
   if (s.includes(":")) {
+    // Written as minutes:seconds, this is a pace per kilometre, not a literal
+    // duration for the rep - "4:00-4:05" on a 400m repeat means run 400m at
+    // that km-pace (~1:36-1:37), not "take 4 minutes over 400m". A distance
+    // in metres scales the parsed km-pace down to the actual rep length; with
+    // none given (or a 1000m/1km rep, where the two are the same number) the
+    // value passes through unscaled, same as before this existed.
+    const scale = distanceMeters > 0 ? distanceMeters / 1000 : 1;
     const range = s.match(/^(\d+):(\d+)-(\d+):(\d+)$/);
     if (range) {
-      minTotal = +range[1] * 60 + +range[2];
-      maxTotal = +range[3] * 60 + +range[4];
+      minTotal = (+range[1] * 60 + +range[2]) * scale;
+      maxTotal = (+range[3] * 60 + +range[4]) * scale;
     } else {
       const single = s.match(/^(\d+):(\d+)$/);
-      if (single) minTotal = maxTotal = +single[1] * 60 + +single[2];
+      if (single) minTotal = maxTotal = (+single[1] * 60 + +single[2]) * scale;
     }
   } else {
     const range = s.match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
@@ -4658,7 +4667,12 @@ function buildPaceBoundsMap(planDetails) {
     } else {
       const paceStr = extractPace(line);
       if (paceStr) {
-        const bounds = parsePaceBounds(paceStr);
+        // A plain (non-var) interval line has one rep length for the whole
+        // line - "10x400m(4:00-4:05)" - so the same distance applies to
+        // every box under this section.
+        const lengthMatch = line.match(/(\d+)x([^\s;()]+)/);
+        const distanceMeters = lengthMatch ? parseDistanceMeters(lengthMatch[2]) : null;
+        const bounds = parsePaceBounds(paceStr, distanceMeters);
         if (bounds) map[section] = bounds;
       }
     }
@@ -4692,8 +4706,8 @@ const INTERVAL_STEP_SECONDS = 0.2;
 // green band on that value in both cases - a range keeps its own ends, a single
 // number gets a band around itself - so averaging the two ends gives the middle
 // either way. null when nothing usable was written.
-function intervalTargetMiddle(targetStr) {
-  const b = targetStr ? parsePaceBounds(targetStr) : null;
+function intervalTargetMiddle(targetStr, distanceMeters) {
+  const b = targetStr ? parsePaceBounds(targetStr, distanceMeters) : null;
   if (!b) return null;
   return ((b.min.m * 60 + b.min.s) + (b.max.m * 60 + b.max.s)) / 2;
 }
@@ -4726,7 +4740,7 @@ function formatIntervalStep(totalSec, useClock) {
 // an empty box drops in the exact middle of the planned range - deliberately
 // nothing is shown before that, so the box still reads as empty and can be
 // typed into by hand.
-function attachIntervalStepper(inp, targetStr) {
+function attachIntervalStepper(inp, targetStr, distanceMeters) {
   if (inp.dataset.stepWired === "1") return;
   inp.dataset.stepWired = "1";
 
@@ -4734,7 +4748,7 @@ function attachIntervalStepper(inp, targetStr) {
   // by half a second too, same as the bare-seconds boxes - written as "3:20.5".
   const useClock = !!targetStr && targetStr.indexOf(":") > -1;
   const stepBy = useClock ? 0.5 : INTERVAL_STEP_SECONDS;
-  const middle = intervalTargetMiddle(targetStr);
+  const middle = intervalTargetMiddle(targetStr, distanceMeters);
 
   function step(dir) {
     const cur = parseAthleteInput(inp.value);
@@ -4786,20 +4800,27 @@ function attachIntervalPaceValidation() {
   document.querySelectorAll("[data-log-section]").forEach((sectionEl) => {
     const targetLine = sectionEl.querySelector(".log-target")?.textContent || "";
     const paceStr = extractPace(targetLine);
-    const sectionBounds = paceStr ? parsePaceBounds(paceStr) : null;
+    // A plain interval line has one rep length for the whole section
+    // ("10x400m(...)"). A non-interval line (a whole-run average pace field)
+    // never matches this, so distanceMeters stays null there and the pace
+    // passes through unscaled, same as before this existed.
+    const lengthMatch = targetLine.match(/(\d+)x([^\s;()]+)/);
+    const sectionDistanceMeters = lengthMatch ? parseDistanceMeters(lengthMatch[2]) : null;
+    const sectionBounds = paceStr ? parsePaceBounds(paceStr, sectionDistanceMeters) : null;
 
     sectionEl.querySelectorAll("[data-log-interval]").forEach((inp) => {
       // A variable-interval session has a different target pace per block, but
       // the section's line only carries the first one - reading the pace off
       // that line judged the 200m times against the 400m target, so they were
       // coloured wrong until the card was saved and re-rendered. Each box now
-      // carries its own target.
+      // carries its own target, and its own rep length for the same reason.
       const own = inp.dataset.targetPace;
-      const bounds = own ? parsePaceBounds(own) : sectionBounds;
+      const ownDistanceMeters = inp.dataset.targetDist ? parseDistanceMeters(inp.dataset.targetDist) : sectionDistanceMeters;
+      const bounds = own ? parsePaceBounds(own, ownDistanceMeters) : sectionBounds;
       if (bounds) attachPaceColouring(inp, bounds);
       // Same resolved target, so the arrows start from the value the box is
       // coloured against.
-      attachIntervalStepper(inp, own || paceStr || "");
+      attachIntervalStepper(inp, own || paceStr || "", ownDistanceMeters);
     });
 
     const paceInp = sectionEl.querySelector(".log-actual-pace");
