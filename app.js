@@ -100,7 +100,6 @@ let monthSubMode = "plan";
 let weekBlockTypes = [];
 let weeklyReviews = [];
 
-let athleteNextWeeksPlans = {};
 let athleteHealthSet = new Set();
 let athleteNotCompletedSet = new Set();
 let athleteDiarySet = new Set();
@@ -770,12 +769,6 @@ async function loadAllData() {
   const athleteId = getSelectedAthleteId();
   if (!athleteId) return;
 
-  try {
-    templates = await getTemplates(null);
-  } catch (e) {
-    templates = [];
-  }
-
   await loadNonTemplateData();
 }
 
@@ -936,7 +929,6 @@ async function loadNonTemplateData() {
     monthDayNotes = md;
   }
 
-  await loadWeekOverviewPlanData();
   await refreshWeekStatuses([athleteId]);
   render();
   refreshRaceCalendar();
@@ -949,23 +941,6 @@ function showLoading() {
 
 function hideLoading() {
   document.getElementById("loadingOverlay").hidden = true;
-}
-
-async function loadWeekOverviewPlanData() {
-  if (activeRole !== "coach") return;
-  athleteNextWeeksPlans = {};
-  const monday = getMonday(new Date());
-  const endDate = addDays(monday, 28);
-  const startStr = formatDateISO(monday);
-  const endStr = formatDateISO(endDate);
-  const results = await Promise.all(
-    athletes.map(a =>
-      getPlans(a.id, startStr, endStr).catch(() => [])
-    )
-  );
-  athletes.forEach((a, i) => {
-    athleteNextWeeksPlans[a.id] = results[i];
-  });
 }
 
 async function initApp() {
@@ -981,6 +956,12 @@ async function initApp() {
 
     renderAthleteDropdown();
     render();
+
+    try {
+      templates = await getTemplates(null);
+    } catch (e) {
+      templates = [];
+    }
 
     await loadAllData();
     // The three name badges are cross-athlete, so they must not wait for an
