@@ -575,17 +575,27 @@ function getVarSegmentData(container) {
   return segments;
 }
 
+// A written length is sometimes typed with a space before its unit ("1 km",
+// "3 min") - every regex below that reads a segment's length expects it
+// glued together the way the app itself always writes it ("1km"), so that
+// one space is closed up before parsing. Same digit-then-unit pattern
+// normalizeTrainingDetails() already uses for the "Biežāk lietotie" table,
+// but this is analysis-only - nothing stored or shown to the coach changes.
+function closeLengthUnitGap(s) {
+  return (s || "").replace(/(\d)\s+(min|km|sek|h|s|m)(?![\p{L}\d])/gu, "$1$2");
+}
+
 function isVarIntervalLine(line) {
   const mainIdx = line.indexOf("Pamatdaļa:");
   if (mainIdx === -1) return false;
-  const after = line.slice(mainIdx + "Pamatdaļa:".length);
+  const after = closeLengthUnitGap(line.slice(mainIdx + "Pamatdaļa:".length));
   const m = after.match(/\S+\([^)]+\)/);
   return m && after.indexOf(" + ", m.index) !== -1;
 }
 
 function parseVarIntervalPaceBounds(line) {
   const bounds = {};
-  const segments = line.split(" + ");
+  const segments = closeLengthUnitGap(line).split(" + ");
   let segIdx = 0;
   segments.forEach((seg) => {
     const m = seg.match(/(?:(?:\d+-)?(\d+)x)?(\S+?)\(([^)]+)\)/);
@@ -632,7 +642,12 @@ function parseSegmentsFromVarLine(line) {
   // Reps can also be written as a range ("10-12x300m") - the coach's real
   // answer once the athlete gets to pick how many they manage; always read
   // as the upper number, same as the plain (non-Var) interval regexes.
-  const segRegex = /^(?:(?:\d+-)?(\d+)x)?(\S+)\(([^)]+)\)(?:\s*caur\s+(.+))?$/;
+  // The length itself is matched as digits-plus-unit rather than a bare \S+
+  // so a space before the unit ("1 km", "3 min") is still captured as part
+  // of the length instead of breaking the match on the "(" that follows -
+  // unlike closeLengthUnitGap() elsewhere, this keeps the space so seg.length
+  // still displays exactly as the coach typed it.
+  const segRegex = /^(?:(?:\d+-)?(\d+)x)?(\d+(?:[.,]\d+)?\s?(?:km|m|min|minūtes|sek|sec|s|h)?)\(([^)]+)\)(?:\s*caur\s+(.+))?$/;
   const segments = parts.map(p => {
     const m = p.match(segRegex);
     if (m) {
@@ -4180,6 +4195,19 @@ function addExtraIntervalRow(hostEl, defaultDist, defaultPace) {
   const bounds = defaultPace ? parsePaceBounds(defaultPace, defaultDistanceMeters) : null;
   if (bounds) attachPaceColouring(paceInput, bounds);
   attachIntervalStepper(paceInput, defaultPace || "", defaultDistanceMeters);
+
+  // An extra rep can be logged at a different distance than the block it was
+  // added under (e.g. an extra 800m under a 400m block) - re-running the same
+  // sweep that coloured every other box picks that up and rescales this one
+  // too, instead of leaving it pinned to the block's default distance.
+  // Both boxes need it: attachPaceColouring() only ever wires its own
+  // input-driven recolouring once (on the very first call, with whatever
+  // bounds were current then), so typing in the pace box *after* the
+  // distance was edited would otherwise still validate against the stale
+  // pre-edit bounds. Re-running the sweep on every keystroke in either box
+  // keeps both aimed at the same, current target.
+  distInput.addEventListener("input", attachIntervalPaceValidation);
+  paceInput.addEventListener("input", attachIntervalPaceValidation);
   return row;
 }
 
@@ -4670,7 +4698,7 @@ function buildPaceBoundsMap(planDetails) {
         // A plain (non-var) interval line has one rep length for the whole
         // line - "10x400m(4:00-4:05)" - so the same distance applies to
         // every box under this section.
-        const lengthMatch = line.match(/(\d+)x([^\s;()]+)/);
+        const lengthMatch = closeLengthUnitGap(line).match(/(\d+)x([^\s;()]+)/);
         const distanceMeters = lengthMatch ? parseDistanceMeters(lengthMatch[2]) : null;
         const bounds = parsePaceBounds(paceStr, distanceMeters);
         if (bounds) map[section] = bounds;
@@ -4744,13 +4772,18 @@ function attachIntervalStepper(inp, targetStr, distanceMeters) {
   if (inp.dataset.stepWired === "1") return;
   inp.dataset.stepWired = "1";
 
-  // A target written as minutes:seconds (3:20-3:25 for 1000m intervals) steps
-  // by half a second too, same as the bare-seconds boxes - written as "3:20.5".
-  const useClock = !!targetStr && targetStr.indexOf(":") > -1;
-  const stepBy = useClock ? 0.5 : INTERVAL_STEP_SECONDS;
-  const middle = intervalTargetMiddle(targetStr, distanceMeters);
-
   function step(dir) {
+    // Read live rather than close over the values from when this was wired -
+    // an extra interval row's distance box can be edited afterwards, and
+    // attachIntervalPaceValidation() keeps dataset.targetDist in step with it.
+    const liveTarget = inp.dataset.targetPace || targetStr;
+    const liveDistance = inp.dataset.targetDist ? parseDistanceMeters(inp.dataset.targetDist) : distanceMeters;
+    // A target written as minutes:seconds (3:20-3:25 for 1000m intervals) steps
+    // by half a second too, same as the bare-seconds boxes - written as "3:20.5".
+    const useClock = !!liveTarget && liveTarget.indexOf(":") > -1;
+    const stepBy = useClock ? 0.5 : INTERVAL_STEP_SECONDS;
+    const middle = intervalTargetMiddle(liveTarget, liveDistance);
+
     const cur = parseAthleteInput(inp.value);
     let total;
     if (cur) {
@@ -4804,7 +4837,7 @@ function attachIntervalPaceValidation() {
     // ("10x400m(...)"). A non-interval line (a whole-run average pace field)
     // never matches this, so distanceMeters stays null there and the pace
     // passes through unscaled, same as before this existed.
-    const lengthMatch = targetLine.match(/(\d+)x([^\s;()]+)/);
+    const lengthMatch = closeLengthUnitGap(targetLine).match(/(\d+)x([^\s;()]+)/);
     const sectionDistanceMeters = lengthMatch ? parseDistanceMeters(lengthMatch[2]) : null;
     const sectionBounds = paceStr ? parsePaceBounds(paceStr, sectionDistanceMeters) : null;
 
@@ -4815,6 +4848,12 @@ function attachIntervalPaceValidation() {
       // coloured wrong until the card was saved and re-rendered. Each box now
       // carries its own target, and its own rep length for the same reason.
       const own = inp.dataset.targetPace;
+      // An extra row lets the athlete type their own distance, which can
+      // differ from whatever this box was created with - that live value
+      // wins over the dataset default, and is written back into the dataset
+      // so the stepper (wired once, read live) picks it up too.
+      const extraDist = inp.closest(".extra-interval-row")?.querySelector(".log-extra-dist")?.value.trim();
+      if (extraDist) inp.dataset.targetDist = extraDist;
       const ownDistanceMeters = inp.dataset.targetDist ? parseDistanceMeters(inp.dataset.targetDist) : sectionDistanceMeters;
       const bounds = own ? parsePaceBounds(own, ownDistanceMeters) : sectionBounds;
       if (bounds) attachPaceColouring(inp, bounds);
