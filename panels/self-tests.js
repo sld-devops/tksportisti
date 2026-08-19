@@ -1,8 +1,8 @@
-// "Paštesti" panelis - sportists ieraksta rezultātus, treneris tos redz.
-// `seenSelfTestIds` (localStorage, PER PĀRLŪKU, nevis datubāzē) atceras,
-// kurus ierakstus treneris jau ir redzējis, lai sarkanais "N" skaitlītis pie
-// paneļa virsraksta rādītu, cik JAUNU ierakstu ir - skat. CLAUDE.md
-// "Notification badges" par šo atkārtoto sešu paneļu paraugu.
+// "Self-tests" panel - the athlete enters results, the coach sees them.
+// `seenSelfTestIds` (localStorage, PER BROWSER, not in the database) remembers
+// which entries the coach has already seen, so the small red "N" badge on
+// the panel header shows how many NEW entries there are - see CLAUDE.md
+// "Notification badges" for this recurring six-panel pattern.
 let selfTests = [];
 let editingSelfTestId = null;
 let seenSelfTestIds = new Set();
@@ -40,8 +40,8 @@ const ST_KEYS = [
   "plank_labais", "plank_kreisais", "paleciens_laba", "paleciens_kreisa",
 ];
 
-// Zīmē sarakstu sānjoslas panelī (tikai datumi - viss pārējais atveras
-// dialogā). Sportists redz savus, treneris redz izvēlētā sportista.
+// Draws the list in the sidebar panel (dates only - everything else opens
+// in the dialog). The athlete sees their own, the coach sees the selected athlete's.
 function renderSelfTests() {
   const body = document.getElementById("selfTestsBody");
   if (!body) return;
@@ -94,9 +94,9 @@ function renderSelfTests() {
   }
 }
 
-// Atver/aizpilda dialogu vienam paštestam. `existing` ir null jaunam
-// ierakstam vai esošs objekts rediģēšanai. Treneris redz to pašu dialogu,
-// bet visi lauki ir `.disabled` - viņš var tikai skatīties, nevis labot.
+// Opens/fills the dialog for one self-test. `existing` is null for a new
+// entry, or an existing object for editing. The coach sees the same dialog,
+// but every field is `.disabled` - they can only look, not edit.
 function openSelfTestDialog(existing) {
   const dlg = document.getElementById("selfTestDialog");
   const athleteId = getSelectedAthleteId();

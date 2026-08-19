@@ -1,7 +1,7 @@
-// "Rufjē tests" panelis - saraksts + inline forma (kā health-journal.js),
-// "seen" izsekošana (kā self-tests.js), plus izvēršama instrukciju kartīte
-// (ruffierInfoExpanded/RUFFIER_INFO_HTML zemāk) un pati Rufjē indeksa
-// formula/krāsu kategorijas (calcRuffierIndex, RUFFIER_CATEGORIES).
+// "Ruffier test" panel - list + inline form (like health-journal.js),
+// "seen" tracking (like self-tests.js), plus an expandable instructions card
+// (ruffierInfoExpanded/RUFFIER_INFO_HTML below) and the Ruffier index
+// formula/colour categories themselves (calcRuffierIndex, RUFFIER_CATEGORIES).
 let ruffierTests = [];
 let editingRuffierTestId = null;
 let seenRuffierTestIds = new Set();
