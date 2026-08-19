@@ -585,6 +585,16 @@ function closeLengthUnitGap(s) {
   return (s || "").replace(/(\d)\s+(min|km|sek|h|s|m)(?![\p{L}\d])/gu, "$1$2");
 }
 
+// A rep written as a duration ("3min") rather than a distance ("400m") is
+// already run for a fixed time, so there is nothing to log a finishing time
+// against - the box for it collects the athlete's own pace instead (e.g.
+// "3:50"), compared directly against the planned pace with no distance
+// conversion. The box needs a hint saying so, since it otherwise looks
+// identical to a distance rep's elapsed-time box.
+function isDurationLength(lengthStr) {
+  return !parseDistanceMeters(lengthStr) && !!parseDurationSeconds(closeLengthUnitGap(lengthStr));
+}
+
 function isVarIntervalLine(line) {
   const mainIdx = line.indexOf("Pamatdaļa:");
   if (mainIdx === -1) return false;
@@ -4306,7 +4316,7 @@ function openPlanLogDialog(planId) {
               <div class="log-target">${count}x${escapeHtml(seg.length)}${seg.pace ? "(" + escapeHtml(seg.pace) + ")" : ""}</div>
               <div class="field-grid">`;
             for (let r = 0; r < count; r++) {
-              html += `<label>${r + 1}. atkārtojums <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}" /></label>`;
+              html += `<label>${r + 1}. atkārtojums <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}" ${isDurationLength(seg.length) ? 'placeholder="temps"' : ""} /></label>`;
               globalIdx++;
             }
             html += `</div></div>`;
@@ -4329,11 +4339,13 @@ function openPlanLogDialog(planId) {
       let intervalMatch = line.match(/Pamatdaļa:\s*(?:\d+-)?(\d+)x(\S+)/);
       if (intervalMatch) {
         const count = parseInt(intervalMatch[1]);
+        const lengthMatch = closeLengthUnitGap(line).match(/(\d+)x([^\s;()]+)/);
+        const durationPlaceholder = lengthMatch && isDurationLength(lengthMatch[2]) ? ' placeholder="temps"' : "";
         html += `<div class="log-section-row" data-log-section="Pamatdaļa">
           <div class="log-target">${line}</div>
           <div class="field-grid">`;
         for (let i = 0; i < count; i++) {
-          html += `<label>${i + 1}. atkārtojums <input class="log-interval-pace" data-log-interval="${i}" /></label>`;
+          html += `<label>${i + 1}. atkārtojums <input class="log-interval-pace" data-log-interval="${i}"${durationPlaceholder} /></label>`;
         }
         html += `</div></div>`;
       } else if (line === "Sacensību uzturs" || line === "• Izmantot sacensību uzturu" || line.startsWith("Apavi:") || line.startsWith("• Apavi:")) {
@@ -4442,7 +4454,7 @@ function openLogDialog(dateStr) {
                 <div class="log-target">${count}x${escapeHtml(seg.length)}${seg.pace ? "(" + escapeHtml(seg.pace) + ")" : ""}</div>
                 <div class="field-grid">`;
               for (let r = 0; r < count; r++) {
-                html += `<label>${r + 1}. atkārtojums <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}" /></label>`;
+                html += `<label>${r + 1}. atkārtojums <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}" ${isDurationLength(seg.length) ? 'placeholder="temps"' : ""} /></label>`;
                 globalIdx++;
               }
               html += `</div></div>`;
@@ -4462,11 +4474,13 @@ function openLogDialog(dateStr) {
         let intervalMatch = line.match(/Pamatdaļa:\s*(?:\d+-)?(\d+)x(\S+)/);
         if (intervalMatch) {
           const count = parseInt(intervalMatch[1]);
+          const lengthMatch = closeLengthUnitGap(line).match(/(\d+)x([^\s;()]+)/);
+          const durationPlaceholder = lengthMatch && isDurationLength(lengthMatch[2]) ? ' placeholder="temps"' : "";
           html += `<div class="log-section-row" data-log-section="Pamatdaļa">
             <div class="log-target">${line}</div>
             <div class="field-grid">`;
           for (let i = 0; i < count; i++) {
-            html += `<label>${i + 1}. atkārtojums <input class="log-interval-pace" data-log-interval="${i}" /></label>`;
+            html += `<label>${i + 1}. atkārtojums <input class="log-interval-pace" data-log-interval="${i}"${durationPlaceholder} /></label>`;
           }
           html += `</div></div>`;
         } else if (line === "Sacensību uzturs" || line === "• Izmantot sacensību uzturu" || line.startsWith("Apavi:") || line.startsWith("• Apavi:")) {
