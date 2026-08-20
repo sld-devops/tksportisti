@@ -1,7 +1,7 @@
-// "Sacensības" - divas daļas: mazie sacensību logi (jauna sacensība /
-// rezultāts) un lielais "Sacensību kalendārs" sānjoslas panelis ar
-// Gaidāmās/Notikušās cilnēm. Skat. CLAUDE.md "races un monthRaces ir
-// nedēļas/mēneša tvērumā" - tāpēc findRaceById meklē visos trīs sarakstos.
+// "Races" - two parts: the small race dialogs (new race / result) and the
+// large "Race calendar" sidebar panel with Upcoming/Past tabs. See
+// CLAUDE.md "races and monthRaces are week/month-scoped" - that's why
+// findRaceById searches all three lists.
 let races = [];
 let monthRaces = [];
 // Every race of the selected athlete, cached by the race-calendar panel. races
@@ -43,7 +43,7 @@ function markAllRacesSeen(athleteId, races) {
 
 loadSeenRaceIds();
 
-// #region Sacensību dialogi (jauna/rediģēt sacensību, ierakstīt rezultātu)
+// #region Race dialogs (new/edit race, record a result)
 // Race dialog
 const raceDialog = document.getElementById("raceDialog");
 const raceDate = document.getElementById("raceDate");
@@ -163,7 +163,7 @@ raceResultTime.addEventListener("input", () => {
 
 // #endregion
 
-// #region Sacensību kalendāra panelis (saraksts, cilnes, "saglabāt kā rekordu")
+// #region Race calendar panel (list, tabs, "save as record")
 function getUpcomingRaces(allRaces) {
   return allRaces.filter((r) => !r.result_time);
 }
@@ -233,10 +233,10 @@ function renderRaceTabFromRaces(allRaces, tab) {
 function raceTimeToSeconds(text) {
   const parts = String(text || "").trim().split(":").map((p) => parseFloat(p.replace(",", ".")));
   if (!parts.length || parts.some((n) => !isFinite(n))) return 0;
-  // .reduce((acc, n) => ..., sākumvērtība) "salok" visu masīvu vienā
-  // vērtībā - kā Python `functools.reduce`. Šeit katrs solis reizina līdzšinējo
-  // rezultātu ar 60 un pieskaita nākamo daļu, kas laika daļas (stundas,
-  // minūtes, sekundes) pārvērš sekundēs neatkarīgi no tā, cik daļu ir.
+  // .reduce((acc, n) => ..., initialValue) "folds" the whole array into one
+  // value - like Python `functools.reduce`. Here each step multiplies the
+  // running result by 60 and adds the next part, which turns the time parts
+  // (hours, minutes, seconds) into seconds no matter how many parts there are.
   return parts.reduce((acc, n) => acc * 60 + n, 0);
 }
 
@@ -294,10 +294,10 @@ async function saveRaceAsRecord(raceId, btn) {
   }
 }
 
-// `.then(rezultāts => {...})` ir tas pats, ko citur failā dara `await` -
-// "kad šis solījums (promise) atrisinās, izpildi šo funkciju ar rezultātu".
-// Abi paņēmieni ir līdzvērtīgi; šis fails vietām lieto `.then()` tur, kur
-// nav `async function` apkārt.
+// `.then(result => {...})` is the same thing `await` does elsewhere in this
+// file - "when this promise resolves, run this function with the result".
+// Both approaches are equivalent; this file uses `.then()` in places where
+// there is no `async function` around it.
 function renderRaceTab(tab) {
   const athleteId = getSelectedAthleteId();
   if (!athleteId) return;

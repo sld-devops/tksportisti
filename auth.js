@@ -1,14 +1,14 @@
 // ===================================================================
-// AUTH.JS - pieteikšanās, sesija, konta pārslēgšana, paroles maiņa
+// AUTH.JS - login, session, account switching, password change
 // ===================================================================
-// `currentUser`/`currentProfile` (zemāk) ir divi no svarīgākajiem globālajiem
-// mainīgajiem visā lietotnē - gandrīz katra funkcija app.js/panels/*.js
-// failos kaut kur pārbauda `currentProfile.role` vai `isCoach()`. Lietotāji
-// piesakās nevis ar e-pastu, bet ar lietotājvārdu, kas šeit tiek pārvērsts
-// par "izdomātu" e-pastu (`lietotajvards@skmitauer.app`) - Supabase Auth
-// prasa e-pasta formātu, bet trenerim un sportistiem e-pasts nav vajadzīgs.
+// `currentUser`/`currentProfile` (below) are two of the most important global
+// variables in the whole app - almost every function in app.js/panels/*.js
+// files checks `currentProfile.role` or `isCoach()` somewhere. Users
+// log in not with an email, but with a username, which is converted here
+// into a "synthetic" email (`lietotajvards@skmitauer.app`) - Supabase Auth
+// requires an email format, but the coach and athletes don't need an email.
 
-// #region Pieteikšanās un sesijas pamati
+// #region Login and session basics
 const appEl = document.getElementById("appView");
 const authViewEl = document.getElementById("authView");
 const loginBtn = document.getElementById("loginBtn");
@@ -113,7 +113,7 @@ async function logout() {
 }
 // #endregion
 
-// #region Konta pārslēgšana (treneris ⇄ sportists uz viena ierīces)
+// #region Account switching (coach ⇄ athlete on one device)
 /* ---------------------------------------------------------------------------
    "Sportista skats" / "Trenera skats"
 
@@ -311,7 +311,7 @@ async function linkAndSwitchAccount() {
 }
 // #endregion
 
-// #region Paroles maiņa
+// #region Password change
 async function changePassword() {
   const newPwd = newPasswordInput.value;
   const confirmPwd = confirmPasswordInput.value;
@@ -341,7 +341,7 @@ async function changePassword() {
 }
 // #endregion
 
-// #region Notikumu piesaiste
+// #region Event binding
 authForm.addEventListener("submit", function(e){ e.preventDefault(); login(); });
 logoutBtn.addEventListener("click", logout);
 

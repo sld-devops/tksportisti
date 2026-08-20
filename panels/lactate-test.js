@@ -1,4 +1,4 @@
-// Laktāta tests - a running step test, entered as a table of stages.
+// "Laktāta tests" (Lactate test) - a running step test, entered as a table of stages.
 //
 // The real procedure this models: 15-20 min warm-up, then 4-7 stages of 3-5
 // minutes each, every stage roughly 10-20 s/km faster than the one before. A
@@ -55,7 +55,7 @@ const LACTATE_LT2 = 4.0;
 const LACTATE_BASELINE_RISE = 1.0;
 const LACTATE_DEFAULT_STAGE_MIN = 4;
 
-// #region Ievadītā nolasīšana un pārbaude
+// #region Reading and checking what was typed
 /* ---------- reading what was typed ---------- */
 
 // "4:30" -> 270. A pace is written min:sec; a bare number is taken as whole
@@ -100,7 +100,7 @@ function lactateUsableSteps(steps) {
 
 // #endregion
 
-// #region Sliekšņvērtību aprēķins
+// #region Threshold calculation
 /* ---------- the thresholds ---------- */
 
 // Walks the stages in order and returns the point where lactate first crosses
@@ -176,7 +176,7 @@ function lactateLt2Label(test) {
 
 // #endregion
 
-// #region Līknes zīmēšana (SVG)
+// #region Drawing the curve (SVG)
 /* ---------- the curve ---------- */
 
 // Own constants, not the ones in panels/stats.js - those are `const` at global
@@ -261,7 +261,7 @@ function buildLactateChart(points, results) {
 
 // #endregion
 
-// #region Sānjoslas saraksts
+// #region Sidebar list
 /* ---------- the panel ---------- */
 
 function renderLactateTests() {
@@ -316,7 +316,7 @@ function renderLactateTests() {
 
 // #endregion
 
-// #region Testa ievades dialogs (posmu tabula)
+// #region Test input dialog (stage table)
 /* ---------- the dialog ---------- */
 
 function openLactateTestDialog(existing) {
@@ -467,10 +467,10 @@ async function saveLactateTest() {
     if (editingLactateTestId) {
       await updateLactateTest(editingLactateTestId, payload);
     } else {
-      // `{ atslēga: vērtība, ...objekts }` ir OBJEKTA spread - tas pats
-      // paņēmiens kā `[...masīvs]`, tikai objektiem: "izklāj" visus
-      // `payload` laukus jaunajā objektā, un `athlete_id` klāt to papildina.
-      // Ērtāk nekā rakstīt katru `payload` lauku atsevišķi vēlreiz.
+      // `{ key: value, ...object }` is an OBJECT spread - the same
+      // technique as `[...array]`, just for objects: it "spreads out" all
+      // the `payload` fields into the new object, and `athlete_id` is added alongside.
+      // More convenient than writing out each `payload` field separately again.
       await insertLactateTest({ athlete_id: athleteId, ...payload });
     }
   } catch (e) {

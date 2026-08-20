@@ -1,10 +1,11 @@
-// #region Globālais stāvoklis un DOM elementu atsauces
-// Šī faila augšpusē ir visi "globālie" mainīgie - vērtības, ko lasa un maina
-// funkcijas visur citur failā. Nav klašu/objektu kā Python OOP - vienkārši
-// koplietoti mainīgie. `let` nozīmē, ka vērtību var vēlāk pārrakstīt (kā
-// parasts Python mainīgais); `const` nozīmē, ka pati mainīgā "kastīte"
-// vairs netiek pārrakstīta uz citu vērtību (bet, ja tas ir masīvs vai
-// objekts, tā *saturu* joprojām var mainīt - piem. .push() masīvam).
+// #region Global state and DOM element references
+// The top of this file holds all the "global" variables - values that
+// functions everywhere else in the file read and change. There are no
+// classes/objects like Python OOP - just shared variables. `let` means the
+// value can be reassigned later (like a normal Python variable); `const`
+// means the variable "box" itself is never reassigned to a different value
+// (but if it's an array or object, its *contents* can still change - e.g.
+// .push() on an array).
 const days = [
   "Pirmdiena", "Otrdiena", "Trešdiena", "Ceturtdiena",
   "Piektdiena", "Sestdiena", "Svētdiena",
@@ -23,19 +24,21 @@ let calendarMode = localStorage.getItem("calendarMode") || (window.matchMedia("(
 
 // check for existing session on load
 //
-// (async () => { ... })() ir "uzreiz izsaukta funkcija": `() => {...}` ir bulta-
-// funkcija (arrow function) - īsāks veids kā uzrakstīt funkciju, aptuveni kā
-// Python `lambda`, tikai ar `{}` bloku var saturēt vairākas rindas, nevis tikai
-// vienu izteiksmi. `async` priekšā nozīmē, ka funkcijas iekšā drīkst lietot
-// `await` - "pagaidi, kamēr šis solis (piem., pieprasījums serverim) pabeidzas,
-// tad turpini nākamo rindu", līdzīgi Python `async def` + `await`. Iekavas
-// `(...)()` uzreiz izsauc šo funkciju vienu reizi, tiklīdz fails ielādējas.
+// (async () => { ... })() is an "immediately invoked function": `() => {...}`
+// is an arrow function - a shorter way to write a function, roughly like a
+// Python `lambda`, except a `{}` block can hold several lines instead of just
+// one expression. `async` in front means the function is allowed to use
+// `await` inside it - "wait until this step (e.g. a request to the server)
+// finishes, then continue to the next line", similar to Python's
+// `async def` + `await`. The trailing `(...)()` calls this function once,
+// immediately, as soon as the file loads.
 (async () => {
   const { data } = await supabase.auth.getSession();
-  // `const { data } = ...` ir "destrukturēšana" - no atbildes objekta uzreiz
-  // paņem tikai `data` lauku. `data?.session` ("optional chaining") nozīmē
-  // "ja `data` ir null/undefined, neskaties tālāk, atgriezt undefined" -
-  // pasargā no kļūdas, ja mēģinātu paņemt `.session` no null.
+  // `const { data } = ...` is "destructuring" - it takes just the `data`
+  // field out of the response object right away. `data?.session` ("optional
+  // chaining") means "if `data` is null/undefined, don't look any further,
+  // return undefined" - it guards against an error from trying to read
+  // `.session` off null.
   if (data?.session) {
     currentUser = data.session.user;
     currentProfile = await getProfile(currentUser.id);
@@ -57,24 +60,25 @@ let calendarMode = localStorage.getItem("calendarMode") || (window.matchMedia("(
 
 // Click outside any <dialog> (on its ::backdrop) closes it, app-wide.
 //
-// `document.querySelectorAll(...)` atrod visus elementus, kas atbilst CSS
-// selektoram (šeit - visus <dialog> tagus) un atgriež tos kā sarakstu.
-// `.forEach((dialog) => {...})` izpilda doto funkciju katram atrastajam
-// elementam pēc kārtas - kā Python `for dialog in dialogs:`.
-// `.addEventListener("click", (e) => {...})` piesaista funkciju, kas
-// izpildīsies katru reizi, kad lietotājs uz šī elementa uzklikšķinās; `e` ir
-// notikuma objekts ar informāciju par klikšķi (t.sk. `e.target` - uz kā
-// tieši tika klikšķināts).
+// `document.querySelectorAll(...)` finds every element matching the given
+// CSS selector (here - every <dialog> tag) and returns them as a list.
+// `.forEach((dialog) => {...})` runs the given function for each element
+// found, in turn - like Python's `for dialog in dialogs:`.
+// `.addEventListener("click", (e) => {...})` attaches a function that runs
+// every time the user clicks on this element; `e` is the event object
+// carrying information about the click (including `e.target` - what was
+// actually clicked on).
 document.querySelectorAll("dialog").forEach((dialog) => {
   dialog.addEventListener("click", (e) => {
     if (e.target === dialog) dialog.close();
   });
 });
 
-// Turpmākie mainīgie ir lietotnes "atmiņa" - kurš skats ir aktīvs, kura
-// nedēļa/mēnesis ir uz ekrāna, un vietējais treniņu/plānu saraksta kešs
-// (dati no Supabase, ko lietotne patur šeit, lai nevajadzētu pārlādēt no
-// servera pēc katras darbības - skat. CLAUDE.md "Data flow pattern").
+// The variables that follow are the app's "memory" - which view is active,
+// which week/month is on screen, and the local cache of the training/plan
+// list (data from Supabase that the app keeps here so it doesn't have to
+// reload from the server after every action - see CLAUDE.md "Data flow
+// pattern").
 const MIN_WEEK_START = new Date(2026, 5, 1);
 let currentWeekStart = getMonday(new Date());
 let viewMode = "week";
@@ -96,7 +100,6 @@ let monthSubMode = "plan";
 let weekBlockTypes = [];
 let weeklyReviews = [];
 
-let athleteNextWeeksPlans = {};
 let athleteHealthSet = new Set();
 let athleteNotCompletedSet = new Set();
 let athleteDiarySet = new Set();
@@ -157,10 +160,11 @@ function updateMenuBtnArrow() {
 updateMenuBtnArrow();
 window.addEventListener("resize", updateMenuBtnArrow);
 
-// No šejienes līdz funkcijai getMonday() - vienreizējas atsauces uz HTML
-// elementiem no index.html (pēc to `id`), lai vēlāk kodā varētu īsi rakstīt
-// `mainDuration.value` u.tml., nevis katru reizi no jauna meklēt elementu.
-// `document.getElementById("x")` atgriež to elementu, kura HTML ir `id="x"`.
+// From here down to the getMonday() function - one-time references to HTML
+// elements from index.html (by their `id`), so later code can write
+// `mainDuration.value` etc. for short, instead of looking up the element
+// fresh every time. `document.getElementById("x")` returns the element
+// whose HTML has `id="x"`.
 const athleteSelect = document.getElementById("athleteSelect");
 const athleteSelectorPanel = document.getElementById("athleteSelectorPanel");
 const calendarGrid = document.getElementById("calendarGrid");
@@ -213,24 +217,24 @@ const raceShoes = document.getElementById("raceShoes");
 const raceShoesRow = document.getElementById("raceShoesRow");
 // #endregion
 
-// #region Datumu un formatēšanas palīgfunkcijas
-// Mazas, atkārtoti izmantojamas funkcijas datumu rēķināšanai un teksta
-// pierakstīšanai vienādā formātā (piem., "2026-08-14" vai "14.8.2026.").
-// Tās sauc gandrīz visur pārējā failā.
+// #region Date and formatting helper functions
+// Small, reusable functions for date arithmetic and writing text out in a
+// consistent format (e.g. "2026-08-14" or "14.8.2026."). Called from almost
+// everywhere else in the file.
 
-// Atgriež tās pašas nedēļas pirmdienu dotajam datumam.
+// Returns the Monday of the same week as the given date.
 function getMonday(date) {
   const d = new Date(date);
-  // (d.getDay() + 6) % 7 pārvērš JS nedēļas dienu numerāciju (0=svētdiena)
-  // par "cik dienu atpakaļ līdz pirmdienai" (0=pirmdiena ... 6=svētdiena).
+  // (d.getDay() + 6) % 7 converts JS's weekday numbering (0=Sunday) into
+  // "how many days back to Monday" (0=Monday ... 6=Sunday).
   d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
   d.setHours(0, 0, 0, 0);
   return d;
 }
 
 function getWeekStartFromStr(dateStr) {
-  // "2026-08-14".split("-") -> ["2026","08","14"]; .map(Number) pārvērš katru
-  // masīva elementu ar doto funkciju - kā Python `list(map(int, parts))`.
+  // "2026-08-14".split("-") -> ["2026","08","14"]; .map(Number) runs the given
+  // function over each array element - like Python's `list(map(int, parts))`.
   const parts = dateStr.split("-").map(Number);
   const d = new Date(parts[0], parts[1] - 1, parts[2]);
   const mon = getMonday(d);
@@ -239,10 +243,10 @@ function getWeekStartFromStr(dateStr) {
 
 function formatDateISO(d) {
   const y = d.getFullYear();
-  // Template string (ar ` ` pēdiņām, nevis ' vai ") ļauj mainīgos ielikt
-  // teksta vidū ar ${...} - kā Python f-string `f"{y}-{m}"`.
-  // .padStart(2, "0") piepilda skaitli ar priekšā liktu "0" līdz 2 zīmēm
-  // (piem. "8" -> "08") - kā Python `str(x).zfill(2)`.
+  // A template string (with ` ` backticks, not ' or ") lets variables be
+  // inserted into the middle of text with ${...} - like Python's f-string
+  // `f"{y}-{m}"`. .padStart(2, "0") pads a number with a leading "0" up to
+  // 2 characters (e.g. "8" -> "08") - like Python's `str(x).zfill(2)`.
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
@@ -304,18 +308,19 @@ function parseHoursMinutesInput(str) {
 }
 // #endregion
 
-// #region Treniņa "details" teksta būvēšana un lasīšana
-// Šī ir visdelikātākā koda daļa (skat. arī CLAUDE.md "A training's `details`
-// string is positional - treat it as a record, not prose"). Katrs treniņš
-// (plāns vai sagatave) datubāzē glabājas nevis kā atsevišķi lauki, bet kā
-// VIENS garš teksts ar rindiņām ("Iesildīšanās: 15min; 120-130", "Pamatdaļa:
-// 6x400m (76-78s); caur 2min" utt.), kur katrā rindā lauki ir atdalīti ar ";"
-// FIKSĒTĀ SECĪBĀ. Funkcijas šeit veido šo tekstu no veidotāja lodziņiem
-// (formatPart, getGeneratedTraining) un vēlāk to atkal sadala atpakaļ
-// lodziņos (splitDetailFields, parsePlanToForm, loadTemplateToForm tālāk
-// failā). Ja kāds lauks tiek izlaists vidū, visi nākamie lauki "nobīdās" un
-// nonāk nepareizajā lodziņā - tāpēc tukšs lauks jāatstāj kā tukšs ("; ;"),
-// nevis jāizlaiž pavisam.
+// #region Building and reading the training "details" text
+// This is the most delicate piece of code in the file (see also CLAUDE.md
+// "A training's `details` string is positional - treat it as a record, not
+// prose"). Each training (plan or template) is stored in the database not as
+// separate fields, but as ONE long text with lines ("Iesildīšanās: 15min;
+// 120-130", "Pamatdaļa: 6x400m (76-78s); caur 2min" etc.), where the fields
+// on each line are separated by ";" in a FIXED ORDER. The functions here
+// build that text from the builder's input boxes (formatPart,
+// getGeneratedTraining) and later split it back apart into the boxes again
+// (splitDetailFields, parsePlanToForm, loadTemplateToForm further down the
+// file). If a field is dropped in the middle, every field after it "shifts"
+// and ends up in the wrong box - so an empty field must be left as empty
+// ("; ;"), not skipped entirely.
 
 function formatPart(label, duration, pulse, pace, additional) {
   const dur = duration.trim();
@@ -334,11 +339,11 @@ function getDrillsPart() {
   return includeDrills.checked ? "Drill" : "";
 }
 
-// Salasa "Izveidot jaunu treniņu" veidotāja lodziņus vienā "details" tekstā
-// (skat. paskaidrojumu augstāk). Atgriež objektu { title, details, ... } -
-// `{ a, b }` te ir "objekta literālis", aptuveni kā Python `dict`, tikai
-// atslēgas raksta bez pēdiņām un lasa ar punktu (`obj.title`, nevis
-// `obj["title"]`).
+// Collects the "Izveidot jaunu treniņu" builder's input boxes into one
+// "details" text (see the explanation above). Returns an object
+// { title, details, ... } - `{ a, b }` here is an "object literal", roughly
+// like a Python `dict`, except the keys are written without quotes and read
+// with a dot (`obj.title`, not `obj["title"]`).
 function getGeneratedTraining() {
   const type = customType.value;
 
@@ -346,8 +351,8 @@ function getGeneratedTraining() {
     const warmup = formatPart("Iesildīšanās", warmupDuration.value, warmupPulse.value, null, warmupAdditional.value);
     const drills = getDrillsPart();
     const cooldown = formatPart("Atsildīšanās", cooldownDuration.value, cooldownPulse.value, null, cooldownAdditional.value);
-    // [a, b].filter(Boolean) izmet visus "tukšos" elementus (tukšu tekstu,
-    // null, undefined) - īss veids kā `[x for x in [a,b] if x]` Python.
+    // [a, b].filter(Boolean) drops every "empty" element (empty text, null,
+    // undefined) - a short way to write Python's `[x for x in [a,b] if x]`.
     const lines = [warmup, drills].filter(Boolean);
     const mainText = customFreeText.value.trim();
     if (mainText) lines.push(`Pamatdaļa: ${mainText}`);
@@ -523,16 +528,17 @@ function displayTitle(name) {
   return name ? name.replace(/\s*\(.*?\)\s*$/, "").replace(/\//g, " un ") : "";
 }
 
-// Šeit pirmo reizi parādās paņēmiens, ko lietotne izmanto simtiem reižu:
-// uzbūvēt gabalu HTML kā parastu tekstu (template stringu ar ${} vietām) un
-// to ierakstīt `.innerHTML =` - pārlūks pats to pārvērš par īstiem
-// elementiem. Nav nekādas veidnes/komponenšu sistēmas (nav Reacta/Vue) -
-// katru reizi, kad dati mainās, atbilstošā render*() funkcija pilnībā no
-// jauna uzraksta HTML tekstu un ieliek to lapā. Ja HTML jāveido no masīva
-// (piem., viena rinda par katru sportistu), parasti redzēsi
-// `masīvs.map(x => \`<div>${x}</div>\`).join("")` - .map() katram elementam
-// atgriež HTML gabalu (kā Python list comprehension), .join("") tos visus
-// salīmē vienā tekstā.
+// This is the first place the technique the app uses hundreds of times
+// shows up: build a chunk of HTML as plain text (a template string with
+// ${} slots) and write it into `.innerHTML =` - the browser turns it into
+// real elements on its own. There is no template/component system (no
+// React/Vue) - every time the data changes, the matching render*() function
+// rewrites the HTML text completely from scratch and drops it into the
+// page. When HTML has to be built from an array (e.g. one row per athlete),
+// you'll usually see
+// `array.map(x => \`<div>${x}</div>\`).join("")` - .map() returns an HTML
+// chunk for each element (like a Python list comprehension), .join("")
+// glues them all into one text.
 function createVarSegmentRow(container, lengthVal, paceVal, restVal, repsVal) {
   const row = document.createElement("div");
   row.className = "var-segment-row";
@@ -568,23 +574,43 @@ function getVarSegmentData(container) {
   return segments;
 }
 
+// A written length is sometimes typed with a space before its unit ("1 km",
+// "3 min") - every regex below that reads a segment's length expects it
+// glued together the way the app itself always writes it ("1km"), so that
+// one space is closed up before parsing. Same digit-then-unit pattern
+// normalizeTrainingDetails() already uses for the "Biežāk lietotie" table,
+// but this is analysis-only - nothing stored or shown to the coach changes.
+function closeLengthUnitGap(s) {
+  return (s || "").replace(/(\d)\s+(min|km|sek|h|s|m)(?![\p{L}\d])/gu, "$1$2");
+}
+
+// A rep written as a duration ("3min") rather than a distance ("400m") is
+// already run for a fixed time, so there is nothing to log a finishing time
+// against - the box for it collects the athlete's own pace instead (e.g.
+// "3:50"), compared directly against the planned pace with no distance
+// conversion. The box needs a hint saying so, since it otherwise looks
+// identical to a distance rep's elapsed-time box.
+function isDurationLength(lengthStr) {
+  return !parseDistanceMeters(lengthStr) && !!parseDurationSeconds(closeLengthUnitGap(lengthStr));
+}
+
 function isVarIntervalLine(line) {
   const mainIdx = line.indexOf("Pamatdaļa:");
   if (mainIdx === -1) return false;
-  const after = line.slice(mainIdx + "Pamatdaļa:".length);
+  const after = closeLengthUnitGap(line.slice(mainIdx + "Pamatdaļa:".length));
   const m = after.match(/\S+\([^)]+\)/);
   return m && after.indexOf(" + ", m.index) !== -1;
 }
 
 function parseVarIntervalPaceBounds(line) {
   const bounds = {};
-  const segments = line.split(" + ");
+  const segments = closeLengthUnitGap(line).split(" + ");
   let segIdx = 0;
   segments.forEach((seg) => {
-    const m = seg.match(/(?:(?:\d+-)?(\d+)x)?\S+\(([^)]+)\)/);
+    const m = seg.match(/(?:(?:\d+-)?(\d+)x)?(\S+?)\(([^)]+)\)/);
     if (!m) return;
     const reps = parseInt(m[1]) || 1;
-    const segBounds = parsePaceBounds(m[2].trim());
+    const segBounds = parsePaceBounds(m[3].trim(), parseDistanceMeters(m[2]));
     if (!segBounds) return;
     for (let r = 0; r < reps; r++) {
       segIdx++;
@@ -625,7 +651,12 @@ function parseSegmentsFromVarLine(line) {
   // Reps can also be written as a range ("10-12x300m") - the coach's real
   // answer once the athlete gets to pick how many they manage; always read
   // as the upper number, same as the plain (non-Var) interval regexes.
-  const segRegex = /^(?:(?:\d+-)?(\d+)x)?(\S+)\(([^)]+)\)(?:\s*caur\s+(.+))?$/;
+  // The length itself is matched as digits-plus-unit rather than a bare \S+
+  // so a space before the unit ("1 km", "3 min") is still captured as part
+  // of the length instead of breaking the match on the "(" that follows -
+  // unlike closeLengthUnitGap() elsewhere, this keeps the space so seg.length
+  // still displays exactly as the coach typed it.
+  const segRegex = /^(?:(?:\d+-)?(\d+)x)?(\d+(?:[.,]\d+)?\s?(?:km|m|min|minūtes|sek|sec|s|h)?)\(([^)]+)\)(?:\s*caur\s+(.+))?$/;
   const segments = parts.map(p => {
     const m = p.match(segRegex);
     if (m) {
@@ -676,7 +707,7 @@ function parseVarIntervalMain(mainText, segmentListEl, lapsEl, restEl) {
 }
 // #endregion
 
-// #region Nedēļas/mēneša diapazona palīgfunkcijas
+// #region Week/month range helper functions
 function getSelectedAthleteId() {
   return athleteSelect.value;
 }
@@ -725,23 +756,18 @@ function getMonthNameLV(date) {
 }
 // #endregion
 
-// #region Datu ielāde no Supabase
-// Funkcijas šeit paņem datus no Supabase (skat. db.js) un ieraksta tos
-// globālajos mainīgajos no faila sākuma (`plans`, `templates`, u.c.) -
-// skat. CLAUDE.md "Data flow pattern". `async function` + `await` nozīmē,
-// ka funkcija drīkst "apstāties" un pagaidīt tīkla atbildi, neapturot visu
-// lapu; `try { ... } catch (e) { ... }` ir kā Python `try/except` - ja
-// pieprasījums neizdodas, `catch` bloks nosaka, kas notiek tā vietā (šeit -
-// tukšs saraksts), lai lapa nesalūztu.
+// #region Loading data from Supabase
+// The functions here fetch data from Supabase (see db.js) and write it into
+// the global variables from the top of the file (`plans`, `templates`,
+// etc.) - see CLAUDE.md "Data flow pattern". `async function` + `await`
+// means the function is allowed to "pause" and wait for the network
+// response without freezing the whole page; `try { ... } catch (e) { ... }`
+// is like Python's `try/except` - if the request fails, the `catch` block
+// decides what happens instead (here - an empty list), so the page doesn't
+// break.
 async function loadAllData() {
   const athleteId = getSelectedAthleteId();
   if (!athleteId) return;
-
-  try {
-    templates = await getTemplates(null);
-  } catch (e) {
-    templates = [];
-  }
 
   await loadNonTemplateData();
 }
@@ -755,10 +781,10 @@ async function refreshWeekStatuses(athleteIds) {
   }
   if (!athleteIds.length) return;
   const startStr = formatDateISO(getMonday(new Date()));
-  // Promise.all([...]) izpilda vairākus `await`-us VIENLAICĪGI, nevis
-  // secīgi (ātrāk, jo abi ir neatkarīgi tīkla pieprasījumi), un pagaida,
-  // kamēr abi pabeidzas; `const [a, b] = [...]` ir masīva destrukturēšana -
-  // paņem rezultātus pēc secības.
+  // Promise.all([...]) runs several `await`s CONCURRENTLY instead of one
+  // after another (faster, since both are independent network requests),
+  // and waits until both finish; `const [a, b] = [...]` is array
+  // destructuring - it takes the results in order.
   const [statuses, blockTypes] = await Promise.all([
     getWeekStatuses(athleteIds, startStr),
     getWeekBlockTypesForAthletes(athleteIds, startStr),
@@ -903,7 +929,6 @@ async function loadNonTemplateData() {
     monthDayNotes = md;
   }
 
-  await loadWeekOverviewPlanData();
   await refreshWeekStatuses([athleteId]);
   render();
   refreshRaceCalendar();
@@ -916,23 +941,6 @@ function showLoading() {
 
 function hideLoading() {
   document.getElementById("loadingOverlay").hidden = true;
-}
-
-async function loadWeekOverviewPlanData() {
-  if (activeRole !== "coach") return;
-  athleteNextWeeksPlans = {};
-  const monday = getMonday(new Date());
-  const endDate = addDays(monday, 28);
-  const startStr = formatDateISO(monday);
-  const endStr = formatDateISO(endDate);
-  const results = await Promise.all(
-    athletes.map(a =>
-      getPlans(a.id, startStr, endStr).catch(() => [])
-    )
-  );
-  athletes.forEach((a, i) => {
-    athleteNextWeeksPlans[a.id] = results[i];
-  });
 }
 
 async function initApp() {
@@ -948,6 +956,12 @@ async function initApp() {
 
     renderAthleteDropdown();
     render();
+
+    try {
+      templates = await getTemplates(null);
+    } catch (e) {
+      templates = [];
+    }
 
     await loadAllData();
     // The three name badges are cross-athlete, so they must not wait for an
@@ -969,11 +983,12 @@ async function initApp() {
 window.initApp = initApp;
 // #endregion
 
-// #region Sportistu saraksts, sagataves un "Biežāk lietotie"
-// renderAthleteDropdown zīmē sportistu izvēlni sānjoslā (t.sk. četrus
-// nedēļas kvadrātiņus un ⚕/!/📒 ikonas pie vārda); renderTemplates un
-// renderFrequentTable zīmē sagatavju un "Biežāk lietotie" sarakstus, ko
-// treneris var uzklikšķināt, lai ielādētu treniņa veidotājā.
+// #region Athlete list, templates, and "Biežāk lietotie"
+// renderAthleteDropdown draws the athlete dropdown in the sidebar
+// (including the four week squares and the ⚕/!/📒 icons next to the name);
+// renderTemplates and renderFrequentTable draw the templates and "Biežāk
+// lietotie" lists that the coach can click to load into the training
+// builder.
 function renderAthleteDropdown() {
   const trigger = document.getElementById("dropdownTrigger");
   const list = document.getElementById("dropdownList");
@@ -1570,13 +1585,14 @@ function renderEditPlanPreview() {
 }
 // #endregion
 
-// #region Treniņa "details" teksta lasīšana atpakaļ formā (rediģēšana, sagataves)
-// Šī ir otra puse tam, ko dara getGeneratedTraining() augstāk failā - tur
-// lodziņi tika salikti VIENĀ tekstā, šeit tas teksts tiek atkal SADALĪTS
-// atpakaļ lodziņos (piem., atverot "Rediģēt treniņu" vai ielādējot sagatavi).
-// Lauki jālasa TIEŠI TAJĀ PAŠĀ secībā, kādā tie tika ierakstīti, citādi
-// vērtības nonāk nepareizajos lodziņos - skat. plašāku skaidrojumu pie
-// "TRENIŅA DETAILS TEKSTA BŪVĒŠANA" reģiona augstāk failā.
+// #region Reading the training "details" text back into the form (editing, templates)
+// This is the flip side of what getGeneratedTraining() does further up the
+// file - there the boxes were assembled into ONE text, here that text is
+// SPLIT back apart into boxes again (e.g. when opening "Rediģēt treniņu" or
+// loading a template). Fields must be read in EXACTLY THE SAME ORDER they
+// were written, or values end up in the wrong boxes - see the fuller
+// explanation at the "TRAINING DETAILS TEXT BUILDING" region above in the
+// file.
 
 // "Iesildīšanās: 15min; 130-145; ar Drills" -> ["15min", "130-145", "ar Drills"].
 // The fields are positional, so an empty slot must stay an empty slot.
@@ -1854,10 +1870,11 @@ function loadTemplateToForm(template) {
 }
 // #endregion
 
-// #region Treniņa/izpildes kartiņu (kalendāra rūtiņas saturs) veidošana
-// Funkcijas, kas paskaidro/attēlo VIENA konkrēta treniņa vai izpildes ieraksta
-// kartiņu kalendārā - virsraksts, ikona, pamatdaļas apraksts, intervālu
-// laiki. renderCalendar (tālāk) izsauc šīs funkcijas par katru dienu/kartiņu.
+// #region Building training/log cards (calendar cell content)
+// Functions that build/render the card for ONE specific training or log
+// entry in the calendar - title, icon, main-part description, interval
+// times. renderCalendar (further down) calls these functions for every
+// day/card.
 function todLabel(tod) {
   return { morning: "Rīts", afternoon: "Pusdiena", evening: "Vakars" }[tod] || tod;
 }
@@ -2139,16 +2156,17 @@ function renderLogCard(log, dayCommentTaken) {
 }
 // #endregion
 
-// #region Nedēļas kalendāra zīmēšana
-// renderCalendar() ir viena no lielākajām un biežāk izsauktajām funkcijām -
-// tā uzbūvē visu septiņu dienu kolonnu HTML (plāni, izpildes ieraksti,
-// ierobežojumi, veselības ieraksti, sacensības, "pievienot pašam" pogas) un
-// ieraksta to `calendarGrid.innerHTML`. Katru reizi, kad kaut kas mainās
-// (izvēlēts cits sportists, saglabāts komentārs, u.c.), šī funkcija tiek
-// izsaukta no jauna un uzzīmē visu kalendāru no jauna, nevis maina tikai to
-// vienu mainījušos gabalu - vienkāršāk, bet nozīmē arī, ka pēc jebkuras
-// izmaiņas ir jāatceras vēlreiz izsaukt render*() funkciju, kas attiecīgo
-// ekrāna daļu zīmē (skat. CLAUDE.md "Data flow pattern").
+// #region Drawing the week calendar
+// renderCalendar() is one of the largest and most frequently called
+// functions - it builds the HTML for all seven day columns (plans, log
+// entries, restrictions, health entries, races, "add your own" buttons) and
+// writes it into `calendarGrid.innerHTML`. Every time something changes
+// (a different athlete selected, a comment saved, etc.), this function is
+// called again and redraws the whole calendar from scratch, rather than
+// changing only the one piece that changed - simpler, but it also means
+// that after any change you have to remember to call the render*()
+// function again that draws the affected part of the screen (see
+// CLAUDE.md "Data flow pattern").
 function renderCalendar() {
   const athleteId = getSelectedAthleteId();
   const weekStart = currentWeekStart;
@@ -2326,19 +2344,19 @@ function growAllCommentBoxes() {
 
 // Grow while typing too, so a coach writing a long comment sees all of it.
 //
-// Šis ir "notikumu deleģēšana" (event delegation): tā vietā, lai piesaistītu
-// klausītāju katram atsevišķam komentāra lodziņam (kuru var būt desmitiem, un
-// jauni parādās ikreiz, kad renderCalendar() no jauna uzzīmē kalendāru),
-// klausītājs tiek piesaistīts VIENU reizi visam dokumentam, un katrā
-// klikšķī/rakstīšanā pārbauda, vai notikums nāca tieši no vajadzīgā elementa
-// (`e.target.matches?.(selektors)`). Tā strādā arī elementiem, kas parādās
-// vēlāk, jo klausītājs neatkarīgs no konkrēta elementa.
+// This is "event delegation": instead of attaching a listener to every
+// individual comment box (there can be dozens, and new ones appear every
+// time renderCalendar() redraws the calendar), the listener is attached
+// ONCE on the whole document, and on every click/keystroke it checks
+// whether the event actually came from the element it cares about
+// (`e.target.matches?.(selector)`). This also works for elements that
+// appear later, since the listener doesn't depend on a specific element.
 document.addEventListener("input", (e) => {
   if (e.target.matches?.(COMMENT_BOX_SELECTOR)) growCommentBox(e.target);
 });
 // #endregion
 
-// #region Nedēļas kopsavilkuma (skaitļi, komentāri, "nedēļa apskatīta") zīmēšana
+// #region Drawing the weekly summary (figures, comments, "nedēļa apskatīta")
 // One weekly_summaries row is now drawn in two different places: the four
 // figures inside the "Paveiktā statistika" panel (they are exactly what those
 // charts are made of), and the two comments in their own band above Monday, so
@@ -2509,11 +2527,11 @@ function escapeHtml(str) {
 }
 // #endregion
 
-// #region Mēneša skata zīmēšana
-// Tas pats, ko renderCalendar() dara nedēļas skatam, bet vienam veselam
-// mēnesim uzreiz (7×N rūtiņu režģis, ieskaitot iepriekšējā/nākamā mēneša
-// dienas, kas pilda pirmo/pēdējo nedēļas rindu - skat. getMonthGridStart/End
-// augstāk failā).
+// #region Drawing the month view
+// The same thing renderCalendar() does for the week view, but for a whole
+// month at once (a 7×N cell grid, including the previous/next month's days
+// that fill out the first/last week row - see getMonthGridStart/End above
+// in the file).
 function renderMonthViewInline() {
   const grid = document.getElementById("monthGridInline");
   const label = document.getElementById("monthViewTitleInline");
@@ -2667,11 +2685,11 @@ function renderMonthViewInline() {
 
 // #endregion
 
-// #region Galvenā render() funkcija un skatu pārslēgi
-// render() ir "diriģents" - tā neko pati nezīmē, bet izsauc pareizās
-// render*() funkcijas pareizajā secībā atkarībā no tā, kāds skats (nedēļa/
-// mēnesis) un kāda loma (treneris/sportists) ir aktīvi. To izsauc pēc
-// gandrīz katras darbības, kas maina redzamos datus.
+// #region Main render() function and view switches
+// render() is the "conductor" - it doesn't draw anything itself, but calls
+// the right render*() functions in the right order depending on which view
+// (week/month) and which role (coach/athlete) is active. It's called after
+// almost every action that changes what's shown on screen.
 function renderViewTabs() {
   document.querySelectorAll("[data-view]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.view === viewMode);
@@ -2836,13 +2854,13 @@ function resetNewTrainingForm() {
 }
 // #endregion
 
-// #region Notikumu piesaiste: sportista izvēlne, treniņa veidotāja lodziņi, pogas
-// No šejienes tālāk failā vairs nav gandrīz nevienas jaunas render*()
-// funkcijas - ir simtiem `elements.addEventListener("click"/"change"/...,
-// () => {...})` izsaukumu, kas piesaista rīcību katrai pogai, izvēlnei un
-// laukam lapā. Tie tiek izpildīti VIENU reizi, kad fails ielādējas (nevis
-// katrā render() reizē), jo statiskie elementi (pogas, dialogi) index.html
-// pastāv visu laiku - mainās tikai to saturs/redzamība.
+// #region Wiring up events: athlete dropdown, training builder fields, buttons
+// From here down the file there's almost no new render*() function - there
+// are hundreds of `element.addEventListener("click"/"change"/...,
+// () => {...})` calls that wire up behavior for every button, dropdown, and
+// field on the page. These run ONCE when the file loads (not on every
+// render() call), because the static elements (buttons, dialogs) in
+// index.html exist the whole time - only their content/visibility changes.
 athleteSelect.addEventListener("change", async () => {
   const gen = ++loadGen;
   selectedTemplateId = null;
@@ -4092,10 +4110,11 @@ saveLogBtn.addEventListener("click", async () => {
 });
 // #endregion
 
-// #region Izpildes ierakstīšanas dialogs (log dialog)
-// Šeit ir viss, kas attiecas uz logu, kurā sportists ieraksta, ko tieši
-// izpildīja (openPlanLogDialog - atverot no konkrēta plāna; openLogDialog -
-// atverot dienu bez izvēlēta plāna), t.sk. intervālu lodziņu ģenerēšana.
+// #region Log dialog (recording what was actually done)
+// Everything related to the dialog where the athlete records exactly what
+// they did (openPlanLogDialog - opening from a specific plan; openLogDialog
+// - opening a day with no plan selected), including generating the
+// interval boxes.
 
 // A variable-interval session is drawn as one .var-seg-log-group per repeated
 // block (6x400m, 4x200m) and one .var-seg-log-row per segment run once. Each of
@@ -4103,9 +4122,9 @@ saveLogBtn.addEventListener("click", async () => {
 // under - not to the section as a whole. A plain same-length session has no
 // blocks, so the section row is its own single host.
 function logDialogHosts(sectionEl) {
-  // `[...kaut_kas]` (spread operators) pārvērš saraksta veidīgu vērtību
-  // (šeit - querySelectorAll rezultātu, kas nav "īsts" masīvs) par īstu JS
-  // masīvu, lai tam varētu lietot .length, .map() u.tml.
+  // `[...something]` (the spread operator) converts a list-like value
+  // (here - a querySelectorAll result, which isn't a "real" array) into a
+  // real JS array, so .length, .map() etc. can be used on it.
   const segs = [...sectionEl.querySelectorAll(".var-seg-log-group, .var-seg-log-row")];
   return segs.length ? segs : [sectionEl];
 }
@@ -4143,6 +4162,7 @@ function addExtraIntervalRow(hostEl, defaultDist, defaultPace) {
   paceInput.className = "log-interval-pace";
   paceInput.dataset.logInterval = "0";
   if (defaultPace) paceInput.dataset.targetPace = defaultPace;
+  if (defaultDist) paceInput.dataset.targetDist = defaultDist;
   paceInput.placeholder = defaultPace || "min/km";
   row.appendChild(distInput);
   row.appendChild(paceInput);
@@ -4162,9 +4182,23 @@ function addExtraIntervalRow(hostEl, defaultDist, defaultPace) {
   }
   renumberSectionIntervals(sectionRow);
 
-  const bounds = defaultPace ? parsePaceBounds(defaultPace) : null;
+  const defaultDistanceMeters = defaultDist ? parseDistanceMeters(defaultDist) : null;
+  const bounds = defaultPace ? parsePaceBounds(defaultPace, defaultDistanceMeters) : null;
   if (bounds) attachPaceColouring(paceInput, bounds);
-  attachIntervalStepper(paceInput, defaultPace || "");
+  attachIntervalStepper(paceInput, defaultPace || "", defaultDistanceMeters);
+
+  // An extra rep can be logged at a different distance than the block it was
+  // added under (e.g. an extra 800m under a 400m block) - re-running the same
+  // sweep that coloured every other box picks that up and rescales this one
+  // too, instead of leaving it pinned to the block's default distance.
+  // Both boxes need it: attachPaceColouring() only ever wires its own
+  // input-driven recolouring once (on the very first call, with whatever
+  // bounds were current then), so typing in the pace box *after* the
+  // distance was edited would otherwise still validate against the stale
+  // pre-edit bounds. Re-running the sweep on every keystroke in either box
+  // keeps both aimed at the same, current target.
+  distInput.addEventListener("input", attachIntervalPaceValidation);
+  paceInput.addEventListener("input", attachIntervalPaceValidation);
   return row;
 }
 
@@ -4263,7 +4297,7 @@ function openPlanLogDialog(planId) {
               <div class="log-target">${count}x${escapeHtml(seg.length)}${seg.pace ? "(" + escapeHtml(seg.pace) + ")" : ""}</div>
               <div class="field-grid">`;
             for (let r = 0; r < count; r++) {
-              html += `<label>${r + 1}. atkārtojums <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" /></label>`;
+              html += `<label>${r + 1}. atkārtojums <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}" ${isDurationLength(seg.length) ? 'placeholder="temps"' : ""} /></label>`;
               globalIdx++;
             }
             html += `</div></div>`;
@@ -4271,7 +4305,7 @@ function openPlanLogDialog(planId) {
             const label = seg.length + (seg.pace ? " @" + seg.pace : "");
             html += `<div class="var-seg-log-row">
               <span class="var-seg-log-label">${escapeHtml(label)}</span>
-              <label>Temps <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" /></label>
+              <label>Temps <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}" /></label>
             </div>`;
             globalIdx++;
           }
@@ -4286,11 +4320,13 @@ function openPlanLogDialog(planId) {
       let intervalMatch = line.match(/Pamatdaļa:\s*(?:\d+-)?(\d+)x(\S+)/);
       if (intervalMatch) {
         const count = parseInt(intervalMatch[1]);
+        const lengthMatch = closeLengthUnitGap(line).match(/(\d+)x([^\s;()]+)/);
+        const durationPlaceholder = lengthMatch && isDurationLength(lengthMatch[2]) ? ' placeholder="temps"' : "";
         html += `<div class="log-section-row" data-log-section="Pamatdaļa">
           <div class="log-target">${line}</div>
           <div class="field-grid">`;
         for (let i = 0; i < count; i++) {
-          html += `<label>${i + 1}. atkārtojums <input class="log-interval-pace" data-log-interval="${i}" /></label>`;
+          html += `<label>${i + 1}. atkārtojums <input class="log-interval-pace" data-log-interval="${i}"${durationPlaceholder} /></label>`;
         }
         html += `</div></div>`;
       } else if (line === "Sacensību uzturs" || line === "• Izmantot sacensību uzturu" || line.startsWith("Apavi:") || line.startsWith("• Apavi:")) {
@@ -4399,7 +4435,7 @@ function openLogDialog(dateStr) {
                 <div class="log-target">${count}x${escapeHtml(seg.length)}${seg.pace ? "(" + escapeHtml(seg.pace) + ")" : ""}</div>
                 <div class="field-grid">`;
               for (let r = 0; r < count; r++) {
-                html += `<label>${r + 1}. atkārtojums <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" /></label>`;
+                html += `<label>${r + 1}. atkārtojums <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}" ${isDurationLength(seg.length) ? 'placeholder="temps"' : ""} /></label>`;
                 globalIdx++;
               }
               html += `</div></div>`;
@@ -4407,7 +4443,7 @@ function openLogDialog(dateStr) {
               const label = seg.length + (seg.pace ? " @" + seg.pace : "");
               html += `<div class="var-seg-log-row">
                 <span class="var-seg-log-label">${escapeHtml(label)}</span>
-                <label>Temps <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" /></label>
+                <label>Temps <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}" /></label>
               </div>`;
               globalIdx++;
             }
@@ -4419,11 +4455,13 @@ function openLogDialog(dateStr) {
         let intervalMatch = line.match(/Pamatdaļa:\s*(?:\d+-)?(\d+)x(\S+)/);
         if (intervalMatch) {
           const count = parseInt(intervalMatch[1]);
+          const lengthMatch = closeLengthUnitGap(line).match(/(\d+)x([^\s;()]+)/);
+          const durationPlaceholder = lengthMatch && isDurationLength(lengthMatch[2]) ? ' placeholder="temps"' : "";
           html += `<div class="log-section-row" data-log-section="Pamatdaļa">
             <div class="log-target">${line}</div>
             <div class="field-grid">`;
           for (let i = 0; i < count; i++) {
-            html += `<label>${i + 1}. atkārtojums <input class="log-interval-pace" data-log-interval="${i}" /></label>`;
+            html += `<label>${i + 1}. atkārtojums <input class="log-interval-pace" data-log-interval="${i}"${durationPlaceholder} /></label>`;
           }
           html += `</div></div>`;
         } else if (line === "Sacensību uzturs" || line === "• Izmantot sacensību uzturu" || line.startsWith("Apavi:") || line.startsWith("• Apavi:")) {
@@ -4556,28 +4594,35 @@ function getPlannedIntervalCount(details) {
 }
 // #endregion
 
-// #region Intervālu soļošana un tempa/pulsa krāsošana
-// Katram izpildes lodziņam, kas atbilst kādam plānotam intervālam, ir divas
-// lietas: krāsošana (zaļš/dzeltens/sarkans - cik tuvu ierakstītā vērtība ir
-// plānotajam temp/pulsam) un ▲/▼ pogas soļošanai (skat. CLAUDE.md "Interval
-// time boxes step themselves"). Abas balstās uz vienu un to pašu "mērķa"
-// vērtību (parsePaceBounds), lai tās nekad nesarunātu pretēji viena otrai.
+// #region Interval box stepping and pace/pulse coloring
+// Every log box that corresponds to a planned interval has two things:
+// coloring (green/yellow/red - how close the entered value is to the
+// planned pace/pulse) and ▲/▼ stepper buttons (see CLAUDE.md "Interval time
+// boxes step themselves"). Both are based on the same "target" value
+// (parsePaceBounds), so they can never disagree with each other.
 function secToPace(totalSec) {
   if (totalSec < 0) totalSec = 0;
   return { m: Math.floor(totalSec / 60), s: totalSec % 60 };
 }
-function parsePaceBounds(paceStr) {
+function parsePaceBounds(paceStr, distanceMeters) {
   if (!paceStr) return null;
   let s = paceStr.trim().replace(/\s*\/\s*km\s*$/i, "").replace(/\s*(sek|sec|s)\s*$/i, "").trim();
   let minTotal, maxTotal;
   if (s.includes(":")) {
+    // Written as minutes:seconds, this is a pace per kilometre, not a literal
+    // duration for the rep - "4:00-4:05" on a 400m repeat means run 400m at
+    // that km-pace (~1:36-1:37), not "take 4 minutes over 400m". A distance
+    // in metres scales the parsed km-pace down to the actual rep length; with
+    // none given (or a 1000m/1km rep, where the two are the same number) the
+    // value passes through unscaled, same as before this existed.
+    const scale = distanceMeters > 0 ? distanceMeters / 1000 : 1;
     const range = s.match(/^(\d+):(\d+)-(\d+):(\d+)$/);
     if (range) {
-      minTotal = +range[1] * 60 + +range[2];
-      maxTotal = +range[3] * 60 + +range[4];
+      minTotal = (+range[1] * 60 + +range[2]) * scale;
+      maxTotal = (+range[3] * 60 + +range[4]) * scale;
     } else {
       const single = s.match(/^(\d+):(\d+)$/);
-      if (single) minTotal = maxTotal = +single[1] * 60 + +single[2];
+      if (single) minTotal = maxTotal = (+single[1] * 60 + +single[2]) * scale;
     }
   } else {
     const range = s.match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
@@ -4645,7 +4690,12 @@ function buildPaceBoundsMap(planDetails) {
     } else {
       const paceStr = extractPace(line);
       if (paceStr) {
-        const bounds = parsePaceBounds(paceStr);
+        // A plain (non-var) interval line has one rep length for the whole
+        // line - "10x400m(4:00-4:05)" - so the same distance applies to
+        // every box under this section.
+        const lengthMatch = closeLengthUnitGap(line).match(/(\d+)x([^\s;()]+)/);
+        const distanceMeters = lengthMatch ? parseDistanceMeters(lengthMatch[2]) : null;
+        const bounds = parsePaceBounds(paceStr, distanceMeters);
         if (bounds) map[section] = bounds;
       }
     }
@@ -4679,8 +4729,8 @@ const INTERVAL_STEP_SECONDS = 0.2;
 // green band on that value in both cases - a range keeps its own ends, a single
 // number gets a band around itself - so averaging the two ends gives the middle
 // either way. null when nothing usable was written.
-function intervalTargetMiddle(targetStr) {
-  const b = targetStr ? parsePaceBounds(targetStr) : null;
+function intervalTargetMiddle(targetStr, distanceMeters) {
+  const b = targetStr ? parsePaceBounds(targetStr, distanceMeters) : null;
   if (!b) return null;
   return ((b.min.m * 60 + b.min.s) + (b.max.m * 60 + b.max.s)) / 2;
 }
@@ -4713,17 +4763,22 @@ function formatIntervalStep(totalSec, useClock) {
 // an empty box drops in the exact middle of the planned range - deliberately
 // nothing is shown before that, so the box still reads as empty and can be
 // typed into by hand.
-function attachIntervalStepper(inp, targetStr) {
+function attachIntervalStepper(inp, targetStr, distanceMeters) {
   if (inp.dataset.stepWired === "1") return;
   inp.dataset.stepWired = "1";
 
-  // A target written as minutes:seconds (3:20-3:25 for 1000m intervals) steps
-  // by half a second too, same as the bare-seconds boxes - written as "3:20.5".
-  const useClock = !!targetStr && targetStr.indexOf(":") > -1;
-  const stepBy = useClock ? 0.5 : INTERVAL_STEP_SECONDS;
-  const middle = intervalTargetMiddle(targetStr);
-
   function step(dir) {
+    // Read live rather than close over the values from when this was wired -
+    // an extra interval row's distance box can be edited afterwards, and
+    // attachIntervalPaceValidation() keeps dataset.targetDist in step with it.
+    const liveTarget = inp.dataset.targetPace || targetStr;
+    const liveDistance = inp.dataset.targetDist ? parseDistanceMeters(inp.dataset.targetDist) : distanceMeters;
+    // A target written as minutes:seconds (3:20-3:25 for 1000m intervals) steps
+    // by half a second too, same as the bare-seconds boxes - written as "3:20.5".
+    const useClock = !!liveTarget && liveTarget.indexOf(":") > -1;
+    const stepBy = useClock ? 0.5 : INTERVAL_STEP_SECONDS;
+    const middle = intervalTargetMiddle(liveTarget, liveDistance);
+
     const cur = parseAthleteInput(inp.value);
     let total;
     if (cur) {
@@ -4773,20 +4828,33 @@ function attachIntervalPaceValidation() {
   document.querySelectorAll("[data-log-section]").forEach((sectionEl) => {
     const targetLine = sectionEl.querySelector(".log-target")?.textContent || "";
     const paceStr = extractPace(targetLine);
-    const sectionBounds = paceStr ? parsePaceBounds(paceStr) : null;
+    // A plain interval line has one rep length for the whole section
+    // ("10x400m(...)"). A non-interval line (a whole-run average pace field)
+    // never matches this, so distanceMeters stays null there and the pace
+    // passes through unscaled, same as before this existed.
+    const lengthMatch = closeLengthUnitGap(targetLine).match(/(\d+)x([^\s;()]+)/);
+    const sectionDistanceMeters = lengthMatch ? parseDistanceMeters(lengthMatch[2]) : null;
+    const sectionBounds = paceStr ? parsePaceBounds(paceStr, sectionDistanceMeters) : null;
 
     sectionEl.querySelectorAll("[data-log-interval]").forEach((inp) => {
       // A variable-interval session has a different target pace per block, but
       // the section's line only carries the first one - reading the pace off
       // that line judged the 200m times against the 400m target, so they were
       // coloured wrong until the card was saved and re-rendered. Each box now
-      // carries its own target.
+      // carries its own target, and its own rep length for the same reason.
       const own = inp.dataset.targetPace;
-      const bounds = own ? parsePaceBounds(own) : sectionBounds;
+      // An extra row lets the athlete type their own distance, which can
+      // differ from whatever this box was created with - that live value
+      // wins over the dataset default, and is written back into the dataset
+      // so the stepper (wired once, read live) picks it up too.
+      const extraDist = inp.closest(".extra-interval-row")?.querySelector(".log-extra-dist")?.value.trim();
+      if (extraDist) inp.dataset.targetDist = extraDist;
+      const ownDistanceMeters = inp.dataset.targetDist ? parseDistanceMeters(inp.dataset.targetDist) : sectionDistanceMeters;
+      const bounds = own ? parsePaceBounds(own, ownDistanceMeters) : sectionBounds;
       if (bounds) attachPaceColouring(inp, bounds);
       // Same resolved target, so the arrows start from the value the box is
       // coloured against.
-      attachIntervalStepper(inp, own || paceStr || "");
+      attachIntervalStepper(inp, own || paceStr || "", ownDistanceMeters);
     });
 
     const paceInp = sectionEl.querySelector(".log-actual-pace");

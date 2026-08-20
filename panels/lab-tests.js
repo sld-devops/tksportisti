@@ -1,15 +1,16 @@
-// "Laboratorijas izmeklējumi" panelis - tāds pats saraksts+inline forma
-// paraugs kā health-journal.js/ruffier-test.js, bet ar diviem "seen"
-// izsekošanas Set-iem, nevis vienu: treneris redz JAUNUS izmeklējumus,
-// sportists redz, kad treneris ir atzīmējis "Izvērtēts" (divas dažādas
-// "jaunuma" nozīmes, tāpēc divi neatkarīgi paziņojumu skaitītāji).
+// "Laboratorijas izmeklējumi" (Lab tests) panel - the same list+inline form
+// pattern as health-journal.js/ruffier-test.js, but with two "seen"
+// tracking Sets instead of one: the coach sees NEW tests,
+// the athlete sees when the coach has marked "Izvērtēts" (Evaluated) (two
+// different meanings of "new", hence two independent notification counters).
 //
-// Šis ir vienīgais panelis, kas failus (PDF/attēlus) glabā Supabase
-// "Storage" (kā mākoņa mape ar failiem), NEVIS datubāzes tabulā -
-// `supabase.storage.from("spainis").upload(ceļš, fails)` augšupielādē,
-// `.createSignedUrl(ceļš, sekundes)` izveido pagaidu lejupielādes saiti
-// (60 sekundes derīga), `.remove([ceļš])` dzēš. Pati tabula (`lab_tests`,
-// db.js) glabā tikai faila NOSAUKUMU un CEĻU uz to Storage, nevis pašu failu.
+// This is the only panel that stores files (PDF/images) in Supabase
+// "Storage" (like a cloud folder for files), NOT in a database table -
+// `supabase.storage.from("bucket").upload(path, file)` uploads,
+// `.createSignedUrl(path, seconds)` creates a temporary download link
+// (valid for 60 seconds), `.remove([path])` deletes. The table itself
+// (`lab_tests`, db.js) stores only the file's NAME and PATH to it in Storage,
+// not the file itself.
 let labTests = [];
 let editingLabTestId = null;
 let seenLabTestIds = new Set();
