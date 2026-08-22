@@ -441,7 +441,7 @@
                         <button id="varAddSegment" class="secondary-action" type="button" style="width:auto">Pievienot segmentu</button>
                         <div class="field-grid">
                           <label>Apļi <input id="varLaps" type="text" /></label>
-                          <label>Atpūta starp blokiem <input id="varRestBetweenLaps" type="text" /></label>
+                          <label>Atpūta starp segmentiem <input id="varRestBetweenLaps" type="text" /></label>
                         </div>
                       </div>
                       <div id="mainFields" hidden>
@@ -488,12 +488,13 @@
                     <div class="preview-compact">
                       <p class="preview-label">Treniņa priekšskatījums</p>
                       <div class="generated-preview" id="customPreview"></div>
+                      <button id="bulkApplyBtn" class="primary-action save-template-athlete-btn bulk-apply-trigger-btn" type="button"><span>Piemērot <span class="btn-keyword">vairākiem sportistiem</span></span></button>
                     </div>
                   </div>
                 </div>
                 <div class="template-actions">
                   <button id="saveTemplateOnlyBtn" class="primary-action save-template-athlete-btn" type="button"><span>Saglabāt jaunu <span class="btn-keyword">visiem</span></span></button>
-                  <button id="saveTemplateForAthleteBtn" class="primary-action save-template-athlete-btn" type="button"><span>Saglabāt jaunu <span class="btn-keyword">tikai šim sportistam</span></span></button>
+                  <button id="saveTemplateForAthleteBtn" class="primary-action save-template-athlete-btn" type="button"><span>Saglabāt jaunu tikai <span class="btn-keyword">šim sportistam</span></span></button>
                   <button id="updateTemplateBtn" class="primary-action save-template-athlete-btn" type="button" hidden><span>Saglabāt <span class="btn-keyword">izmaiņas</span></span></button>
                   <button id="deleteTemplateBtn" class="delete-template-btn delete-template-btn-danger" type="button" hidden data-delete-template>Dzēst sagatavi</button>
                 </div>
@@ -535,7 +536,7 @@
           <div class="stats-collapsible collapsible collapsed" id="statsCollapsible">
             <div class="panel-header">
               <div class="stats-header-text">
-                <h2>Paveiktā statistika</h2>
+                <h2>📈 Paveiktā statistika</h2>
                 <span class="week-entry-badge" id="weekEntryBadge" hidden></span>
               </div>
               <button class="collapse-toggle" type="button" aria-label="Rādīt statistiku">▶</button>
@@ -699,7 +700,7 @@
           <button id="epVarAddSegment" class="secondary-action" type="button" style="width:auto;margin-bottom:6px">Pievienot segmentu</button>
           <div class="field-grid">
             <label>Apļi <input id="epVarLaps" type="text" /></label>
-            <label>Atpūta starp blokiem <input id="epVarRestBetweenLaps" type="text" /></label>
+            <label>Atpūta starp segmentiem <input id="epVarRestBetweenLaps" type="text" /></label>
           </div>
         </div>
 
@@ -816,6 +817,27 @@
           <button class="cancel-action" value="cancel" type="submit">Atcelt</button>
           <button class="delete-action" id="deleteRaceBtn" type="button" hidden>Dzēst</button>
           <button class="primary-action" id="saveRaceBtn" type="button">Saglabāt</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="session-dialog" id="bulkApplyDialog">
+      <form method="dialog">
+        <h3 class="bulk-apply-title">Piemērot treniņu vairākiem sportistiem</h3>
+        <label>Datums <input id="bulkApplyDate" type="date" /></label>
+        <div class="tod-radio-group">
+          <label class="tod-radio-label tod-morning"><input type="radio" name="bulkApplyTod" value="morning" /> 🌄 Rīts</label>
+          <label class="tod-radio-label tod-afternoon"><input type="radio" name="bulkApplyTod" value="afternoon" /> ☀️ Pusdiena</label>
+          <label class="tod-radio-label tod-evening"><input type="radio" name="bulkApplyTod" value="evening" /> 🌇 Vakars</label>
+        </div>
+        <div class="bulk-apply-athletes-header">
+          <span>Izvēlies sportistus</span>
+          <button type="button" id="bulkApplySelectAllBtn" class="secondary-action-sm">Atzīmēt visus</button>
+        </div>
+        <div class="bulk-athlete-list" id="bulkApplyAthleteList"></div>
+        <div class="dialog-actions split-actions">
+          <button class="cancel-action" value="cancel" type="submit">Atcelt</button>
+          <button class="primary-action" id="bulkApplySaveBtn" type="button">Piemērot</button>
         </div>
       </form>
     </dialog>

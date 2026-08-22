@@ -11,8 +11,8 @@ let restrictionCalYear = new Date().getFullYear();
 let restrictionCalMonth = new Date().getMonth();
 
 // #region Restriction-checking helper functions (also used by app.js's calendar)
-function isTimeSlotRestricted(dateStr, tod) {
-  const dayRestrictions = restrictions.filter(r =>
+function isTimeSlotRestricted(dateStr, tod, list = restrictions) {
+  const dayRestrictions = list.filter(r =>
     dateStr >= r.start_date && dateStr <= (r.end_date || r.start_date)
   );
   if (dayRestrictions.length === 0) return false;

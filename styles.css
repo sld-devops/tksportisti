@@ -638,6 +638,55 @@ h4 {
   color: #fff;
 }
 
+.bulk-apply-title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.bulk-apply-athletes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.bulk-athlete-list {
+  max-height: 240px;
+  overflow-y: auto;
+  width: fit-content;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+.bulk-athlete-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.bulk-athlete-row input {
+  accent-color: var(--accent);
+  height: 22px;
+  width: 22px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.bulk-athlete-row:last-child {
+  border-bottom: none;
+}
+
+.bulk-athlete-row:hover {
+  background: var(--panel-row-hover);
+}
+
 #deleteUserConfirmBody p {
   margin: 6px 0;
 }
@@ -1553,6 +1602,19 @@ h4 {
   margin: 0;
 }
 
+.bulk-apply-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  margin-top: 12px;
+}
+
+#saveTemplateOnlyBtn .btn-keyword,
+#saveTemplateForAthleteBtn .btn-keyword {
+  text-decoration: underline;
+}
+
 /* ---- Stats collapsible ---- */
 .stats-collapsible {
   background: #fff;
@@ -1832,6 +1894,34 @@ button:focus-visible {
   background: var(--danger-border);
   border-color: var(--accent);
   color: var(--accent);
+}
+
+/* These boxes only ever hold short values ("60 min", "4:15/km", "3:20-3:25"),
+   never the full width the blanket `input { width: 100% }` rule gives them.
+   10ch fits every real-world value with room to spare, in both the training
+   builder and the identical fields in the "Rediģēt treniņu" edit dialog. */
+#warmupDuration,
+#warmupPulse,
+#cooldownDuration,
+#cooldownPulse,
+#mainDuration,
+#mainPulse,
+#tempoPace,
+#varLaps,
+#varRestBetweenLaps,
+#epWarmupDuration,
+#epWarmupPulse,
+#epCooldownDuration,
+#epCooldownPulse,
+#epMainDuration,
+#epMainPulse,
+#epTempoPace,
+#epVarLaps,
+#epVarRestBetweenLaps,
+.var-seg-length,
+.var-seg-pace,
+.var-seg-rest {
+  width: 10ch;
 }
 
 .template-button-wrap {

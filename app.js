@@ -712,6 +712,18 @@ function getSelectedAthleteId() {
   return athleteSelect.value;
 }
 
+// "Saglabāt jaunu tikai šim sportistam" names the athlete instead of saying
+// "šim sportistam" (this athlete) - clearer when the coach has several
+// athletes' calendars open across tabs/sessions. Falls back to the generic
+// wording when no athlete is selected (mirrors the training bar's own
+// behaviour, which stays usable without a selection).
+function updateSaveTemplateForAthleteLabel() {
+  const keyword = document.querySelector("#saveTemplateForAthleteBtn .btn-keyword");
+  if (!keyword) return;
+  const athlete = athletes.find(a => a.id === getSelectedAthleteId());
+  keyword.textContent = athlete ? athlete.full_name : "šim sportistam";
+}
+
 function getWeekLabel(date) {
   const monday = getMonday(date);
   const sunday = addDays(monday, 6);
@@ -2760,6 +2772,7 @@ function render() {
   renderSourcePicker();
   document.getElementById("updateTemplateBtn").hidden = !selectedTemplateId;
   document.getElementById("deleteTemplateBtn").hidden = !selectedTemplateId;
+  updateSaveTemplateForAthleteLabel();
   renderViewTabs();
   if (hasAthletes) {
     renderStats();
@@ -3953,6 +3966,109 @@ async function insertTrainingToDay(dateStr, training, tod = "") {
   }
 }
 
+// "Piemērot vairākiem sportistiem" - the same training inserted for several
+// checked athletes at once, mainly used in winter when most athletes share
+// one plan (e.g. "60 min pulsā 110-125"). Reuses insertPlan() exactly like
+// insertTrainingToDay() above, just looped per checked athlete instead of
+// always writing to getSelectedAthleteId() - and each athlete's OWN
+// restrictions/day-note are checked, since `restrictions`/`dayNotes` are only
+// loaded for the single currently-selected athlete.
+const bulkApplyDialog = document.getElementById("bulkApplyDialog");
+const bulkApplyDateInput = document.getElementById("bulkApplyDate");
+const bulkApplyAthleteListEl = document.getElementById("bulkApplyAthleteList");
+let bulkApplyTraining = null;
+
+function openBulkApplyDialog() {
+  const training = getGeneratedTraining();
+  if (!training) {
+    alert("Vispirms izveido treniņu (izvēlies tipu un aizpildi laukus).");
+    return;
+  }
+  bulkApplyTraining = training;
+  bulkApplyDateInput.value = "";
+  bulkApplyDialog.querySelectorAll('input[name="bulkApplyTod"]').forEach(r => (r.checked = false));
+  bulkApplyAthleteListEl.innerHTML = athletes
+    .map(a => `
+      <label class="bulk-athlete-row">
+        <input type="checkbox" data-bulk-athlete-id="${a.id}" />
+        <span>${a.full_name}</span>
+      </label>`)
+    .join("");
+  bulkApplyDialog.showModal();
+}
+
+async function applyBulkTraining() {
+  if (!bulkApplyTraining) return;
+  const dateStr = bulkApplyDateInput.value;
+  const tod = bulkApplyDialog.querySelector('input[name="bulkApplyTod"]:checked')?.value || "";
+  const ids = [...bulkApplyAthleteListEl.querySelectorAll("input[data-bulk-athlete-id]:checked")]
+    .map(cb => cb.dataset.bulkAthleteId);
+
+  if (!dateStr || !tod) {
+    alert("Izvēlies datumu un diennakts daļu.");
+    return;
+  }
+  if (!ids.length) {
+    alert("Izvēlies vismaz vienu sportistu.");
+    return;
+  }
+
+  showLoading();
+  let applied = 0;
+  const skippedNames = [];
+  try {
+    for (const athleteId of ids) {
+      const athleteRestrictions = await getRestrictions(athleteId);
+      if (isTimeSlotRestricted(dateStr, tod, athleteRestrictions)) {
+        const a = athletes.find(x => x.id === athleteId);
+        skippedNames.push(a ? a.full_name : athleteId);
+        continue;
+      }
+      await insertPlan({
+        athlete_id: athleteId,
+        date: dateStr,
+        title: bulkApplyTraining.title,
+        details: bulkApplyTraining.details,
+        coach_comment: "",
+        athlete_comment: "",
+        created_by: currentUser.id,
+        time_of_day: tod,
+        custom_icon: bulkApplyTraining.custom_icon || null,
+      });
+      const dayNote = await getDayNote(athleteId, dateStr);
+      if (dayNote?.is_rest_day) {
+        await upsertDayNote({ athlete_id: athleteId, date: dateStr, is_rest_day: false });
+      }
+      applied++;
+    }
+
+    await refreshWeekStatuses(ids);
+    if (ids.includes(getSelectedAthleteId())) {
+      await loadNonTemplateData();
+    }
+
+    bulkApplyDialog.close();
+    let msg = `Treniņš pievienots ${applied} sportistiem.`;
+    if (skippedNames.length) {
+      msg += `\n\nIzlaisti (ierobežojuma dēļ): ${skippedNames.join(", ")}.`;
+    }
+    alert(msg);
+  } catch (e) {
+    console.error(e);
+    alert("Neizdevās piemērot treniņu.");
+  } finally {
+    hideLoading();
+  }
+}
+
+document.getElementById("bulkApplyBtn")?.addEventListener("click", openBulkApplyDialog);
+document.getElementById("bulkApplySelectAllBtn")?.addEventListener("click", () => {
+  const boxes = bulkApplyAthleteListEl.querySelectorAll("input[data-bulk-athlete-id]");
+  const allChecked = [...boxes].every(cb => cb.checked);
+  boxes.forEach(cb => (cb.checked = !allChecked));
+});
+document.getElementById("bulkApplySaveBtn")?.addEventListener("click", applyBulkTraining);
+
 function feelingBadgeHtml(feeling, feelingTags) {
   const colors = {
     "Tempu nespēju noturēt, nebija iekšās šoreiz": { bg: "var(--danger-bg)", color: "var(--danger)" },
@@ -4759,6 +4875,20 @@ function formatIntervalStep(totalSec, useClock) {
   return (Math.round(totalSec * 10) / 10).toFixed(1);
 }
 
+// Typing a pace like "3:06/km" into an interval box - the number a watch
+// reports when a manual stop landed a bit long or short of the planned
+// distance - converts it into the time that distance would actually take.
+// Reuses intervalTargetMiddle()/parsePaceBounds() for the scaling, the same
+// pace-to-time math already used to draw the green target zone, so there is
+// no second conversion formula to keep in sync. A plain time, with no "/km",
+// returns null and is left untouched.
+function resolvePaceKmEntry(rawValue, distanceMeters) {
+  if (!distanceMeters) return null;
+  const m = rawValue.trim().match(/^(\d+:\d+)\s*\/?\s*km$/i);
+  if (!m) return null;
+  return intervalTargetMiddle(m[1], distanceMeters);
+}
+
 // Wraps one interval box in its own little up/down stepper. The first press on
 // an empty box drops in the exact middle of the planned range - deliberately
 // nothing is shown before that, so the box still reads as empty and can be
@@ -4821,6 +4951,19 @@ function attachIntervalStepper(inp, targetStr, distanceMeters) {
     if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
     e.preventDefault();
     step(e.key === "ArrowUp" ? 1 : -1);
+  });
+
+  // Leaving the box after typing a "3:06/km"-style pace converts it to the
+  // time this box's own distance would take, same live-read distance/target
+  // as step() above.
+  inp.addEventListener("blur", () => {
+    const liveDistance = inp.dataset.targetDist ? parseDistanceMeters(inp.dataset.targetDist) : distanceMeters;
+    const totalSec = resolvePaceKmEntry(inp.value, liveDistance);
+    if (totalSec === null) return;
+    const liveTarget = inp.dataset.targetPace || targetStr;
+    const useClock = !!liveTarget && liveTarget.indexOf(":") > -1;
+    inp.value = formatIntervalStep(totalSec, useClock);
+    inp.dispatchEvent(new Event("input", { bubbles: true }));
   });
 }
 
