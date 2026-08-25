@@ -687,6 +687,93 @@ h4 {
   background: var(--panel-row-hover);
 }
 
+.copy-week-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.copy-week-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  padding: 10px;
+  width: 320px;
+  max-width: calc(100vw - 24px);
+}
+
+.copy-week-hint {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.copy-week-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.copy-week-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.copy-week-row:hover {
+  background: var(--panel-row-hover);
+}
+
+.copy-week-row input[type="radio"] {
+  accent-color: var(--accent);
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.copy-week-row.copy-week-row-load {
+  border: 2px solid darkorange;
+}
+.copy-week-row.copy-week-row-load input[type="radio"] {
+  accent-color: darkorange;
+}
+
+.copy-week-row.copy-week-row-competition {
+  border: 2px solid var(--race);
+}
+.copy-week-row.copy-week-row-competition input[type="radio"] {
+  accent-color: var(--race);
+}
+
+.copy-week-row.copy-week-row-rest {
+  border: 2px solid gold;
+}
+.copy-week-row.copy-week-row-rest input[type="radio"] {
+  accent-color: gold;
+}
+
+.copy-week-panel .dialog-actions {
+  padding: 0;
+}
+
+#copyWeekConfirmBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 #deleteUserConfirmBody p {
   margin: 6px 0;
 }
@@ -4872,6 +4959,7 @@ textarea:disabled {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 .restriction-card-reason {
   margin-top: 4px;
@@ -5023,7 +5111,10 @@ textarea:disabled {
   font-size: 0.78rem;
   color: #6b7280;
   margin-top: 4px;
-  padding: 3px 6px;
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
 }
 
 /* ---- Health Journal ---- */
@@ -6162,7 +6253,8 @@ body.is-dragging .session-card.is-draggable {
 .tod-radio-label:hover {
   filter: brightness(0.95);
 }
-.tod-radio-label input[type="radio"] {
+.tod-radio-label input[type="radio"],
+.tod-radio-label input[type="checkbox"] {
   accent-color: var(--accent);
 }
 .tod-radio-label:has(input:checked) {

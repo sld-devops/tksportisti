@@ -593,7 +593,7 @@ async function getWeekStatuses(athleteIds, weekStartStr) {
   endDate.setDate(endDate.getDate() + 28);
   const weekEndStr = isoLocal(endDate);
 
-  const [plansRes, dayNotesRes, racesRes] = await Promise.all([
+  const [plansRes, dayNotesRes, racesRes, restrictionsRes] = await Promise.all([
     supabase
       .from("plans")
       .select("athlete_id, date, original_date")
@@ -601,6 +601,15 @@ async function getWeekStatuses(athleteIds, weekStartStr) {
       .or(`and(date.gte.${weekStartStr},date.lte.${weekEndStr}),and(original_date.gte.${weekStartStr},original_date.lte.${weekEndStr})`),
     supabase.from("day_notes").select("athlete_id, date").in("athlete_id", athleteIds).gte("date", weekStartStr).lte("date", weekEndStr).eq("is_rest_day", true),
     supabase.from("races").select("athlete_id, date").in("athlete_id", athleteIds).gte("date", weekStartStr).lte("date", weekEndStr),
+    // A restricted day (whole or partial) counts as covered too - the coach
+    // did not fail to plan it, the athlete simply can't train (all or part of
+    // it) that day. See CLAUDE.md "The four boxes next to an athlete's name".
+    supabase
+      .from("restrictions")
+      .select("athlete_id, start_date, end_date")
+      .in("athlete_id", athleteIds)
+      .lte("start_date", weekEndStr)
+      .or(`end_date.gte.${weekStartStr},end_date.is.null`),
   ]);
 
   const covered = {};
@@ -613,6 +622,25 @@ async function getWeekStatuses(athleteIds, weekStartStr) {
   });
   (dayNotesRes.data || []).forEach(d => { if (covered[d.athlete_id]) covered[d.athlete_id].add(d.date); });
   (racesRes.data || []).forEach(r => { if (covered[r.athlete_id]) covered[r.athlete_id].add(r.date); });
+  (restrictionsRes.data || []).forEach(r => {
+    if (!covered[r.athlete_id]) return;
+    // end_date: null means single-day (= start_date), not open-ended - same
+    // convention as everywhere else this table is read.
+    const rStart = r.start_date < weekStartStr ? weekStartStr : r.start_date;
+    const rEndRaw = r.end_date || r.start_date;
+    const rEnd = rEndRaw > weekEndStr ? weekEndStr : rEndRaw;
+    if (rStart > rEnd) return;
+    // Clamped to the 4-week window first, so this never loops more than ~29
+    // times even for a restriction that spans months in the database.
+    const sp = rStart.split("-").map(Number);
+    const ep = rEnd.split("-").map(Number);
+    let cur = new Date(sp[0], sp[1] - 1, sp[2]);
+    const last = new Date(ep[0], ep[1] - 1, ep[2]);
+    while (cur <= last) {
+      covered[r.athlete_id].add(isoLocal(cur));
+      cur.setDate(cur.getDate() + 1);
+    }
+  });
 
   const statuses = {};
   athleteIds.forEach(id => {
@@ -655,6 +683,18 @@ async function getWeekBlockTypesForAthletes(athleteIds, weekStartStr) {
     const idx = weekStarts.indexOf(row.week_start);
     if (idx !== -1 && result[row.athlete_id]) result[row.athlete_id][idx] = row.block_type;
   });
+  return result;
+}
+
+async function getWeekBlockTypesInRange(athleteId, weekStarts) {
+  if (!weekStarts.length) return {};
+  const { data } = await supabase
+    .from("week_block_types")
+    .select("week_start, block_type")
+    .eq("athlete_id", athleteId)
+    .in("week_start", weekStarts);
+  const result = {};
+  (data || []).forEach(row => { result[row.week_start] = row.block_type; });
   return result;
 }
 // #endregion

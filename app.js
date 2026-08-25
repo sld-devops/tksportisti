@@ -2295,7 +2295,7 @@ function renderCalendar() {
             ? `<div class="comment-label">Trenera komentārs</div><textarea class="inline-comment" data-comment-day="${dateStr}" placeholder="Komentārs...">${dayNote?.coach_comment || ""}</textarea>`
             : ""}
           ${(fullyRestricted || dayHealth) && activeRole !== "coach" && dayNote?.coach_comment
-            ? `<div class="day-coach-comment">${escapeHtml(dayNote.coach_comment)}</div>`
+            ? `<div class="comment-label">Trenera komentārs</div><div class="day-coach-comment">${escapeHtml(dayNote.coach_comment)}</div>`
             : ""}
         </section>
       `;
@@ -2966,37 +2966,82 @@ document.querySelectorAll('input[name="weekBlockType"]').forEach(radio => {
 });
 
 document.getElementById("copyPrevWeekBtn")?.addEventListener("click", async () => {
-  const prevWeekStart = addDays(currentWeekStart, -7);
-  if (prevWeekStart < MIN_WEEK_START) {
-    alert("Nevar nokopēt — pagājušā nedēļa ir pirms sistēmas sākuma datuma.");
+  const panel = document.getElementById("copyWeekDialog");
+  if (!panel.hidden) {
+    panel.hidden = true;
     return;
   }
 
   const athleteId = getSelectedAthleteId();
   if (!athleteId) return;
 
-  const prevWeekEnd = getWeekEnd(prevWeekStart);
-  const prevWeekStartStr = formatDateISO(prevWeekStart);
-  const prevWeekEndStr = formatDateISO(prevWeekEnd);
+  let pastPlans;
+  try {
+    showLoading();
+    const rangeStart = formatDateISO(MIN_WEEK_START);
+    const rangeEnd = formatDateISO(addDays(currentWeekStart, -1));
+    pastPlans = await getPlans(athleteId, rangeStart, rangeEnd);
+  } finally {
+    hideLoading();
+  }
+
+  const weeks = new Set();
+  pastPlans.forEach(p => weeks.add(getWeekStartFromStr(p.date)));
+
+  if (!weeks.size) {
+    alert("Nav pagājušu nedēļu ar ieplānotiem treniņiem, ko kopēt.");
+    return;
+  }
+
+  const sortedStarts = [...weeks].sort().reverse();
+  const blockTypes = await getWeekBlockTypesInRange(athleteId, sortedStarts);
+  document.getElementById("copyWeekList").innerHTML = sortedStarts.map(wkStart => {
+    const label = getWeekLabel(new Date(wkStart));
+    const type = blockTypes[wkStart] || "";
+    return `
+      <label class="copy-week-row${type ? ` copy-week-row-${type}` : ""}">
+        <input type="radio" name="copyWeekPick" value="${wkStart}">
+        ${label}
+      </label>`;
+  }).join("");
+
+  document.getElementById("copyWeekConfirmBtn").disabled = true;
+  panel.hidden = false;
+});
+
+document.getElementById("copyWeekList")?.addEventListener("change", (e) => {
+  if (e.target.name === "copyWeekPick") {
+    document.getElementById("copyWeekConfirmBtn").disabled = false;
+  }
+});
+
+document.getElementById("copyWeekCancelBtn")?.addEventListener("click", () => {
+  document.getElementById("copyWeekDialog").hidden = true;
+});
+
+document.addEventListener("click", (e) => {
+  const dropdown = document.getElementById("copyWeekDropdown");
+  const panel = document.getElementById("copyWeekDialog");
+  if (dropdown && panel && !panel.hidden && !dropdown.contains(e.target)) {
+    panel.hidden = true;
+  }
+});
+
+document.getElementById("copyWeekConfirmBtn")?.addEventListener("click", async () => {
+  const picked = document.querySelector('input[name="copyWeekPick"]:checked');
+  if (!picked) return;
+  const athleteId = getSelectedAthleteId();
+  if (!athleteId) return;
+
+  const pickedStart = picked.value;
+  const pickedEnd = formatDateISO(getWeekEnd(new Date(pickedStart)));
+  const dayOffset = Math.round((currentWeekStart - new Date(pickedStart)) / 86400000);
 
   try {
     showLoading();
-    const prevWeekPlans = await getPlans(athleteId, prevWeekStartStr, prevWeekEndStr);
-
-    if (!prevWeekPlans.length) {
-      alert("Pagājušajā nedēļā nav ieplānotu treniņu.");
-      return;
-    }
-
-    const confirmed = confirm(
-      `Vai tiešām nokopēt ${prevWeekPlans.length} treniņus no iepriekšējās nedēļas?\n\n` +
-      `Treniņi tiks pievienoti šīs nedēļas plānam.`
-    );
-
-    if (!confirmed) return;
-
-    for (const plan of prevWeekPlans) {
-      const newDate = formatDateISO(addDays(new Date(plan.date), 7));
+    const weekPlans = await getPlans(athleteId, pickedStart, pickedEnd);
+    for (const plan of weekPlans) {
+      const newDate = formatDateISO(addDays(new Date(plan.date), dayOffset));
       await insertPlan({
         athlete_id: plan.athlete_id,
         date: newDate,
@@ -3008,7 +3053,7 @@ document.getElementById("copyPrevWeekBtn")?.addEventListener("click", async () =
         time_of_day: plan.time_of_day,
       });
     }
-
+    document.getElementById("copyWeekDialog").hidden = true;
     await loadNonTemplateData();
   } catch (e) {
     console.error("Kļūda kopējot nedēļu:", e);

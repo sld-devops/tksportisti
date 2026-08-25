@@ -6,7 +6,7 @@
 // CLAUDE.md for this convention, which the health journal shares too.
 let restrictions = [];
 let restrictionSelectedDates = new Set();
-let restrictionEditingId = null;
+let restrictionEditingIds = [];
 let restrictionCalYear = new Date().getFullYear();
 let restrictionCalMonth = new Date().getMonth();
 
@@ -41,14 +41,15 @@ function renderRestrictions() {
   renderRestrictionCards();
 }
 
-function startRestrictionEdit(restrictionId) {
-  restrictionEditingId = restrictionId || null;
+function startRestrictionEdit(idsCsv) {
+  restrictionEditingIds = idsCsv ? idsCsv.split(",") : [];
   restrictionSelectedDates = new Set();
   restrictionCalYear = new Date().getFullYear();
   restrictionCalMonth = new Date().getMonth();
 
-  if (restrictionId) {
-    const r = restrictions.find(x => x.id === restrictionId);
+  if (restrictionEditingIds.length) {
+    // All rows in a group share the same date(s) - only the first is needed.
+    const r = restrictions.find(x => x.id === restrictionEditingIds[0]);
     if (r) {
       if (r.end_date) {
         const start = new Date(r.start_date);
@@ -69,7 +70,7 @@ function startRestrictionEdit(restrictionId) {
 }
 
 function cancelRestrictionEdit() {
-  restrictionEditingId = null;
+  restrictionEditingIds = [];
   restrictionSelectedDates = new Set();
   renderRestrictionCards();
 }
@@ -174,8 +175,9 @@ async function saveRestrictionForm() {
   if (!reason) { alert("Lūdzu, uzrakstiet iemeslu!"); return; }
   if (restrictionSelectedDates.size === 0) { alert("Lūdzu, izvēlieties vismaz vienu datumu!"); return; }
 
-  const todRadio = document.querySelector('input[name="restrictionTod"]:checked');
-  const tod = todRadio?.value || null;
+  const todBoxes = [...document.querySelectorAll('input[name="restrictionTod"]:checked')];
+  if (todBoxes.length === 0) { alert("Lūdzu, izvēlieties vismaz vienu dienas laiku!"); return; }
+  const tods = todBoxes.map(cb => cb.value || null);
   const athleteId = getSelectedAthleteId();
 
   // The selected dates are individual points on the calendar (e.g. Aug 3,
@@ -185,7 +187,8 @@ async function saveRestrictionForm() {
   // the previous one, it extends the current period; as soon as there is a
   // gap (e.g. from the 5th to the 10th), the previous period is closed off
   // and a new one starts. As a result, Aug 3-5 and Aug 10 become two
-  // separate `insertRestriction` calls.
+  // separate periods - and each of those becomes one `insertRestriction`
+  // call per selected day-part (`tods`), since a row only ever holds one.
   const sorted = [...restrictionSelectedDates].sort();
   const ranges = [];
   if (sorted.length > 0) {
@@ -207,19 +210,21 @@ async function saveRestrictionForm() {
   }
 
   try {
-    if (restrictionEditingId) {
-      await deleteRestriction(restrictionEditingId);
+    for (const id of restrictionEditingIds) {
+      await deleteRestriction(id);
     }
     for (const range of ranges) {
-      await insertRestriction({
-        athlete_id: athleteId,
-        start_date: range.start,
-        end_date: range.end,
-        time_of_day: tod || null,
-        reason
-      });
+      for (const tod of tods) {
+        await insertRestriction({
+          athlete_id: athleteId,
+          start_date: range.start,
+          end_date: range.end,
+          time_of_day: tod,
+          reason
+        });
+      }
     }
-    restrictionEditingId = null;
+    restrictionEditingIds = [];
     restrictionSelectedDates = new Set();
     await loadNonTemplateData();
   } catch (e) {
@@ -254,26 +259,42 @@ function renderRestrictionCards() {
   // left cluttering this panel. `restrictions` itself is untouched, so the
   // calendar renderers keep seeing every row.
   const pastCount = restrictions.length - activeRestrictions.length;
-  const list = activeRestrictions.length
-    ? activeRestrictions.map(r => {
-        const period = r.end_date
-          ? `${formatDateLV(r.start_date)} — ${formatDateLV(r.end_date)}`
-          : formatDateLV(r.start_date);
+
+  // A single form save can produce several rows sharing the same date(s) and
+  // reason - one per selected day-part (see saveRestrictionForm). There is no
+  // group id for that in the database; rows are grouped for display purely by
+  // matching start_date+end_date+reason, and shown as one card with all of
+  // that group's day-part badges side by side.
+  const TOD_ORDER = ["", "morning", "afternoon", "evening"];
+  const groups = new Map();
+  activeRestrictions.forEach(r => {
+    const key = `${r.start_date}|${r.end_date || ""}|${r.reason}`;
+    if (!groups.has(key)) groups.set(key, { start_date: r.start_date, end_date: r.end_date, reason: r.reason, rows: [] });
+    groups.get(key).rows.push(r);
+  });
+
+  const list = groups.size
+    ? [...groups.values()].map(g => {
+        g.rows.sort((a, b) => TOD_ORDER.indexOf(a.time_of_day || "") - TOD_ORDER.indexOf(b.time_of_day || ""));
+        const period = g.end_date
+          ? `${formatDateLV(g.start_date)} — ${formatDateLV(g.end_date)}`
+          : formatDateLV(g.start_date);
         // The shared .tod-badge, same as a plan card and the athlete's own
         // record, so Rīts/Pusdiena/Vakars is one colour app-wide and stays that
         // way. .restriction-tod-badge is only the position beside the date now.
-        const todBadge = r.time_of_day ? `<span class="tod-badge restriction-tod-badge tod-${r.time_of_day}">${todLabel(r.time_of_day)}</span>` : "";
+        const todBadges = g.rows.map(r => r.time_of_day ? `<span class="tod-badge restriction-tod-badge tod-${r.time_of_day}">${todLabel(r.time_of_day)}</span>` : "").join("");
+        const ids = g.rows.map(r => r.id).join(",");
         return `
           <div class="restriction-card${canEdit ? " restriction-card-editable" : ""}">
             ${canEdit ? `<div class="restriction-card-actions">
-              <button class="edit-restriction-btn icon-action-btn" data-edit-restriction="${r.id}" type="button" title="Rediģēt">✏️</button>
-              <button class="delete-restriction-btn icon-action-btn is-delete" data-restriction="${r.id}" type="button" title="Dzēst">✕</button>
+              <button class="edit-restriction-btn icon-action-btn" data-edit-restriction="${ids}" type="button" title="Rediģēt">✏️</button>
+              <button class="delete-restriction-btn icon-action-btn is-delete" data-restriction="${ids}" type="button" title="Dzēst">✕</button>
             </div>` : ""}
             <div class="restriction-card-header">
               <span class="restriction-dates">${period}</span>
-              ${todBadge}
+              ${todBadges}
             </div>
-            <div class="restriction-card-reason">${escapeHtml(r.reason)}</div>
+            <div class="restriction-card-reason">${escapeHtml(g.reason)}</div>
           </div>
         `;
       }).join("")
@@ -283,17 +304,23 @@ function renderRestrictionCards() {
     ? `<div class="restriction-past-note">Pagājušie ierobežojumi (${pastCount}) šeit vairs netiek rādīti — tie paliek redzami nedēļas un mēneša skatā.</div>`
     : "";
 
-  const editing = restrictionEditingId ? restrictions.find(x => x.id === restrictionEditingId) : null;
+  const editingRows = restrictionEditingIds.length ? restrictions.filter(x => restrictionEditingIds.includes(x.id)) : [];
+  const editing = editingRows[0] || null;
   const todOptions = [
     { value: "", label: "Visa diena", cls: "tod-all" },
     { value: "morning", label: "🌄 Rīts", cls: "tod-morning" },
     { value: "afternoon", label: "☀️ Pusdiena", cls: "tod-afternoon" },
     { value: "evening", label: "🌇 Vakars", cls: "tod-evening" },
   ];
-  const currentTod = editing ? (editing.time_of_day || "") : "";
+  const editingTods = new Set(editingRows.map(r => r.time_of_day || ""));
+  // Checkboxes, not radios - a coach/athlete may need to block more than one
+  // part of the same day (e.g. morning AND evening) in one go. "Visa diena"
+  // is kept mutually exclusive with the other three via the change listener
+  // wired below, since it already covers them. Editing a group (see the
+  // grouping above) pre-checks every day-part that group's rows cover.
   const todRadiosHtml = todOptions.map(opt => `
     <label class="tod-radio-label ${opt.cls}">
-      <input type="radio" name="restrictionTod" value="${opt.value}" ${opt.value === currentTod ? "checked" : ""}> ${opt.label}
+      <input type="checkbox" name="restrictionTod" value="${opt.value}" ${editingTods.has(opt.value) ? "checked" : ""}> ${opt.label}
     </label>
   `).join("");
 
@@ -327,10 +354,13 @@ function renderRestrictionCards() {
   document.querySelectorAll(".delete-restriction-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       if (!confirm("Dzēst šo ierobežojumu?")) return;
+      const ids = btn.dataset.restriction.split(",");
       try {
-        await deleteRestriction(btn.dataset.restriction);
-        if (restrictionEditingId === btn.dataset.restriction) {
-          restrictionEditingId = null;
+        for (const id of ids) {
+          await deleteRestriction(id);
+        }
+        if (ids.some(id => restrictionEditingIds.includes(id))) {
+          restrictionEditingIds = [];
           restrictionSelectedDates = new Set();
         }
         await loadNonTemplateData();
@@ -344,6 +374,16 @@ function renderRestrictionCards() {
     renderMiniCalendar();
     updateSelectedDatesList();
     updateSaveButtonState();
+    document.querySelectorAll('input[name="restrictionTod"]').forEach(cb => {
+      cb.addEventListener("change", () => {
+        const boxes = document.querySelectorAll('input[name="restrictionTod"]');
+        if (cb.value === "" && cb.checked) {
+          boxes.forEach(other => { if (other !== cb) other.checked = false; });
+        } else if (cb.value !== "" && cb.checked) {
+          boxes.forEach(other => { if (other.value === "") other.checked = false; });
+        }
+      });
+    });
     document.getElementById("saveRestrictionBtn")?.addEventListener("click", saveRestrictionForm);
     document.getElementById("cancelRestrictionEditBtn")?.addEventListener("click", cancelRestrictionEdit);
   }

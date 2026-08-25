@@ -590,7 +590,17 @@
                    planned, instead of a line of its own further up the page. -->
               <div id="activeAthleteName"></div>
               <span class="week-nav-divider" id="copyWeekDivider" aria-hidden="true"></span>
-              <button id="copyPrevWeekBtn" class="secondary-action" type="button" hidden>Nokopēt iepriekšējās nedēļas plānu</button>
+              <div class="copy-week-dropdown" id="copyWeekDropdown">
+                <button id="copyPrevWeekBtn" class="secondary-action" type="button" hidden>Nokopēt plānu</button>
+                <div class="copy-week-panel" id="copyWeekDialog" hidden>
+                  <div class="copy-week-hint">No kuras nedēļas kopēt:</div>
+                  <div class="copy-week-list" id="copyWeekList"></div>
+                  <div class="dialog-actions split-actions">
+                    <button class="cancel-action" id="copyWeekCancelBtn" type="button">Atcelt</button>
+                    <button class="primary-action" id="copyWeekConfirmBtn" type="button" disabled>Kopēt</button>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="week-nav-row" id="monthNavRowInline" hidden>
               <button id="monthPrevInline" class="secondary-action" type="button">Iepriekšējais mēnesis</button>
