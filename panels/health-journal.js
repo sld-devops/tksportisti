@@ -139,10 +139,18 @@ async function saveHealthEntry() {
   };
 
   try {
+    const isNew = !editingHealthId;
     if (editingHealthId) {
       await updateHealthEntry(editingHealthId, data);
     } else {
       await insertHealthEntry(data);
+    }
+    if (!isCoach()) {
+      sendNotificationEmail({
+        target: "coach",
+        subject: `${isNew ? "Jauns" : "Mainīts"} veselības žurnāla ieraksts: ${currentProfile?.full_name || "Sportists"}`,
+        message: `${currentProfile?.full_name || "Sportists"} ${isNew ? "pievienoja" : "izmainīja"} veselības žurnāla ierakstu (${startDate}${endDate ? " – " + endDate : ""}).\n${description}`,
+      });
     }
     editingHealthId = null;
     healthEntries = await getHealthEntries(athleteId);

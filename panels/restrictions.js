@@ -224,6 +224,14 @@ async function saveRestrictionForm() {
         });
       }
     }
+    if (!isCoach()) {
+      const rangeText = ranges.map(r => r.end ? `${r.start} – ${r.end}` : r.start).join(", ");
+      sendNotificationEmail({
+        target: "coach",
+        subject: `Jauns ierobežojums: ${currentProfile?.full_name || "Sportists"}`,
+        message: `${currentProfile?.full_name || "Sportists"} pievienoja/mainīja ierobežojumu (${rangeText}).\nIemesls: ${reason}`,
+      });
+    }
     restrictionEditingIds = [];
     restrictionSelectedDates = new Set();
     await loadNonTemplateData();

@@ -84,10 +84,46 @@ async function getAthletes() {
   if (!user) return [];
   const { data } = await supabase
     .from("profiles")
-    .select("id, full_name, group_name, role, hr_zones, thresholds, pace_hr_map, garmin_url, strava_url, spreadsheet_url")
+    .select("id, full_name, group_name, role, hr_zones, thresholds, pace_hr_map, garmin_url, strava_url, spreadsheet_url, notify_email")
     .neq("role", "coach")
     .order("full_name");
   return data || [];
+}
+
+// Sends an email notification about a calendar change via the
+// `send-notification` edge function (see CLAUDE.md / supabase/functions -
+// same "fetch with a login token" pattern as create-user/delete-user/
+// reset-password in panels/admin.js, except this one is called from
+// anywhere a plan/restriction/health entry gets saved, not just the admin
+// panel, so it lives here instead).
+//
+// `target` is "coach" or "athlete" - the edge function itself looks up that
+// person's notify_email (never trusts/needs the caller to know it) and
+// silently does nothing if that person hasn't filled one in.
+//
+// This never throws: a failed or slow email must never block or break the
+// save it's attached to, so every error is swallowed here and only logged.
+async function sendNotificationEmail({ target, athleteId, subject, message }) {
+  try {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.access_token) return;
+    const res = await fetch(
+      "https://yqaabswcvwkiimpoxsfj.supabase.co/functions/v1/send-notification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.session.access_token}`,
+        },
+        body: JSON.stringify({ target, athleteId, subject, message }),
+      },
+    );
+    if (!res.ok) {
+      console.warn("Paziņojuma e-pasts neaizgāja:", await res.text());
+    }
+  } catch (e) {
+    console.warn("Paziņojuma e-pasts neaizgāja:", e);
+  }
 }
 
 async function getAllProfiles() {
@@ -503,6 +539,20 @@ async function getMonthlyTrend(athleteId, numMonths) {
   }
 
   return Object.values(months);
+}
+
+// Looks up log entries for a plan DIRECTLY in the database, not from the
+// app's in-memory `logEntries`/`monthLogEntries` (which are date-range-scoped
+// to whatever week/month is currently loaded and can be stale). Used right
+// before replacing a plan's logged execution, so a save always finds the
+// real existing row(s) to remove instead of trusting a possibly-outdated
+// local copy - see CLAUDE.md on the month-view duplicate-log-entry bug.
+async function getLogEntriesByPlanId(planId) {
+  const { data } = await supabase
+    .from("log_entries")
+    .select("id")
+    .eq("plan_id", planId);
+  return data || [];
 }
 
 async function insertLogEntry(entry) {

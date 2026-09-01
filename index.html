@@ -133,6 +133,7 @@
         <div class="header-right">
           <button id="screenViewBtn" class="secondary-action" type="button" hidden><span class="label-full"></span><span class="label-short"></span></button>
           <button id="accountSwitchBtn" class="secondary-action" type="button" hidden><span class="label-full"></span><span class="label-short"></span></button>
+          <button id="notifyEmailBtn" class="secondary-action" type="button"><span class="label-full">Paziņojumu e-pasts</span><span class="label-short">E-pasts</span></button>
           <button id="changePasswordBtn" class="secondary-action" type="button">Mainīt paroli</button>
           <button id="logoutBtn" class="secondary-action" type="button">Iziet</button>
         </div>
@@ -893,6 +894,23 @@
           <button class="cancel-action" value="cancel" type="submit">Atcelt</button>
           <button class="delete-action" id="deleteRecordBtn" type="button" hidden>Dzēst</button>
           <button class="primary-action" id="saveRecordBtn" type="button">Saglabāt</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="session-dialog" id="notifyEmailDialog">
+      <form method="dialog">
+        <div class="dialog-header">
+          <h2>Paziņojumu e-pasts</h2>
+        </div>
+        <p class="muted">Uz šo adresi tiks sūtīti paziņojumi par izmaiņām kalendārā. Atstāj tukšu, ja nevēlies saņemt paziņojumus.</p>
+        <label>E-pasts
+          <input id="notifyEmailInput" type="email" autocomplete="email" placeholder="vards@epasts.lv" />
+        </label>
+        <div id="notifyEmailError" class="auth-error" hidden></div>
+        <div class="dialog-actions">
+          <button class="cancel-action" value="cancel" type="submit">Atcelt</button>
+          <button class="primary-action" id="saveNotifyEmailBtn" type="button">Saglabāt</button>
         </div>
       </form>
     </dialog>

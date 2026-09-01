@@ -24,6 +24,11 @@ const savePasswordBtn = document.getElementById("savePasswordBtn");
 const newPasswordInput = document.getElementById("newPassword");
 const confirmPasswordInput = document.getElementById("confirmPassword");
 const passwordErrorEl = document.getElementById("passwordError");
+const notifyEmailBtn = document.getElementById("notifyEmailBtn");
+const notifyEmailDialog = document.getElementById("notifyEmailDialog");
+const notifyEmailInput = document.getElementById("notifyEmailInput");
+const notifyEmailError = document.getElementById("notifyEmailError");
+const saveNotifyEmailBtn = document.getElementById("saveNotifyEmailBtn");
 
 let currentUser = null;
 let currentProfile = null;
@@ -341,6 +346,30 @@ async function changePassword() {
 }
 // #endregion
 
+// #region Notification email
+// Login uses a synthetic address (username@skmitauer.app, see top of file),
+// which is not deliverable - this is the real address paziņojumi (e-pasta
+// paziņojumi par izmaiņām kalendārā) get sent to. Optional: left empty, that
+// person simply gets no email notifications.
+async function saveNotifyEmail() {
+  const value = notifyEmailInput.value.trim();
+  notifyEmailError.hidden = true;
+  if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    notifyEmailError.textContent = "Ievadi derīgu e-pasta adresi";
+    notifyEmailError.hidden = false;
+    return;
+  }
+  try {
+    await updateProfile(currentUser.id, { notify_email: value || null });
+    if (currentProfile) currentProfile.notify_email = value || null;
+    notifyEmailDialog.close();
+  } catch (e) {
+    notifyEmailError.textContent = e.message || "Neizdevās saglabāt e-pastu";
+    notifyEmailError.hidden = false;
+  }
+}
+// #endregion
+
 // #region Event binding
 authForm.addEventListener("submit", function(e){ e.preventDefault(); login(); });
 logoutBtn.addEventListener("click", logout);
@@ -361,4 +390,11 @@ changePasswordBtn.addEventListener("click", () => {
   changePasswordDialog.showModal();
 });
 savePasswordBtn.addEventListener("click", changePassword);
+
+notifyEmailBtn?.addEventListener("click", () => {
+  notifyEmailError.hidden = true;
+  notifyEmailInput.value = currentProfile?.notify_email || "";
+  notifyEmailDialog.showModal();
+});
+saveNotifyEmailBtn?.addEventListener("click", saveNotifyEmail);
 // #endregion

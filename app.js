@@ -2544,6 +2544,31 @@ function escapeHtml(str) {
 // month at once (a 7×N cell grid, including the previous/next month's days
 // that fill out the first/last week row - see getMonthGridStart/End above
 // in the file).
+// Safety net for the bug described in CLAUDE.md ("month-view duplicate log
+// entry"): if two log_entries rows ever end up sharing the same plan_id
+// (should no longer happen after the save-time fix in saveLogBtn, but old
+// duplicates may still exist in the database until cleaned up), month
+// view's "Izpildīts" tab must not draw the same training twice. Entries
+// with no plan_id (self-logs, plan-less day logs) are left untouched -
+// several of those can legitimately share a day. Where more than one row
+// shares a plan_id, keeps whichever has the later `created_at` if that
+// column is present, otherwise the one that sorts last in the input order.
+function dedupeLogEntriesByPlan(entries) {
+  const byPlan = new Map();
+  const rest = [];
+  entries.forEach((l) => {
+    if (!l.plan_id) {
+      rest.push(l);
+      return;
+    }
+    const existing = byPlan.get(l.plan_id);
+    if (!existing || (l.created_at || "") >= (existing.created_at || "")) {
+      byPlan.set(l.plan_id, l);
+    }
+  });
+  return [...rest, ...byPlan.values()];
+}
+
 function renderMonthViewInline() {
   const grid = document.getElementById("monthGridInline");
   const label = document.getElementById("monthViewTitleInline");
@@ -2581,7 +2606,7 @@ function renderMonthViewInline() {
       const dayPlans = monthPlans.filter((p) => p.date === dateStr);
       dayPlans.sort((a, b) => (TOD_ORDER[a.time_of_day] ?? 3) - (TOD_ORDER[b.time_of_day] ?? 3));
       const dayRaces = monthRaces.filter((r) => r.date === dateStr);
-      const dayLog = monthLogEntries.filter((l) => l.date === dateStr);
+      const dayLog = dedupeLogEntriesByPlan(monthLogEntries.filter((l) => l.date === dateStr));
       const dayNote = monthDayNotes.find((n) => n.date === dateStr);
 
       const isRestDay = !!dayNote?.is_rest_day;
@@ -3781,6 +3806,43 @@ document.addEventListener("pointermove", (e) => {
   }
 });
 
+// #region Coach-edit email notifications
+// When the coach changes something on an already-existing plan card (moves
+// it to another day, edits it, or writes a comment on it), the athlete gets
+// one email about it - see CLAUDE.md "E-pasta paziņojumi". Several such
+// changes on the SAME card within a short window are bundled into a single
+// email rather than one per field, since they're usually one edit session
+// (e.g. reschedule + add a comment) - see queuePlanNotification below.
+//
+// Deliberately does NOT try to describe what changed inside `details` (the
+// positional, semicolon-separated string documented at length elsewhere in
+// CLAUDE.md - parsing it wrong has caused real bugs before) - the email
+// just says the training was changed and points the athlete at the app.
+const PLAN_NOTIFY_DEBOUNCE_MS = 8000;
+const pendingPlanNotifications = new Map(); // planId -> { athleteId, title, changes: string[], timer }
+
+function queuePlanNotification(planId, athleteId, title, changeLine) {
+  if (!athleteId) return;
+  let entry = pendingPlanNotifications.get(planId);
+  if (!entry) {
+    entry = { athleteId, title, changes: [], timer: null };
+    pendingPlanNotifications.set(planId, entry);
+  }
+  entry.title = title || entry.title;
+  entry.changes.push(changeLine);
+  clearTimeout(entry.timer);
+  entry.timer = setTimeout(() => {
+    pendingPlanNotifications.delete(planId);
+    sendNotificationEmail({
+      target: "athlete",
+      athleteId: entry.athleteId,
+      subject: `Izmaiņas treniņā${entry.title ? ": " + entry.title : ""}`,
+      message: `Treneris izmainīja treniņu${entry.title ? ` "${entry.title}"` : ""}:\n\n${entry.changes.join("\n")}\n\nAtver lietotni, lai redzētu jaunos datus.`,
+    });
+  }, PLAN_NOTIFY_DEBOUNCE_MS);
+}
+// #endregion
+
 document.addEventListener("pointerup", async (e) => {
   if (!dragState) return;
   const target = document.elementFromPoint(e.clientX, e.clientY);
@@ -3795,6 +3857,9 @@ document.addEventListener("pointerup", async (e) => {
   if (!plan || plan.date === day) return;
   try {
     await updatePlan(planId, { date: day });
+    if (isCoach()) {
+      queuePlanNotification(planId, plan.athlete_id, plan.title, `Diena mainīta: ${plan.date} → ${day}`);
+    }
     await loadNonTemplateData();
   } catch (err) {
     alert("Neizdevās pārvietot treniņu: " + (err.message || err));
@@ -3832,6 +3897,9 @@ async function saveCommentTextarea(textarea, event, silent) {
       await updatePlan(planId, { [`${type}_comment`]: value });
       const plan = plans.find(p => p.id === planId);
       if (plan) plan[`${type}_comment`] = value;
+      if (type === "coach" && isCoach() && plan && value) {
+        queuePlanNotification(planId, plan.athlete_id, plan.title, `Trenera komentārs: "${value}"`);
+      }
       if (!silent) render();
     } catch (e) {
       alert("Neizdevās saglabāt komentāru: " + (e.message || e));
@@ -3956,12 +4024,16 @@ document.getElementById("saveEditPlanBtn")?.addEventListener("click", async () =
   if (!id) return;
   const training = getEditPlanTraining();
   if (!training.title) return;
+  const beforeEdit = plans.find(p => p.id === id);
   try {
     const updates = { title: training.title, details: training.details };
     if (training.custom_icon) updates.custom_icon = training.custom_icon;
     const updated = await updatePlan(id, updates);
     const idx = plans.findIndex(p => p.id === id);
     if (idx !== -1) plans[idx] = updated;
+    if (isCoach() && beforeEdit) {
+      queuePlanNotification(id, beforeEdit.athlete_id, training.title, "Treniņa dati mainīti.");
+    }
     editPlanDialog.close();
     await loadNonTemplateData();
   } catch (e) {
@@ -4219,8 +4291,15 @@ saveLogBtn.addEventListener("click", async () => {
       entries.push({ section, duration, pulse, intervals, pace });
     });
     if (logDialogPlanId) {
-      const existing = logEntries.find((l) => l.plan_id === logDialogPlanId);
-      if (existing) await deleteLogEntry(existing.id);
+      // Looked up straight from the database (not the in-memory `logEntries`
+      // array, which is scoped to whatever week is currently loaded and can
+      // be stale) - otherwise a save that can't find the old row because the
+      // local copy is out of date creates a second row instead of replacing
+      // the first, which then shows as the same training twice in month
+      // view's "Izpildīts" tab. Deletes every match, in case a stale-data
+      // save already created a duplicate before this fix.
+      const existing = await getLogEntriesByPlanId(logDialogPlanId);
+      for (const e of existing) await deleteLogEntry(e.id);
       await insertLogEntry({
         athlete_id: athleteId,
         date: logDialogDate,
