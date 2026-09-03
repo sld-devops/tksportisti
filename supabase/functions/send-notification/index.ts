@@ -1,7 +1,8 @@
-// Sends an email notification about a calendar change (a plan edited, a
-// restriction/health entry added) via Resend. Same shape as the other three
-// functions in this folder, but callable by *any* logged-in user (coach or
-// athlete) - both directions of notification go through this one function.
+// Sends an email notification about a calendar change (a plan edited, moved
+// or deleted; a restriction/health entry added) via a plain Gmail account
+// over SMTP. Same shape as the other three functions in this folder, but
+// callable by *any* logged-in user (coach or athlete) - both directions of
+// notification go through this one function.
 //
 // The caller never picks the recipient's address directly - it only says
 // who the message is *for* ("coach" or a specific athleteId), and this
@@ -9,10 +10,19 @@
 // looks up that person's notify_email itself. That way an athlete's session
 // never needs read access to the coach's profile row (or vice versa) just
 // to send a notification.
+//
+// Why Gmail SMTP and not a transactional-email API: sending from a verified
+// domain needs DNS records the project owner cannot add (a third party
+// manages the domain). A dedicated Gmail account + an App Password needs no
+// DNS at all - Google already publishes SPF/DKIM for gmail.com. Set these
+// Edge Function secrets: GMAIL_USER, GMAIL_APP_PASSWORD, and optionally
+// NOTIFY_FROM_NAME (display name) and COACH_REPLY_TO (Reply-To on the mails
+// that go to athletes, so a reply reaches the coach).
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
-const DEFAULT_FROM = "SK Mitauer Treniņu Portāls <onboarding@resend.dev>";
+const DEFAULT_FROM_NAME = "Toma Komasa Sportistu Portāls";
 
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
@@ -82,9 +92,10 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const resendKey = Deno.env.get("RESEND_API_KEY");
-    if (!resendKey) {
-      return new Response(JSON.stringify({ error: "RESEND_API_KEY nav iestatīts" }), {
+    const gmailUser = Deno.env.get("GMAIL_USER");
+    const gmailPass = Deno.env.get("GMAIL_APP_PASSWORD");
+    if (!gmailUser || !gmailPass) {
+      return new Response(JSON.stringify({ error: "GMAIL_USER / GMAIL_APP_PASSWORD nav iestatīti" }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
       });
@@ -95,26 +106,29 @@ Deno.serve(async (req: Request) => {
       .map((line: string) => line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"))
       .join("<br>");
 
-    const resendRes = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${resendKey}`,
-        "Content-Type": "application/json",
+    const fromName = Deno.env.get("NOTIFY_FROM_NAME") || DEFAULT_FROM_NAME;
+    const replyTo = target === "athlete" ? Deno.env.get("COACH_REPLY_TO") : undefined;
+
+    const client = new SMTPClient({
+      connection: {
+        hostname: "smtp.gmail.com",
+        port: 465,
+        tls: true,
+        auth: { username: gmailUser, password: gmailPass },
       },
-      body: JSON.stringify({
-        from: Deno.env.get("RESEND_FROM_EMAIL") || DEFAULT_FROM,
-        to: [recipient.notify_email],
-        subject,
-        html,
-      }),
     });
 
-    if (!resendRes.ok) {
-      const detail = await resendRes.text();
-      return new Response(JSON.stringify({ error: "Resend kļūda: " + detail }), {
-        status: 502,
-        headers: { "Content-Type": "application/json" },
+    try {
+      await client.send({
+        from: `${fromName} <${gmailUser}>`,
+        to: recipient.notify_email,
+        ...(replyTo ? { replyTo } : {}),
+        subject,
+        content: "auto",
+        html,
       });
+    } finally {
+      await client.close();
     }
 
     return new Response(JSON.stringify({ success: true }), {

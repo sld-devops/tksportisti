@@ -784,6 +784,36 @@ async function loadAllData() {
   await loadNonTemplateData();
 }
 
+// "Nedēļas plāns gatavs" email: when an athlete's week first fills in
+// completely (the cross appears in that week's box in the athlete dropdown),
+// the athlete gets one email. State, same "seen ID set in localStorage"
+// pattern as the notification badges (CLAUDE.md):
+//   - notifiedFullWeeks   : Set of "<athleteId>|<weekStartISO>" already emailed
+//                           (or seeded), persisted per browser.
+//   - weekStatusSeenAthletes : in-memory, this session only. The FIRST time
+//                           this session computes an athlete's weeks, every
+//                           already-complete week is seeded silently (no
+//                           email) - that first pass is the baseline, not a
+//                           change. Works whichever way round the login
+//                           calls refreshWeekStatuses (all athletes / one).
+let notifiedFullWeeks = new Set();
+const weekStatusSeenAthletes = new Set();
+try {
+  const raw = localStorage.getItem("notifiedFullWeeks");
+  if (raw) {
+    const cutoff = formatDateISO(addDays(getMonday(new Date()), -28));
+    notifiedFullWeeks = new Set(
+      JSON.parse(raw).filter((k) => (k.split("|")[1] || "") >= cutoff),
+    );
+  }
+} catch (e) { /* private mode / bad JSON - start empty */ }
+
+function persistNotifiedFullWeeks() {
+  try {
+    localStorage.setItem("notifiedFullWeeks", JSON.stringify([...notifiedFullWeeks]));
+  } catch (e) { /* ignore */ }
+}
+
 // The four boxes next to each athlete's name: this week and the next three.
 // (It used to start at *next* Monday, so the week the coach is actually looking
 // at was never one of the four.)
@@ -807,7 +837,41 @@ async function refreshWeekStatuses(athleteIds) {
   // squares until the ↻ button was pressed.
   Object.assign(weekStatuses, statuses);
   Object.assign(weekBlockTypesByAthlete, blockTypes);
+  maybeNotifyFullWeeks(statuses);
   renderAthleteDropdown();
+}
+
+// For every athlete/week that is now fully planned (cross shown) and hasn't
+// been emailed about yet, send the athlete a "Nedēļas plāns gatavs" email.
+// The first time this session sees a given athlete, its already-complete
+// weeks are only recorded (seeded), never emailed - that pass is the
+// baseline. See the notifiedFullWeeks / weekStatusSeenAthletes note above.
+function maybeNotifyFullWeeks(statuses) {
+  if (!isCoach()) return;
+  const monday = getMonday(new Date());
+  let changed = false;
+  Object.entries(statuses).forEach(([athleteId, weeks]) => {
+    const seedOnly = !weekStatusSeenAthletes.has(athleteId);
+    weekStatusSeenAthletes.add(athleteId);
+    (weeks || []).forEach((full, w) => {
+      if (!full) return;
+      const start = addDays(monday, w * 7);
+      const key = `${athleteId}|${formatDateISO(start)}`;
+      if (notifiedFullWeeks.has(key)) return;
+      notifiedFullWeeks.add(key);
+      changed = true;
+      if (seedOnly) return;
+      const end = addDays(start, 6);
+      const range = `${start.getDate()}.${start.getMonth() + 1}.–${end.getDate()}.${end.getMonth() + 1}.`;
+      sendNotificationEmail({
+        target: "athlete",
+        athleteId,
+        subject: `Nedēļas plāns gatavs (${range})`,
+        message: `Treneris ir pabeidzis Tavu treniņu plānu nedēļai ${range}\n\nAtver lietotni, lai to apskatītu.`,
+      });
+    });
+  });
+  if (changed) persistNotifiedFullWeeks();
 }
 
 async function loadNonTemplateData() {
@@ -1074,7 +1138,20 @@ function renderAthleteDropdown() {
     selected.innerHTML = "Izvēlies sportistu...";
   }
 
-  list.innerHTML = athletes
+  // Header row above the four week boxes: each week's Monday date, so the coach
+  // can tell at a glance which column is which week. Same 0/7/14/21-day walk
+  // from this Monday that getWeekStatuses()/getWeekBlockTypesForAthletes() use.
+  const weekColBase = getMonday(new Date());
+  const weekColLabels = [0, 7, 14, 21].map((o) => {
+    const d = addDays(weekColBase, o);
+    return `${d.getDate()}.${d.getMonth() + 1}.`;
+  });
+  const weekHeader = `<div class="athlete-week-header"><span class="athlete-name"></span>` +
+    `<span class="athlete-indicators">` +
+    weekColLabels.map((l) => `<span class="week-col-label">${l}</span>`).join("") +
+    `</span></div>`;
+
+  list.innerHTML = weekHeader + athletes
     .map((a) => {
       const isSelected = a.id === athleteSelect.value;
       const healthBadge = athleteHealthSet.has(a.id) ? '<span class="health-dropdown-badge">⚕</span> ' : "";
@@ -2915,6 +2992,7 @@ document.getElementById("dropdownTrigger").addEventListener("click", (e) => {
 
 document.getElementById("dropdownList").addEventListener("click", (e) => {
   e.stopPropagation();
+  if (e.target.closest(".athlete-week-header")) return;
   const row = e.target.closest(".athlete-row");
   if (!row || row.classList.contains("selected")) {
     document.getElementById("athleteDropdown").classList.remove("open");
@@ -3644,7 +3722,7 @@ document.getElementById("epVarAddSegment")?.addEventListener("click", () => {
 });
 customType.addEventListener("change", () => {
   const t = customType.value;
-  includeDrills.checked = t === SAME_INTERVAL_TYPE || t === "Intervāli" || t === VAR_INTERVAL_TYPE || t === "Tempa skrējiens" || t === OTHER_RUN_TYPE;
+  includeDrills.checked = t === SAME_INTERVAL_TYPE || t === "Intervāli" || t === VAR_INTERVAL_TYPE || t === "Tempa skrējiens";
 });
 
 calendarGrid.addEventListener("click", async (event) => {
@@ -3708,8 +3786,17 @@ calendarGrid.addEventListener("click", async (event) => {
 
   if (deletePlanBtn) {
     if (!confirm("Dzēst šo treniņu?")) return;
+    const deletedPlan = plans.find(p => p.id === deletePlanBtn.dataset.deletePlan);
     try {
       await deletePlan(deletePlanBtn.dataset.deletePlan);
+      if (isCoach() && deletedPlan?.athlete_id) {
+        sendNotificationEmail({
+          target: "athlete",
+          athleteId: deletedPlan.athlete_id,
+          subject: `Treniņš dzēsts: ${deletedPlan.title}`,
+          message: `Treneris dzēsa treniņu "${deletedPlan.title}" (${deletedPlan.date}).\n\nAtver lietotni, lai redzētu izmaiņas.`,
+        });
+      }
       await loadNonTemplateData();
     } catch (e) {
       alert("Neizdevās dzēst: " + (e.message || e));
@@ -3807,12 +3894,17 @@ document.addEventListener("pointermove", (e) => {
 });
 
 // #region Coach-edit email notifications
-// When the coach changes something on an already-existing plan card (moves
-// it to another day, edits it, or writes a comment on it), the athlete gets
-// one email about it - see CLAUDE.md "E-pasta paziņojumi". Several such
-// changes on the SAME card within a short window are bundled into a single
-// email rather than one per field, since they're usually one edit session
-// (e.g. reschedule + add a comment) - see queuePlanNotification below.
+// When the coach changes the DATA of an already-existing training - moves it
+// to another day, or edits it via "Rediģēt treniņu" - the athlete gets one
+// email about it (see CLAUDE.md "E-pasta paziņojumi"). Deleting an existing
+// training also notifies, but directly (see the deletePlanBtn handler), not
+// through this queue. Two deliberate non-triggers: a coach *comment* on a
+// card does NOT send (only real data changes do), and *adding a brand-new*
+// training does NOT send either - a whole freshly-planned week is announced
+// once by the "Nedēļas plāns gatavs" email in refreshWeekStatuses().
+//
+// Several data changes to the SAME card within a short window are bundled
+// into one email (e.g. reschedule + re-edit in one sitting).
 //
 // Deliberately does NOT try to describe what changed inside `details` (the
 // positional, semicolon-separated string documented at length elsewhere in
@@ -3897,9 +3989,8 @@ async function saveCommentTextarea(textarea, event, silent) {
       await updatePlan(planId, { [`${type}_comment`]: value });
       const plan = plans.find(p => p.id === planId);
       if (plan) plan[`${type}_comment`] = value;
-      if (type === "coach" && isCoach() && plan && value) {
-        queuePlanNotification(planId, plan.athlete_id, plan.title, `Trenera komentārs: "${value}"`);
-      }
+      // No email for comments — only actual training-data changes notify the
+      // athlete (see queuePlanNotification / the delete + edit + move sites).
       if (!silent) render();
     } catch (e) {
       alert("Neizdevās saglabāt komentāru: " + (e.message || e));
@@ -3992,6 +4083,16 @@ calendarGrid.addEventListener("change", async (event) => {
     await updatePlan(planId, updates);
     const plan = plans.find(p => p.id === planId);
     if (plan) plan.completed = completed;
+    // Athlete ticked "Neizpildīts treniņš" (completed === false) - tell the
+    // coach. Only on ticking, not on un-ticking; the athlete's follow-up
+    // "Kas noticis?" comment is not emailed (no comment goes by email).
+    if (!completed && !isCoach() && plan) {
+      sendNotificationEmail({
+        target: "coach",
+        subject: `Neizpildīts treniņš: ${currentProfile?.full_name || "Sportists"}`,
+        message: `${currentProfile?.full_name || "Sportists"} atzīmēja treniņu "${plan.title}" (${plan.date}) kā neizpildītu.\n\nAtver lietotni, lai redzētu paskaidrojumu.`,
+      });
+    }
     await refreshAthleteNotCompletedSet();
     render();
   } catch (e) {
@@ -4046,7 +4147,7 @@ document.getElementById("saveEditPlanBtn")?.addEventListener("click", async () =
     renderEditPlanBuilder();
     if (el === document.getElementById("epType")) {
       const t = document.getElementById("epType").value;
-      document.getElementById("epIncludeDrills").checked = t === SAME_INTERVAL_TYPE || t === "Intervāli" || t === VAR_INTERVAL_TYPE || t === "Tempa skrējiens" || t === OTHER_RUN_TYPE;
+      document.getElementById("epIncludeDrills").checked = t === SAME_INTERVAL_TYPE || t === "Intervāli" || t === VAR_INTERVAL_TYPE || t === "Tempa skrējiens";
     }
   });
 });
@@ -4201,6 +4302,7 @@ function feelingBadgeHtml(feeling, feelingTags) {
     "Slikti — kājas nemaz nevilka, motivācija zema.": { bg: "var(--danger-bg)", color: "var(--danger)" },
     "Grūti — izpildīju ar piepūli, neīpaši pozitīvi.": { bg: "var(--violet-bg)", color: "var(--violet-dark)" },
     "Normāli — varēja ripot labāk, bet nebija slikti, jutos pieņemami.": { bg: "var(--info-accent-bg)", color: "var(--info-accent-dark)" },
+    "Normāli — varēja vēlēties justies svaigāk, bet jutos pieņemami, laba slodze uz noguruma fona.": { bg: "var(--info-accent-bg)", color: "var(--info-accent-dark)" },
     "Ļoti labi — jutos pārliecināts fiziski un psiholoģiski, garīgais labs.": { bg: "var(--warning-bg)", color: "var(--warning-dark)" },
     "Lieliski — viena no labākajām dienām, pilns enerģijas.": { bg: "var(--lime-bg)", color: "var(--lime-dark)" },
   };
@@ -4231,7 +4333,7 @@ function getActivityType(title) {
 const FEELING_OPTIONS = [
   { label: "Slikti — kājas nemaz nevilka, motivācija zema.", bg: "var(--danger-bg)", border: "var(--danger)", color: "var(--danger)" },
   { label: "Grūti — izpildīju ar piepūli, neīpaši pozitīvi.", bg: "var(--violet-bg)", border: "var(--violet)", color: "var(--violet-dark)" },
-  { label: "Normāli — varēja ripot labāk, bet nebija slikti, jutos pieņemami.", bg: "var(--info-accent-bg)", border: "var(--info-accent)", color: "var(--info-accent-dark)" },
+  { label: "Normāli — varēja vēlēties justies svaigāk, bet jutos pieņemami, laba slodze uz noguruma fona.", bg: "var(--info-accent-bg)", border: "var(--info-accent)", color: "var(--info-accent-dark)" },
   { label: "Ļoti labi — jutos pārliecināts fiziski un psiholoģiski, garīgais labs.", bg: "var(--warning-bg)", border: "var(--warning)", color: "var(--warning-dark)" },
   { label: "Lieliski — viena no labākajām dienām, pilns enerģijas.", bg: "var(--lime-bg)", border: "var(--lime)", color: "var(--lime-dark)" },
 ];
@@ -4574,6 +4676,18 @@ function openPlanLogDialog(planId) {
           <div class="log-target">${line}</div>
         </div>`;
       } else if (line.includes(":")) {
+        const st = (plan.title || "").replace(/\s*Koptreniņš\s*$/, "").trim();
+        const isSimple = st === "VFS" || st === "SFS";
+        if (isSimple) {
+          // VFS/SFS is gymnastics/strength work - only a duration is meaningful,
+          // matching the coach's builder where pulse/pace are hidden for these.
+          html += `<div class="log-section-row" data-log-section="${line.split(":")[0]}">
+        <div class="log-target">${line}</div>
+        <div class="field-grid">
+          <label>Ilgums <input class="log-actual-duration" /></label>
+        </div>
+      </div>`;
+        } else {
         const paceStr = extractPace(line);
       const paceField = `<label>Vidējais temps <input class="log-actual-pace" /></label>`;
       const pulseStr = extractPulse(line);
@@ -4585,6 +4699,7 @@ function openPlanLogDialog(planId) {
           ${paceField}
         </div>
       </div>`;
+        }
     } else if (line === "Drill") {
       html += `<div class="log-section-row" data-log-section="Drill">
         <div class="log-target">Drill</div>
@@ -4709,6 +4824,18 @@ function openLogDialog(dateStr) {
             <div class="log-target">${line}</div>
           </div>`;
         } else if (line.includes(":")) {
+        const st = (plan.title || "").replace(/\s*Koptreniņš\s*$/, "").trim();
+        const isSimple = st === "VFS" || st === "SFS";
+        if (isSimple) {
+          // VFS/SFS is gymnastics/strength work - only a duration is meaningful,
+          // matching the coach's builder where pulse/pace are hidden for these.
+          html += `<div class="log-section-row" data-log-section="${line.split(":")[0]}">
+          <div class="log-target">${line}</div>
+          <div class="field-grid">
+            <label>Ilgums <input class="log-actual-duration" /></label>
+          </div>
+        </div>`;
+        } else {
         const paceStr = extractPace(line);
       const paceField = `<label>Vidējais temps <input class="log-actual-pace" /></label>`;
         const pulseStr = extractPulse(line);
@@ -4720,6 +4847,7 @@ function openLogDialog(dateStr) {
             ${paceField}
           </div>
         </div>`;
+        }
       } else if (line === "Drill") {
         html += `<div class="log-section-row" data-log-section="Drill">
           <div class="log-target">Drill</div>

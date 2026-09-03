@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-"Toma Komasa Sportistu Portāls" (SK Mitauer Training Planner) — a training-plan web app for a coach and their athletes, deployed at `tksportisti.netlify.app`. Vanilla HTML/CSS/JS, no build step, no bundler, no framework, no test runner. Backend is Supabase (Postgres + Auth + Edge Functions).
+"Toma Komasa Sportistu Portāls" — a training-plan web app for a coach and their athletes, deployed at `tksportisti.netlify.app`. Vanilla HTML/CSS/JS, no build step, no bundler, no framework, no test runner. Backend is Supabase (Postgres + Auth + Edge Functions).
 
 It replaces a Google Sheets workflow the coach previously used to plan training for ~20-25 athletes, which was hard to track and not user-friendly. The goal is to make the coach-athlete relationship more transparent and efficient: let the coach build precise, individualized training plans quickly (athletes have very different fitness levels) and let athletes follow their plan easily. Favor changes that reduce clicks/time for the coach's day-to-day planning flow and keep per-athlete data clearly distinguished — that's the app's core value over the spreadsheet it replaced.
 

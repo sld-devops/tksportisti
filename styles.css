@@ -1115,6 +1115,34 @@ h4 {
   background: rgba(255, 215, 0, 0.18);
 }
 
+/* Header row above the four week boxes in the athlete dropdown: one small date
+   per column (that week's Monday), so it's obvious which column is which week.
+   Mirrors the .athlete-row flex layout so the labels sit over the box columns. */
+.athlete-week-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 10px 3px;
+  border-bottom: 1px solid var(--line);
+  cursor: default;
+  background: #fff;
+}
+.athlete-week-header .athlete-indicators {
+  gap: 4px;
+}
+.week-col-label {
+  width: 22px;
+  flex-shrink: 0;
+  text-align: center;
+  white-space: nowrap;
+  font-size: 0.62rem;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--muted);
+}
+
 
 .section-label {
   color: var(--muted);

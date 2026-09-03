@@ -1,4 +1,4 @@
-# SK Mitauer Training Planner — response style
+# Toma Komasa Sportistu Portāls — response style
 
 This file is only for how to talk to the project owner. For architecture, commands, and coding conventions, see `CLAUDE.md`.
 
