@@ -225,11 +225,12 @@ async function saveRestrictionForm() {
       }
     }
     if (!isCoach()) {
-      const rangeText = ranges.map(r => r.end ? `${r.start} – ${r.end}` : r.start).join(", ");
+      const who = currentProfile?.full_name || "Sportists";
+      const rangeText = ranges.map(r => r.end ? `${formatDateLV(r.start)}–${formatDateLV(r.end)}` : formatDateLV(r.start)).join(", ");
       sendNotificationEmail({
         target: "coach",
-        subject: `Jauns ierobežojums: ${currentProfile?.full_name || "Sportists"}`,
-        message: `${currentProfile?.full_name || "Sportists"} pievienoja/mainīja ierobežojumu (${rangeText}).\nIemesls: ${reason}`,
+        subject: `Jauns ierobežojums: ${who} (${rangeText})`,
+        message: `${who} pievienoja/mainīja ierobežojumu (${rangeText}).\nIemesls: ${reason}\n\nAtver lietotni: https://tksportisti.netlify.app`,
       });
     }
     restrictionEditingIds = [];

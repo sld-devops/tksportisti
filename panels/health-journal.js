@@ -146,10 +146,12 @@ async function saveHealthEntry() {
       await insertHealthEntry(data);
     }
     if (!isCoach()) {
+      const who = currentProfile?.full_name || "Sportists";
+      const dateRange = endDate ? `${formatDateLV(startDate)}–${formatDateLV(endDate)}` : formatDateLV(startDate);
       sendNotificationEmail({
         target: "coach",
-        subject: `${isNew ? "Jauns" : "Mainīts"} veselības žurnāla ieraksts: ${currentProfile?.full_name || "Sportists"}`,
-        message: `${currentProfile?.full_name || "Sportists"} ${isNew ? "pievienoja" : "izmainīja"} veselības žurnāla ierakstu (${startDate}${endDate ? " – " + endDate : ""}).\n${description}`,
+        subject: `${isNew ? "Jauns" : "Mainīts"} veselības ieraksts: ${who} (${dateRange})`,
+        message: `${who} ${isNew ? "pievienoja" : "izmainīja"} veselības žurnāla ierakstu (${dateRange}).\n${description}\n\nAtver lietotni: https://tksportisti.netlify.app`,
       });
     }
     editingHealthId = null;

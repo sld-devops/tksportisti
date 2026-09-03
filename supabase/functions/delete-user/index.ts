@@ -1,3 +1,8 @@
+// This runs in Supabase's Deno runtime, not Node. VS Code's built-in TS
+// checker doesn't know `Deno`, `jsr:` or `https://` imports and flags them
+// as errors - they are valid here, and nothing in this project compiles
+// this file with tsc. @ts-nocheck silences that editor-only noise.
+// @ts-nocheck
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 

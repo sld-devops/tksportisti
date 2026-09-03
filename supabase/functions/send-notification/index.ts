@@ -1,144 +1,101 @@
-// Sends an email notification about a calendar change (a plan edited, moved
-// or deleted; a restriction/health entry added) via a plain Gmail account
-// over SMTP. Same shape as the other three functions in this folder, but
-// callable by *any* logged-in user (coach or athlete) - both directions of
-// notification go through this one function.
+// This runs in Supabase's Deno runtime, not Node. VS Code's built-in TS
+// checker doesn't know `Deno`, `jsr:` or `npm:` imports and flags them as
+// errors - they are valid here, and nothing in this project compiles this
+// file with tsc. @ts-nocheck silences that editor-only noise.
+// @ts-nocheck
 //
-// The caller never picks the recipient's address directly - it only says
-// who the message is *for* ("coach" or a specific athleteId), and this
-// function (using the service-role key, same as create-user/delete-user)
-// looks up that person's notify_email itself. That way an athlete's session
-// never needs read access to the coach's profile row (or vice versa) just
-// to send a notification.
+// Sends a calendar-change notification email through a dedicated Gmail
+// account over SMTP. Callable by any logged-in user (coach or athlete) -
+// both directions go through this one function. The caller only says who
+// the message is *for* ("coach" or a specific athleteId); this function
+// looks up that person's notify_email itself with the service-role key.
 //
-// Why Gmail SMTP and not a transactional-email API: sending from a verified
-// domain needs DNS records the project owner cannot add (a third party
-// manages the domain). A dedicated Gmail account + an App Password needs no
-// DNS at all - Google already publishes SPF/DKIM for gmail.com. Set these
-// Edge Function secrets: GMAIL_USER, GMAIL_APP_PASSWORD, and optionally
-// NOTIFY_FROM_NAME (display name) and COACH_REPLY_TO (Reply-To on the mails
-// that go to athletes, so a reply reaches the coach).
+// nodemailer (not denomailer): denomailer 1.6.0 with content:"auto"+html
+// built a malformed multipart MIME that Gmail rendered as raw text. This
+// sends ONE clean text/plain part; nodemailer encodes the UTF-8 subject as
+// an RFC 2047 encoded-word. Messages are short plain prose, so no HTML part
+// is needed - Gmail auto-links the bare URL.
+//
+// CORS: the browser's credential-less OPTIONS preflight carries no
+// Authorization header, so this function must be deployed with "Verify JWT"
+// OFF (it does its own auth via getUser below) and answer OPTIONS itself.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import nodemailer from "npm:nodemailer@6.9.16";
 
 const DEFAULT_FROM_NAME = "Toma Komasa Sportistu Portāls";
 
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...CORS, "Content-Type": "application/json" },
+  });
+
 Deno.serve(async (req: Request) => {
-  if (req.method !== "POST") {
-    return new Response("Method not allowed", { status: 405 });
-  }
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
     const { target, athleteId, subject, message } = await req.json();
+    if (target !== "coach" && target !== "athlete")
+      return json({ error: "target jābūt 'coach' vai 'athlete'" }, 400);
+    if (target === "athlete" && !athleteId)
+      return json({ error: "athleteId obligāts, ja target ir 'athlete'" }, 400);
+    if (!subject || !message)
+      return json({ error: "subject un message obligāti" }, 400);
 
-    if (target !== "coach" && target !== "athlete") {
-      return new Response(JSON.stringify({ error: "target jābūt 'coach' vai 'athlete'" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    if (target === "athlete" && !athleteId) {
-      return new Response(JSON.stringify({ error: "athleteId obligāts, ja target ir 'athlete'" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    if (!subject || !message) {
-      return new Response(JSON.stringify({ error: "subject un message obligāti" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const authHeader = req.headers.get("Authorization")!;
+    const authHeader = req.headers.get("Authorization") ?? "";
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       { auth: { persistSession: false } },
     );
-
     const { data: { user }, error: authError } = await supabase.auth.getUser(
       authHeader.replace("Bearer ", ""),
     );
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Nav autentificēts" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    if (authError || !user) return json({ error: "Nav autentificēts" }, 401);
 
     // Look up the recipient's own real address - never the synthetic
     // username@skmitauer.app login identity.
-    let recipientQuery = supabase.from("profiles").select("notify_email");
-    recipientQuery = target === "coach"
-      ? recipientQuery.eq("role", "coach")
-      : recipientQuery.eq("id", athleteId);
-    const { data: recipient, error: recipientError } = await recipientQuery.limit(1).maybeSingle();
+    let q = supabase.from("profiles").select("notify_email");
+    q = target === "coach" ? q.eq("role", "coach") : q.eq("id", athleteId);
+    const { data: recipient, error: recipientError } = await q.limit(1).maybeSingle();
+    if (recipientError)
+      return json({ error: "Neizdevās uzmeklēt saņēmēju: " + recipientError.message }, 500);
 
-    if (recipientError) {
-      return new Response(JSON.stringify({ error: "Neizdevās uzmeklēt saņēmēju: " + recipientError.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // No address on file (or notifications turned off) - not an error, just
-    // nothing to send. The person simply hasn't filled in "Paziņojumu e-pasts".
-    if (!recipient?.notify_email) {
-      return new Response(JSON.stringify({ success: true, skipped: true }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    // No address on file - not an error, just nothing to send.
+    if (!recipient?.notify_email) return json({ success: true, skipped: true });
 
     const gmailUser = Deno.env.get("GMAIL_USER");
     const gmailPass = Deno.env.get("GMAIL_APP_PASSWORD");
-    if (!gmailUser || !gmailPass) {
-      return new Response(JSON.stringify({ error: "GMAIL_USER / GMAIL_APP_PASSWORD nav iestatīti" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const html = String(message)
-      .split("\n")
-      .map((line: string) => line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"))
-      .join("<br>");
+    if (!gmailUser || !gmailPass)
+      return json({ error: "GMAIL_USER / GMAIL_APP_PASSWORD nav iestatīti" }, 500);
 
     const fromName = Deno.env.get("NOTIFY_FROM_NAME") || DEFAULT_FROM_NAME;
     const replyTo = target === "athlete" ? Deno.env.get("COACH_REPLY_TO") : undefined;
 
-    const client = new SMTPClient({
-      connection: {
-        hostname: "smtp.gmail.com",
-        port: 465,
-        tls: true,
-        auth: { username: gmailUser, password: gmailPass },
-      },
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: { user: gmailUser, pass: gmailPass },
     });
 
-    try {
-      await client.send({
-        from: `${fromName} <${gmailUser}>`,
-        to: recipient.notify_email,
-        ...(replyTo ? { replyTo } : {}),
-        subject,
-        content: "auto",
-        html,
-      });
-    } finally {
-      await client.close();
-    }
-
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
+    await transporter.sendMail({
+      from: { name: fromName, address: gmailUser },
+      to: recipient.notify_email,
+      ...(replyTo ? { replyTo } : {}),
+      subject: String(subject),
+      text: String(message),
     });
+
+    return json({ success: true });
   } catch (e) {
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Nezināma kļūda" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json({ error: e instanceof Error ? e.message : "Nezināma kļūda" }, 500);
   }
 });

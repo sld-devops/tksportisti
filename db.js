@@ -643,7 +643,7 @@ async function getWeekStatuses(athleteIds, weekStartStr) {
   endDate.setDate(endDate.getDate() + 28);
   const weekEndStr = isoLocal(endDate);
 
-  const [plansRes, dayNotesRes, racesRes, restrictionsRes] = await Promise.all([
+  const [plansRes, dayNotesRes, racesRes, restrictionsRes, selfLogsRes] = await Promise.all([
     supabase
       .from("plans")
       .select("athlete_id, date, original_date")
@@ -660,6 +660,17 @@ async function getWeekStatuses(athleteIds, weekStartStr) {
       .in("athlete_id", athleteIds)
       .lte("start_date", weekEndStr)
       .or(`end_date.gte.${weekStartStr},end_date.is.null`),
+    // The athlete's own recorded training (a self-log: a log_entries row with
+    // no plan_id) counts as covered too - owner's call 2026-09-03. Plan-linked
+    // executions have a plan_id and are excluded (the plan already covers the
+    // day). The "_self" marker is checked below.
+    supabase
+      .from("log_entries")
+      .select("athlete_id, date, log_data")
+      .in("athlete_id", athleteIds)
+      .is("plan_id", null)
+      .gte("date", weekStartStr)
+      .lte("date", weekEndStr),
   ]);
 
   const covered = {};
@@ -672,6 +683,13 @@ async function getWeekStatuses(athleteIds, weekStartStr) {
   });
   (dayNotesRes.data || []).forEach(d => { if (covered[d.athlete_id]) covered[d.athlete_id].add(d.date); });
   (racesRes.data || []).forEach(r => { if (covered[r.athlete_id]) covered[r.athlete_id].add(r.date); });
+  // Self-log: a plan-less log_entries row whose log_data carries the "_self"
+  // marker (see panels/self-log.js). Checked inline so db.js stays free of a
+  // dependency on the panel file.
+  (selfLogsRes.data || []).forEach(l => {
+    if (!covered[l.athlete_id]) return;
+    if ((l.log_data || []).some(e => e && e.section === "_self")) covered[l.athlete_id].add(l.date);
+  });
   (restrictionsRes.data || []).forEach(r => {
     if (!covered[r.athlete_id]) return;
     // end_date: null means single-day (= start_date), not open-ended - same

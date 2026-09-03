@@ -867,7 +867,7 @@ function maybeNotifyFullWeeks(statuses) {
         target: "athlete",
         athleteId,
         subject: `Nedēļas plāns gatavs (${range})`,
-        message: `Treneris ir pabeidzis Tavu treniņu plānu nedēļai ${range}\n\nAtver lietotni, lai to apskatītu.`,
+        message: `Treneris ir pabeidzis Tavu treniņu plānu nedēļai ${range}\n\nAtver lietotni: ${NOTIFY_APP_URL}`,
       });
     });
   });
@@ -3793,8 +3793,8 @@ calendarGrid.addEventListener("click", async (event) => {
         sendNotificationEmail({
           target: "athlete",
           athleteId: deletedPlan.athlete_id,
-          subject: `Treniņš dzēsts: ${deletedPlan.title}`,
-          message: `Treneris dzēsa treniņu "${deletedPlan.title}" (${deletedPlan.date}).\n\nAtver lietotni, lai redzētu izmaiņas.`,
+          subject: `Treniņš dzēsts: ${deletedPlan.title} (${formatDateLV(deletedPlan.date)})`,
+          message: `Treneris dzēsa treniņu "${deletedPlan.title}" (${formatDateLV(deletedPlan.date)}).\n\nAtver lietotni: ${NOTIFY_APP_URL}`,
         });
       }
       await loadNonTemplateData();
@@ -3911,25 +3911,33 @@ document.addEventListener("pointermove", (e) => {
 // CLAUDE.md - parsing it wrong has caused real bugs before) - the email
 // just says the training was changed and points the athlete at the app.
 const PLAN_NOTIFY_DEBOUNCE_MS = 8000;
-const pendingPlanNotifications = new Map(); // planId -> { athleteId, title, changes: string[], timer }
+const NOTIFY_APP_URL = "https://tksportisti.netlify.app";
+const pendingPlanNotifications = new Map(); // planId -> { athleteId, title, changes: string[], labels: string[], timer }
 
-function queuePlanNotification(planId, athleteId, title, changeLine) {
+// `changeLine` is the body detail line; `subjectLabel` is the short "what
+// changed" phrase that leads the subject (e.g. "Diena pārcelta (3.9. → 5.9.)").
+function queuePlanNotification(planId, athleteId, title, changeLine, subjectLabel) {
   if (!athleteId) return;
   let entry = pendingPlanNotifications.get(planId);
   if (!entry) {
-    entry = { athleteId, title, changes: [], timer: null };
+    entry = { athleteId, title, changes: [], labels: [], timer: null };
     pendingPlanNotifications.set(planId, entry);
   }
   entry.title = title || entry.title;
   entry.changes.push(changeLine);
+  if (subjectLabel) entry.labels.push(subjectLabel);
   clearTimeout(entry.timer);
   entry.timer = setTimeout(() => {
     pendingPlanNotifications.delete(planId);
+    const t = entry.title || "treniņš";
+    const subject = entry.labels.length === 1
+      ? `${entry.labels[0]}: ${t}`
+      : `Vairākas izmaiņas: ${t}`;
     sendNotificationEmail({
       target: "athlete",
       athleteId: entry.athleteId,
-      subject: `Izmaiņas treniņā${entry.title ? ": " + entry.title : ""}`,
-      message: `Treneris izmainīja treniņu${entry.title ? ` "${entry.title}"` : ""}:\n\n${entry.changes.join("\n")}\n\nAtver lietotni, lai redzētu jaunos datus.`,
+      subject,
+      message: `Treneris mainīja treniņu "${t}":\n\n${entry.changes.join("\n")}\n\nAtver lietotni: ${NOTIFY_APP_URL}`,
     });
   }, PLAN_NOTIFY_DEBOUNCE_MS);
 }
@@ -3950,7 +3958,8 @@ document.addEventListener("pointerup", async (e) => {
   try {
     await updatePlan(planId, { date: day });
     if (isCoach()) {
-      queuePlanNotification(planId, plan.athlete_id, plan.title, `Diena mainīta: ${plan.date} → ${day}`);
+      const move = `${formatDateLV(plan.date)} → ${formatDateLV(day)}`;
+      queuePlanNotification(planId, plan.athlete_id, plan.title, `Diena pārcelta: ${move}`, `Diena pārcelta (${move})`);
     }
     await loadNonTemplateData();
   } catch (err) {
@@ -4087,10 +4096,11 @@ calendarGrid.addEventListener("change", async (event) => {
     // coach. Only on ticking, not on un-ticking; the athlete's follow-up
     // "Kas noticis?" comment is not emailed (no comment goes by email).
     if (!completed && !isCoach() && plan) {
+      const who = currentProfile?.full_name || "Sportists";
       sendNotificationEmail({
         target: "coach",
-        subject: `Neizpildīts treniņš: ${currentProfile?.full_name || "Sportists"}`,
-        message: `${currentProfile?.full_name || "Sportists"} atzīmēja treniņu "${plan.title}" (${plan.date}) kā neizpildītu.\n\nAtver lietotni, lai redzētu paskaidrojumu.`,
+        subject: `Neizpildīts treniņš: ${who} — ${plan.title} (${formatDateLV(plan.date)})`,
+        message: `${who} atzīmēja treniņu "${plan.title}" (${formatDateLV(plan.date)}) kā neizpildītu.\n\nAtver lietotni: ${NOTIFY_APP_URL}`,
       });
     }
     await refreshAthleteNotCompletedSet();
@@ -4133,7 +4143,7 @@ document.getElementById("saveEditPlanBtn")?.addEventListener("click", async () =
     const idx = plans.findIndex(p => p.id === id);
     if (idx !== -1) plans[idx] = updated;
     if (isCoach() && beforeEdit) {
-      queuePlanNotification(id, beforeEdit.athlete_id, training.title, "Treniņa dati mainīti.");
+      queuePlanNotification(id, beforeEdit.athlete_id, training.title, "Treniņa uzdevums mainīts", `Mainīts uzdevums (${formatDateLV(beforeEdit.date)})`);
     }
     editPlanDialog.close();
     await loadNonTemplateData();
