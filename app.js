@@ -602,6 +602,33 @@ function isVarIntervalLine(line) {
   return m && after.indexOf(" + ", m.index) !== -1;
 }
 
+// An athlete always warms up before intervals/tempo and cools down after, even
+// when the coach only wrote a "Pamatdaļa:" line - so the log dialog always draws
+// those two rows for these training types (see syntheticLogSectionRow below).
+function isIntervalOrTempoPlan(plan) {
+  if (!plan) return false;
+  if (isIntervalType(plan.title) || plan.title === "Tempa skrējiens") return true;
+  const details = plan.details || "";
+  if (/Pamatdaļa:\s*(?:\d+-)?\d+x/.test(details)) return true;
+  return details.split("\n").some(isVarIntervalLine);
+}
+
+// Same markup as the generic "Iesildīšanās:/Atsildīšanās:" row the details-line
+// loop already builds - so save (saveLogBtn), refill on reopen and the executed
+// card (renderLogEntryLines) all handle it with no extra code. data-log-auto="1"
+// marks it as one the athlete never asked for, so an untouched empty one is
+// dropped on save rather than showing as a blank line on the card.
+function syntheticLogSectionRow(sectionName, wide) {
+  return `<div class="log-section-row" data-log-section="${sectionName}" data-log-auto="1">
+        <div class="log-target">${sectionName}</div>
+        <div class="field-grid${wide ? " field-grid-3" : ""}">
+          <label>Ilgums <input class="log-actual-duration" /></label>
+          <label>Vidējais pulss <input class="log-actual-pulse" /></label>
+          <label>Vidējais temps <input class="log-actual-pace" /></label>
+        </div>
+      </div>`;
+}
+
 function parseVarIntervalPaceBounds(line) {
   const bounds = {};
   const segments = closeLengthUnitGap(line).split(" + ");
@@ -4429,6 +4456,9 @@ saveLogBtn.addEventListener("click", async () => {
           intervals.push(inp.value);
         }
       });
+      // An auto-added warmup/cooldown row the athlete left untouched would
+      // otherwise save as a blank "Iesildīšanās:" line on the executed card.
+      if (el.dataset.logAuto && !duration && !pulse && !pace && !intervals.some(Boolean)) return;
       entries.push({ section, duration, pulse, intervals, pace });
     });
     if (logDialogPlanId) {
@@ -4658,9 +4688,14 @@ function openPlanLogDialog(planId) {
     html += `<label class="field-label">Izpildes datums (ir iespējams mainīt) <input type="date" id="logDatePicker" value="${plan.date}" /></label>`;
   }
   html += `<div class="log-plan-block"><h3>${displayTitle(plan.title)}</h3>`;
+  const blockStart = html.length;
+  let hasWarmupLine = false;
+  let hasCooldownLine = false;
   const lines = (plan.details || "").split("\n");
   lines.forEach((line) => {
     if (!line.trim()) return;
+    if (line.startsWith("Iesildīšanās:")) hasWarmupLine = true;
+    else if (line.startsWith("Atsildīšanās:")) hasCooldownLine = true;
     if (isVarIntervalLine(line)) {
       const result = parseSegmentsFromVarLine(line);
       html += `<div class="log-section-row" data-log-section="Pamatdaļa">
@@ -4757,6 +4792,14 @@ function openPlanLogDialog(planId) {
     }
     }
   });
+  if (isIntervalOrTempoPlan(plan)) {
+    if (!hasWarmupLine) {
+      html = html.slice(0, blockStart) + syntheticLogSectionRow("Iesildīšanās", true) + html.slice(blockStart);
+    }
+    if (!hasCooldownLine) {
+      html += syntheticLogSectionRow("Atsildīšanās", true);
+    }
+  }
   html += `</div>`;
 
   html += getRatingHtml(plan.title, plan.custom_icon);
@@ -4810,9 +4853,14 @@ function openLogDialog(dateStr) {
   let html = "";
   dayPlans.forEach((plan) => {
     html += `<div class="log-plan-block"><h3>${displayTitle(plan.title)}</h3>`;
+    const blockStart = html.length;
+    let hasWarmupLine = false;
+    let hasCooldownLine = false;
     const lines = (plan.details || "").split("\n");
     lines.forEach((line) => {
       if (!line.trim()) return;
+      if (line.startsWith("Iesildīšanās:")) hasWarmupLine = true;
+      else if (line.startsWith("Atsildīšanās:")) hasCooldownLine = true;
       if (isVarIntervalLine(line)) {
         const result = parseSegmentsFromVarLine(line);
         html += `<div class="log-section-row" data-log-section="Pamatdaļa">
@@ -4901,6 +4949,14 @@ function openLogDialog(dateStr) {
       }
       }
     });
+    if (isIntervalOrTempoPlan(plan)) {
+      if (!hasWarmupLine) {
+        html = html.slice(0, blockStart) + syntheticLogSectionRow("Iesildīšanās", false) + html.slice(blockStart);
+      }
+      if (!hasCooldownLine) {
+        html += syntheticLogSectionRow("Atsildīšanās", false);
+      }
+    }
     html += `</div>`;
   });
 
