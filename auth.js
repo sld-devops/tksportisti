@@ -394,6 +394,26 @@ savePasswordBtn.addEventListener("click", changePassword);
 notifyEmailBtn?.addEventListener("click", () => {
   notifyEmailError.hidden = true;
   notifyEmailInput.value = currentProfile?.notify_email || "";
+  const desc = document.getElementById("notifyEmailDesc");
+  if (desc) {
+    // Coach and athlete get different notifications, so the dialog lists
+    // whichever set applies to the person opening it.
+    const coach = isCoach();
+    const lead = coach
+      ? "Uz šo adresi saņemsi paziņojumu e-pastā, kad sportists:"
+      : "Uz šo adresi saņemsi paziņojumu e-pastā, kad treneris:";
+    const items = coach
+      ? ["atzīmē treniņu kā neizpildītu",
+         "pievieno vai maina veselības žurnāla ierakstu",
+         "pievieno vai maina ierobežojumu"]
+      : ["maina treniņa uzdevumu",
+         "pārceļ treniņu uz citu dienu",
+         "dzēš treniņu",
+         "pabeidz tavas nedēļas plānu",
+         "atzīmē tavu nedēļu kā apskatītu"];
+    desc.innerHTML =
+      `<p>${lead}</p><ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>`;
+  }
   notifyEmailDialog.showModal();
 });
 saveNotifyEmailBtn?.addEventListener("click", saveNotifyEmail);

@@ -176,11 +176,13 @@ function renderSelfLogCard(log, dayCommentTaken) {
 
   return `
     <article class="session-card self-log-card">
-      <h3>${escapeHtml(displayTitle(title))}</h3>
       ${todBadge}
+      <h3>${escapeHtml(displayTitle(title))}</h3>
       <span class="plan-type-badge">${icon}</span>
-      <div class="self-log-badge">📝 Sportista ieraksts</div>
-      ${textHtml ? `<div class="task-card self-log-text-view">${textHtml}</div>` : ""}
+      <div class="task-card self-log-text-view">
+        <div class="self-log-badge">📝 Sportista ieraksts</div>
+        ${textHtml}
+      </div>
       ${feelingBadge}
       ${notesHtml}
       ${coachBlock}

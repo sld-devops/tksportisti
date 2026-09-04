@@ -854,16 +854,25 @@ function maybeNotifyFullWeeks(statuses) {
     const seedOnly = !weekStatusSeenAthletes.has(athleteId);
     weekStatusSeenAthletes.add(athleteId);
     (weeks || []).forEach((full, w) => {
-      if (!full) return;
       const start = addDays(monday, w * 7);
       const key = `${athleteId}|${formatDateISO(start)}`;
+      if (!full) {
+        // Week fell back to not-full while its email was still in the 7s
+        // window (e.g. the coach deleted the plan that had completed it) -
+        // drop the pending email and let it re-notify if it fills again.
+        if (cancelNotificationEmail("week-full:" + key)) {
+          notifiedFullWeeks.delete(key);
+          changed = true;
+        }
+        return;
+      }
       if (notifiedFullWeeks.has(key)) return;
       notifiedFullWeeks.add(key);
       changed = true;
       if (seedOnly) return;
       const end = addDays(start, 6);
       const range = `${start.getDate()}.${start.getMonth() + 1}.–${end.getDate()}.${end.getMonth() + 1}.`;
-      sendNotificationEmail({
+      queueNotificationEmail("week-full:" + key, {
         target: "athlete",
         athleteId,
         subject: `Nedēļas plāns gatavs (${range})`,
@@ -2193,8 +2202,9 @@ function renderPlanCard(plan) {
 
     return `
       <article class="session-card is-draggable${notCompleted ? " not-completed" : ""}" data-plan-id="${plan.id}">
+        ${todBadge}
         <h3>${displayTitle(plan.title)}</h3>
-        ${todBadge}${movedBadge}
+        ${movedBadge}
         <span class="plan-type-badge">${plan.custom_icon || badgeForTitle(plan.title)}</span>
         ${notCompleted ? '<span class="not-completed-icon-abs">!</span>' : ""}
         ${hasPamatdala ? `<div class="task-card">${formatDetailsForCard(plan.details).replace(/\n/g, "<br>")}<textarea class="inline-comment" data-comment-plan="${plan.id}" data-comment-type="coach" placeholder="Trenera komentārs...">${plan.coach_comment || ""}</textarea></div>` : `<textarea class="inline-comment" data-comment-plan="${plan.id}" data-comment-type="coach" placeholder="Trenera komentārs...">${plan.coach_comment || ""}</textarea>`}
@@ -2213,8 +2223,9 @@ function renderPlanCard(plan) {
 
   return `
     <article class="session-card${notCompleted ? " not-completed" : ""}" data-plan-id="${plan.id}">
+      ${todBadge}
       <h3>${displayTitle(plan.title)}</h3>
-      ${todBadge}${movedBadge}
+      ${movedBadge}
       <span class="plan-type-badge">${plan.custom_icon || badgeForTitle(plan.title)}</span>
       ${notCompleted ? '<span class="not-completed-icon-abs">!</span>' : ""}
       ${hasPamatdala ? `<div class="task-card">${formatDetailsForCard(plan.details).replace(/\n/g, "<br>")}${plan.coach_comment ? `<div class="log-notes">${escapeHtml(plan.coach_comment)}</div>` : ""}</div>` : plan.coach_comment ? `<div class="log-notes">${escapeHtml(plan.coach_comment)}</div>` : ""}
@@ -2557,20 +2568,36 @@ function renderWeekReviewed() {
   const wrap = document.getElementById("weekReviewedWrap");
   const divider = document.getElementById("weekReviewedDivider");
   if (!wrap) return;
-  const show = activeRole === "coach" && viewMode === "week" && !!getSelectedAthleteId();
+  // Shown to the athlete too, but read-only - they see whether the coach has
+  // reviewed the week, same as they already see the (disabled) block-type
+  // radios next to it.
+  const show = viewMode === "week" && !!getSelectedAthleteId();
   wrap.hidden = !show;
   if (divider) divider.hidden = !show;
   const box = document.getElementById("weekReviewedCheckbox");
-  if (box) box.checked = weeklyReviews.some(r => r.week_start === formatDateISO(currentWeekStart));
+  if (box) {
+    box.checked = weeklyReviews.some(r => r.week_start === formatDateISO(currentWeekStart));
+    box.disabled = activeRole !== "coach";
+  }
 }
 
 document.getElementById("weekReviewedCheckbox")?.addEventListener("change", async (e) => {
+  if (!isCoach()) return;
   const athleteId = getSelectedAthleteId();
   if (!athleteId) return;
   const weekStartStr = formatDateISO(currentWeekStart);
+  const reviewKey = `week-reviewed:${athleteId}:${weekStartStr}`;
   if (e.target.checked) {
     await markWeekReviewed(athleteId, weekStartStr);
+    const range = `${formatDateLV(weekStartStr)}–${formatDateLV(formatDateISO(getWeekEnd(currentWeekStart)))}`;
+    queueNotificationEmail(reviewKey, {
+      target: "athlete",
+      athleteId,
+      subject: `Nedēļa apskatīta (${range})`,
+      message: `Treneris ir apskatījis Tavu nedēļu ${range}\n\nAtver lietotni: ${NOTIFY_APP_URL}`,
+    });
   } else {
+    cancelNotificationEmail(reviewKey);
     await unmarkWeekReviewed(athleteId, weekStartStr);
   }
   await loadNonTemplateData();
@@ -3790,7 +3817,7 @@ calendarGrid.addEventListener("click", async (event) => {
     try {
       await deletePlan(deletePlanBtn.dataset.deletePlan);
       if (isCoach() && deletedPlan?.athlete_id) {
-        sendNotificationEmail({
+        queueNotificationEmail("plan-delete:" + deletedPlan.id, {
           target: "athlete",
           athleteId: deletedPlan.athlete_id,
           subject: `Treniņš dzēsts: ${deletedPlan.title} (${formatDateLV(deletedPlan.date)})`,
@@ -3910,7 +3937,7 @@ document.addEventListener("pointermove", (e) => {
 // positional, semicolon-separated string documented at length elsewhere in
 // CLAUDE.md - parsing it wrong has caused real bugs before) - the email
 // just says the training was changed and points the athlete at the app.
-const PLAN_NOTIFY_DEBOUNCE_MS = 8000;
+const PLAN_NOTIFY_DEBOUNCE_MS = 7000;
 const NOTIFY_APP_URL = "https://tksportisti.netlify.app";
 const pendingPlanNotifications = new Map(); // planId -> { athleteId, title, changes: string[], labels: string[], timer }
 
@@ -4097,11 +4124,13 @@ calendarGrid.addEventListener("change", async (event) => {
     // "Kas noticis?" comment is not emailed (no comment goes by email).
     if (!completed && !isCoach() && plan) {
       const who = currentProfile?.full_name || "Sportists";
-      sendNotificationEmail({
+      queueNotificationEmail("plan-notcompleted:" + planId, {
         target: "coach",
         subject: `Neizpildīts treniņš: ${who} — ${plan.title} (${formatDateLV(plan.date)})`,
         message: `${who} atzīmēja treniņu "${plan.title}" (${formatDateLV(plan.date)}) kā neizpildītu.\n\nAtver lietotni: ${NOTIFY_APP_URL}`,
       });
+    } else if (completed) {
+      cancelNotificationEmail("plan-notcompleted:" + planId);
     }
     await refreshAthleteNotCompletedSet();
     render();

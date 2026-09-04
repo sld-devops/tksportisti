@@ -148,7 +148,7 @@ async function saveHealthEntry() {
     if (!isCoach()) {
       const who = currentProfile?.full_name || "Sportists";
       const dateRange = endDate ? `${formatDateLV(startDate)}–${formatDateLV(endDate)}` : formatDateLV(startDate);
-      sendNotificationEmail({
+      queueNotificationEmail("health:" + athleteId, {
         target: "coach",
         subject: `${isNew ? "Jauns" : "Mainīts"} veselības ieraksts: ${who} (${dateRange})`,
         message: `${who} ${isNew ? "pievienoja" : "izmainīja"} veselības žurnāla ierakstu (${dateRange}).\n${description}\n\nAtver lietotni: https://tksportisti.netlify.app`,

@@ -227,7 +227,7 @@ async function saveRestrictionForm() {
     if (!isCoach()) {
       const who = currentProfile?.full_name || "Sportists";
       const rangeText = ranges.map(r => r.end ? `${formatDateLV(r.start)}–${formatDateLV(r.end)}` : formatDateLV(r.start)).join(", ");
-      sendNotificationEmail({
+      queueNotificationEmail("restriction:" + athleteId, {
         target: "coach",
         subject: `Jauns ierobežojums: ${who} (${rangeText})`,
         message: `${who} pievienoja/mainīja ierobežojumu (${rangeText}).\nIemesls: ${reason}\n\nAtver lietotni: https://tksportisti.netlify.app`,

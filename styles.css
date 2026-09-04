@@ -4,6 +4,10 @@
   --muted: #667085;
   --line: #d9dee7;
   --panel: #eef7d9;
+  /* Fixed page background photo (rotation removed 2026-09-03 at the owner's
+     request - was a per-day pick set by an inline script in index.html). */
+  --page-bg-image: url("images/bg-rotate-5.jpg");
+  --page-bg-position: right center;
   --page: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.3) 100%),
     var(--page-bg-image);
   --surface: #eef7d9;
@@ -44,6 +48,12 @@
   --danger-dark: var(--accent-dark);
   --danger-bg: #fdecec;
   --danger-border: #f5c2c2;
+
+  /* Week-calendar card fills: a faint pink for the coach's planned task,
+     a faint lime for the athlete's execution. ~40% lighter than
+     --danger-bg / --lime-bg so adjacent cards don't read as one colour. */
+  --card-plan-bg: #fef4f4;
+  --card-done-bg: #f8fdec;
 
   --info: #435068;
   --info-dark: #313c50;
@@ -2731,12 +2741,13 @@ label {
 }
 
 .tod-badge {
-  display: inline-block;
+  display: block;
+  width: fit-content;
   font-size: 0.7rem;
   font-weight: 700;
   padding: 1px 6px;
   border-radius: 4px;
-  margin-top: 4px;
+  margin: 0 0 6px;
 }
 
 .tod-badge.tod-morning {
@@ -2786,14 +2797,14 @@ label {
 }
 
 .log-card {
-  background: #fff;
-  border: 3px solid #b8d4b8;
+  background: var(--card-done-bg);
+  border: 1px solid var(--ink);
   margin-top: 8px;
 }
 
 .task-card {
-  background: #fff;
-  border: 3px solid #ffb3b3;
+  background: var(--card-plan-bg);
+  border: 1px solid var(--ink);
   border-radius: 6px;
   color: var(--ink);
   font-size: 0.88rem;
@@ -4184,6 +4195,10 @@ label {
   display: none;
 }
 
+#notifyEmailDesc p { margin: 0; }
+#notifyEmailDesc ul { margin: 6px 0; padding-left: 20px; }
+#notifyEmailDesc li { margin: 2px 0; }
+
 .dialog-header,
 .dialog-actions {
   align-items: center;
@@ -4855,6 +4870,7 @@ textarea:disabled {
   border: 1px solid;
   margin-top: 4px;
   margin-right: 4px;
+  margin-bottom: 8px;
 }
 
 /* ---- Interval history ---- */
@@ -6493,13 +6509,13 @@ body.is-dragging .session-card.is-draggable {
   color: #fff;
 }
 
-.session-card.self-log-card {
-  border: 3px solid #b8d4b8;
-}
+/* A self-logged training is a plain white card, like any other. What marks it
+   as athlete-entered is the framed lime box below the title (same fill as a
+   plan's execution box) holding the "Sportista ieraksts" badge and the text. */
 
 /* Only one badge sits in this card's corner (no "moved from" badge, and the
-   time-of-day badge sits in the flow below the title, not in the corner), so
-   the title does not need the 50px gutter a plan card reserves. */
+   time-of-day badge sits above the title, not in the corner), so the title
+   does not need the 50px gutter a plan card reserves. */
 .session-card.self-log-card h3 {
   padding-right: 24px;
 }
@@ -6513,10 +6529,11 @@ body.is-dragging .session-card.is-draggable {
   font-size: 0.7rem;
   font-weight: 700;
   padding: 2px 8px;
+  margin-bottom: 6px;
 }
 
 .task-card.self-log-text-view {
-  border-color: #b8d4b8;
+  background: var(--card-done-bg);
 }
 
 .month-self-log-note {

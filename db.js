@@ -126,6 +126,36 @@ async function sendNotificationEmail({ target, athleteId, subject, message }) {
   }
 }
 
+// Every notification email goes out NOTIFY_DELAY_MS after the action, not
+// instantly, so a coach (or athlete) who immediately reconsiders and undoes
+// the action never actually sends one. `key` names the thing the message is
+// about; a fresh trigger on the same key replaces the pending payload and
+// restarts the clock, and cancelNotificationEmail(key) drops it (called from
+// the natural "undo" paths - untick, week no longer full, ...).
+// queuePlanNotification() in app.js has its own copy of this pattern for
+// plan move/edit (it also bundles several changes into one email).
+const NOTIFY_DELAY_MS = 7000;
+const pendingNotificationEmails = new Map(); // key -> { payload, timer }
+
+function queueNotificationEmail(key, payload) {
+  const existing = pendingNotificationEmails.get(key);
+  if (existing) clearTimeout(existing.timer);
+  const timer = setTimeout(() => {
+    pendingNotificationEmails.delete(key);
+    sendNotificationEmail(payload);
+  }, NOTIFY_DELAY_MS);
+  pendingNotificationEmails.set(key, { payload, timer });
+}
+
+// Returns true if a still-pending email was cancelled.
+function cancelNotificationEmail(key) {
+  const existing = pendingNotificationEmails.get(key);
+  if (!existing) return false;
+  clearTimeout(existing.timer);
+  pendingNotificationEmails.delete(key);
+  return true;
+}
+
 async function getAllProfiles() {
   const { data } = await supabase
     .from("profiles")
