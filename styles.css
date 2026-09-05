@@ -2150,6 +2150,17 @@ label {
   width: 22px;
 }
 
+/* Centred under IERAKSTĪT IZPILDI, not stuck to the card's left edge - .checkbox-row
+   is inline-flex elsewhere (training builder, restrictions/self-log forms) and must
+   stay that way there, so this only applies to this one card row. display:flex
+   (block-level) is what lets margin:auto centre it inside the card. margin-top adds
+   a gap above it - .session-card .log-plan-button has margin-bottom:0, so without
+   this the button and the checkbox sat flush together and a hurried tap could miss. */
+.not-completed-row {
+  display: flex;
+  margin: 8px auto 0;
+}
+
 .field-grid {
   display: grid;
   gap: 12px;
