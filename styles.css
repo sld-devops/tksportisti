@@ -3291,10 +3291,13 @@ label {
 }
 
 .session-card h3 {
-  font-size: 0.98rem;
+  font-size: 0.88rem;
   margin-bottom: 8px;
   word-break: break-word;
-  padding-right: 50px;
+  /* .plan-type-badge is a single emoji, position:absolute, right:8px - its
+     own left edge lands roughly 14px inside the h3's box, so 24px clears it
+     with a small safety margin instead of the 50px this used to reserve. */
+  padding-right: 24px;
 }
 
 .session-card p {
@@ -4854,7 +4857,8 @@ textarea:disabled {
   align-items: center;
   background: var(--fbg);
   border: 2px solid var(--fborder);
-  border-radius: 8px;
+  /* Matches .task-card's corner rounding, not a rounder one of its own. */
+  border-radius: 6px;
   color: var(--fcolor);
   cursor: pointer;
   display: flex;
