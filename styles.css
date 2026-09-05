@@ -4052,6 +4052,34 @@ label {
   justify-content: space-between;
 }
 
+/* This week's average pašsajūta, floating over the card's top-right corner -
+   the mirror image of .week-reviewed-row, which floats "Nedēļa apskatīta"
+   over the top-left corner the same way (same top offset, left swapped for
+   right). Positioned relative to .week-comments-wrap, not .ws-comments,
+   exactly like that checkbox - .ws-comments itself has no position set. */
+.week-feeling-badge-wrap {
+  position: absolute;
+  top: 10px;
+  right: 18px;
+  text-align: right;
+  z-index: 1;
+}
+
+.week-feeling-caption {
+  color: var(--muted);
+  font-size: 0.68rem;
+  margin-bottom: 2px;
+}
+
+.week-feeling-badge {
+  border: 2px solid;
+  border-radius: 20px;
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 3px 10px;
+}
+
 .ws-comments textarea:disabled {
   background: #f0f0f0;
   color: var(--muted);
@@ -5754,16 +5782,24 @@ textarea:disabled {
   }
 
   /* One under the other on a phone - side by side there is no room to read
-     either comment. Top padding still reserves room for the checkbox corner
-     (see .week-reviewed-row) - narrower columns make the heading text more
-     likely to wrap, not less. */
+     either comment. Top padding reserves room for BOTH corners now stacked
+     above the same single "Trenera komentārs" heading - the checkbox
+     (top-left) and the feeling-average badge (top-right, two lines, so it's
+     the taller of the two and the one that decides this number). Measured:
+     the badge's own bottom edge sits ~51px below the card top regardless of
+     viewport width (its font sizes don't change here), so 44px already let
+     it cross into the heading text even before stacking to one column. */
   .ws-comments {
     grid-template-columns: 1fr;
-    padding: 44px 14px 12px;
+    padding: 60px 14px 12px;
   }
 
   .week-reviewed-row {
     left: 14px;
+  }
+
+  .week-feeling-badge-wrap {
+    right: 14px;
   }
 
   .calendar-grid {

@@ -2606,6 +2606,7 @@ function renderWeekComments() {
         <span class="ws-comment-head">Sportista komentārs par aizvadīto/gaidāmo nedēļu</span>
         <textarea id="wsAthleteComment" rows="3" ${isAthleteView ? "" : "disabled"}>${athleteComment}</textarea>
       </label>
+      ${weekFeelingAverageBadgeHtml()}
     </div>
   `;
 
@@ -4457,6 +4458,46 @@ const FEELING_OPTIONS = [
   { label: "Ļoti labi — jutos fiziski un psiholoģiski pārliecināts, treniņš aizritēja viegli.", bg: "#388E3C", border: "#388E3C", color: "#ffffff" },
   { label: "Lieliski — sen nebiju juties tik labi, pilns enerģijas un motivācijas.", bg: "#1B5E20", border: "#1B5E20", color: "#ffffff" },
 ];
+
+// A saved feeling only maps back to a 1-8 level if it byte-matches one of the
+// CURRENT eight sentences - anything logged under an older wording (the
+// 5-card scale, or earlier phrasings feelingBadgeHtml still colours) can't be
+// placed on this scale with any confidence, so it is excluded rather than
+// guessed at.
+function feelingToLevel(feeling) {
+  const idx = FEELING_OPTIONS.findIndex((o) => o.label === feeling);
+  return idx === -1 ? null : idx + 1;
+}
+
+// The owner's own threshold, not standard "round half up": a fractional part
+// below .6 stays at the floor, .6 and above steps up to the next level.
+function roundFeelingLevel(avg) {
+  const floor = Math.floor(avg);
+  const level = avg - floor >= 0.6 ? floor + 1 : floor;
+  return Math.min(FEELING_OPTIONS.length, Math.max(1, level));
+}
+
+// This week's average pašsajūta, floated over the top-right corner of the
+// comments card (mirroring how .week-reviewed-row already floats "Nedēļa
+// apskatīta" over the top-left corner, see styles.css) rather than sitting
+// inside the athlete's <label> as a normal row - that grid row would push
+// "Sportista komentārs" (and its textarea) down out of line with the
+// coach's side, since .ws-comments label is display:grid and the coach's
+// label has no matching extra row. The number shown is the precise average
+// (one decimal); only the word next to it comes from the rounded level, so a
+// week sitting right on the .6 threshold reads as e.g. "6.6 - Ļoti labi"
+// rather than silently becoming "7.0".
+function weekFeelingAverageBadgeHtml() {
+  const levels = logEntries.map((e) => feelingToLevel(e.feeling)).filter((n) => n !== null);
+  if (!levels.length) return "";
+  const avg = levels.reduce((a, b) => a + b, 0) / levels.length;
+  const opt = FEELING_OPTIONS[roundFeelingLevel(avg) - 1];
+  const word = opt.label.split("—")[0].trim();
+  return `<div class="week-feeling-badge-wrap">
+    <div class="week-feeling-caption">Nedēļas vidējais pašnovērtējums</div>
+    <div class="week-feeling-badge" style="background:${opt.bg};border-color:${opt.border};color:${opt.color}">${avg.toFixed(1)} - ${escapeHtml(word)}</div>
+  </div>`;
+}
 
 // Eight full sentences stacked as cards (the pre-2026-09-05 layout) made the
 // dialog very long to scroll - a compact 1-8 number row instead, with only
