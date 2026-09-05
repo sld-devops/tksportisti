@@ -606,33 +606,6 @@ function isVarIntervalLine(line) {
   return m && after.indexOf(" + ", m.index) !== -1;
 }
 
-// An athlete always warms up before intervals/tempo and cools down after, even
-// when the coach only wrote a "Pamatdaļa:" line - so the log dialog always draws
-// those two rows for these training types (see syntheticLogSectionRow below).
-function isIntervalOrTempoPlan(plan) {
-  if (!plan) return false;
-  if (isIntervalType(plan.title) || plan.title === "Tempa skrējiens") return true;
-  const details = plan.details || "";
-  if (/Pamatdaļa:\s*(?:\d+-)?\d+x/.test(details)) return true;
-  return details.split("\n").some(isVarIntervalLine);
-}
-
-// Same markup as the generic "Iesildīšanās:/Atsildīšanās:" row the details-line
-// loop already builds - so save (saveLogBtn), refill on reopen and the executed
-// card (renderLogEntryLines) all handle it with no extra code. data-log-auto="1"
-// marks it as one the athlete never asked for, so an untouched empty one is
-// dropped on save rather than showing as a blank line on the card.
-function syntheticLogSectionRow(sectionName, wide) {
-  return `<div class="log-section-row" data-log-section="${sectionName}" data-log-auto="1">
-        <div class="log-target">${sectionName}</div>
-        <div class="field-grid${wide ? " field-grid-3" : ""}">
-          <label>Ilgums <input class="log-actual-duration" /></label>
-          <label>Vidējais pulss <input class="log-actual-pulse" /></label>
-          <label>Vidējais temps <input class="log-actual-pace" /></label>
-        </div>
-      </div>`;
-}
-
 function parseVarIntervalPaceBounds(line) {
   const bounds = {};
   const segments = closeLengthUnitGap(line).split(" + ");
@@ -2061,16 +2034,37 @@ function averageIntervalTime(paceStrings) {
 function buildIntervalDisplayHtml(done, paceBoundsMap, section, plannedIntervalCount, planDetails) {
   const colored = [];
   const paces = [];
+  const isRange = [];
   done.forEach((v, i) => {
     const spaceIdx = v.indexOf(' ');
     const paceStr = spaceIdx > -1 && spaceIdx < v.length - 1 ? v.substring(spaceIdx + 1).trim() : v;
     const distStr = spaceIdx > -1 && spaceIdx < v.length - 1 ? v.substring(0, spaceIdx) : '';
-    const p = parseAthleteInput(paceStr);
     const segBounds = paceBoundsMap?.[`seg${i + 1}`] || paceBoundsMap?.[section];
+
+    // A block logged as "No"/"Līdz" is saved as one "<no>-<lidz>" value - no
+    // space (that's the older extra-row shape), but a dash, which a single
+    // logged time never contains. Each half is coloured on its own, same as
+    // an individual rep would be.
+    const rangeMatch = !distStr && paceStr.match(/^([^\s-]+)-([^\s-]+)$/);
+    if (rangeMatch) {
+      const fromP = parseAthleteInput(rangeMatch[1]);
+      const toP = parseAthleteInput(rangeMatch[2]);
+      const fromC = fromP ? getPaceColor(fromP, segBounds) : "";
+      const toC = toP ? getPaceColor(toP, segBounds) : "";
+      const fromHtml = fromC ? `<span class="pace-text-${fromC}">${rangeMatch[1]}</span>` : rangeMatch[1];
+      const toHtml = toC ? `<span class="pace-text-${toC}">${rangeMatch[2]}</span>` : rangeMatch[2];
+      colored.push(`${fromHtml} – ${toHtml}`);
+      paces.push("");
+      isRange.push(true);
+      return;
+    }
+
+    const p = parseAthleteInput(paceStr);
     const c = p ? getPaceColor(p, segBounds) : "";
     const coloredPace = c ? `<span class="pace-text-${c}">${paceStr}</span>` : paceStr;
     colored.push(distStr ? distStr + ' ' + coloredPace : coloredPace);
     paces.push(paceStr);
+    isRange.push(false);
   });
 
   const hasPlan = !!(paceBoundsMap && Object.keys(paceBoundsMap).length);
@@ -2079,6 +2073,8 @@ function buildIntervalDisplayHtml(done, paceBoundsMap, section, plannedIntervalC
     : done.length;
 
   const blockPart = (from, to) => {
+    // A range already IS the block's summary - nothing to list or average.
+    if (isRange[from]) return colored[from];
     const avg = averageIntervalTime(paces.slice(from, to));
     return colored.slice(from, to).join(", ")
       + (avg ? ` <span class="interval-avg">(vid. ${avg})</span>` : "");
@@ -2089,7 +2085,9 @@ function buildIntervalDisplayHtml(done, paceBoundsMap, section, plannedIntervalC
   let idx = 0;
   sizes.forEach((size) => {
     if (idx >= plannedCount) return;
-    const take = Math.min(size, plannedCount - idx);
+    // A range block collapses the plan's whole rep count into the one value
+    // that was actually saved for it.
+    const take = isRange[idx] ? 1 : Math.min(size, plannedCount - idx);
     parts.push(blockPart(idx, idx + take));
     idx += take;
   });
@@ -2103,6 +2101,28 @@ function buildIntervalDisplayHtml(done, paceBoundsMap, section, plannedIntervalC
   return display;
 }
 
+// A saved "Vidējais/diapazona temps" value is either one reading ("5:05") or
+// a written "no-lidz" range ("5:00-5:10", the same dash convention as target
+// paces and interval blocks) - parseAthleteInput can't read the dash, so a
+// range would otherwise render as plain uncoloured text. Each half is
+// coloured on its own, matching how the two input boxes are coloured live.
+function colorPaceValue(str, bounds) {
+  if (!str) return "";
+  const rangeMatch = str.match(/^([^\s-]+)-([^\s-]+)$/);
+  if (rangeMatch) {
+    const fromP = parseAthleteInput(rangeMatch[1]);
+    const toP = parseAthleteInput(rangeMatch[2]);
+    const fromC = fromP && bounds ? getPaceColor(fromP, bounds) : "";
+    const toC = toP && bounds ? getPaceColor(toP, bounds) : "";
+    const fromHtml = fromC ? `<span class="pace-text-${fromC}">${rangeMatch[1]}</span>` : rangeMatch[1];
+    const toHtml = toC ? `<span class="pace-text-${toC}">${rangeMatch[2]}</span>` : rangeMatch[2];
+    return `${fromHtml} – ${toHtml}`;
+  }
+  const p = parseAthleteInput(str);
+  const c = p && bounds ? getPaceColor(p, bounds) : "";
+  return c ? `<span class="pace-text-${c}">${str}</span>` : str;
+}
+
 function extractLogMainPartHtml(logData, paceBoundsMap, plannedIntervalCount, planDetails) {
   const entries = logData || [];
   const main = entries.find(e => e.section === "Pamatdaļa") || entries[0];
@@ -2113,12 +2133,7 @@ function extractLogMainPartHtml(logData, paceBoundsMap, plannedIntervalCount, pl
   }
   const rawPulse = main.pulse ? main.pulse + (main.pulse.includes("vid.") ? "" : "vid.") : "";
   const bounds = paceBoundsMap?.[main.section];
-  let paceHtml = "";
-  if (main.pace) {
-    const p = parseAthleteInput(main.pace);
-    const c = p && bounds ? getPaceColor(p, bounds) : "";
-    paceHtml = c ? `<span class="pace-text-${c}">${main.pace}</span>` : main.pace;
-  }
+  const paceHtml = main.pace ? colorPaceValue(main.pace, bounds) : "";
   return [main.duration, rawPulse, paceHtml].filter(Boolean).join("; ");
 }
 
@@ -2193,12 +2208,7 @@ function renderLogEntryLines(data, paceBoundsMap, plannedIntervalCount, planDeta
       const dur = entry.duration || "";
       const rawPulse = entry.pulse ? entry.pulse + (entry.pulse.includes("vid.") ? "" : "vid.") : "";
       const bounds = paceBoundsMap?.[entry.section];
-      let paceHtml = "";
-      if (entry.pace) {
-        const p = parseAthleteInput(entry.pace);
-        const c = p && bounds ? getPaceColor(p, bounds) : "";
-        paceHtml = c ? `<span class="pace-text-${c}">${entry.pace}</span>` : entry.pace;
-      }
+      const paceHtml = entry.pace ? colorPaceValue(entry.pace, bounds) : "";
       let pulseHtml = "";
       if (rawPulse) {
         pulseHtml = "; " + entry.pulse + "vid.";
@@ -2320,7 +2330,17 @@ function renderCalendar() {
       const restrictedClass = fullyRestricted ? " restricted-day" : "";
       const todayClass = dateStr === todayStr ? " today" : "";
       const dayHealth = healthEntries.find(e => dateStr >= e.start_date && dateStr <= (e.end_date || e.start_date));
-      const dayRestrictionReason = restrictions.find(r => dateStr >= r.start_date && dateStr <= (r.end_date || r.start_date))?.reason;
+      const dayRestrictionsList = getDayRestrictions(dateStr);
+      const dayRestrictionReason = dayRestrictionsList[0]?.reason;
+      // The chain below already shows a "🚫 <iemesls>" note on its own when the
+      // day is empty and fully restricted - don't draw a second, identical one.
+      // Everywhere else (a plan/race already on the day, or only part of the day
+      // restricted) that branch is unreachable, so this note is the only place
+      // the restriction shows at all.
+      const restrictionAlreadyShown = !dayPlans.length && !dayRaces.length && fullyRestricted;
+      const restrictionNoteHtml = dayRestrictionsList.length && !restrictionAlreadyShown
+        ? `<div class="day-restriction-text">${dayRestrictionsList.map(r => `<div class="restriction-note-line"><span>🚫</span>${r.time_of_day ? `<span class="tod-badge restriction-tod-badge tod-${r.time_of_day}">${todLabel(r.time_of_day)}</span>` : ""}<span>${escapeHtml(r.reason)}</span></div>`).join("")}</div>`
+        : "";
       // The athlete's own record of an unplanned training (panels/self-log.js).
       // While one is being edited its card is hidden, because the inline form
       // takes its place in the same day column.
@@ -2410,6 +2430,7 @@ function renderCalendar() {
               ? `<button class="add-day-button self-log-add-btn" data-self-log-add="${dateStr}" type="button">📝 Pierakstīt izpildīto</button>`
               : ""}
           ${dayHealth ? `<div class="day-health-text">⚕ ${escapeHtml(dayHealth.description)}</div>` : ""}
+          ${restrictionNoteHtml}
           ${(fullyRestricted || dayHealth) && activeRole === "coach"
             ? `<div class="comment-label">Trenera komentārs</div><textarea class="inline-comment" data-comment-day="${dateStr}" placeholder="Komentārs...">${dayNote?.coach_comment || ""}</textarea>`
             : ""}
@@ -2591,20 +2612,20 @@ function renderWeekComments() {
   renderWeekReviewed();
 }
 
-// "Nedēļa apskatīta" lives in the week-type row next to Slodze/Sacensības/Atpūta
-// (moved there 2026-08-07): it says something about the week as a whole, the same
-// as those three do. Static markup, so its handler is wired once at load - only
-// its visible/checked state is rendered.
+// "Nedēļa apskatīta" sits just above the weekly comments (moved there
+// 2026-09-04 - the week-type row next to Slodze/Sacensības/Atpūta got too
+// crowded once this checkbox was added, pushing the Horizontāls/Vertikāls and
+// Nedēļas/Mēneša plāns buttons into their own line with wasted space). Static
+// markup, so its handler is wired once at load - only its visible/checked
+// state is rendered.
 function renderWeekReviewed() {
   const wrap = document.getElementById("weekReviewedWrap");
-  const divider = document.getElementById("weekReviewedDivider");
   if (!wrap) return;
   // Shown to the athlete too, but read-only - they see whether the coach has
   // reviewed the week, same as they already see the (disabled) block-type
-  // radios next to it.
+  // radios above.
   const show = viewMode === "week" && !!getSelectedAthleteId();
   wrap.hidden = !show;
-  if (divider) divider.hidden = !show;
   const box = document.getElementById("weekReviewedCheckbox");
   if (box) {
     box.checked = weeklyReviews.some(r => r.week_start === formatDateISO(currentWeekStart));
@@ -2747,7 +2768,12 @@ function renderMonthViewInline() {
       const isRestDay = !!dayNote?.is_rest_day;
       const fullyRestricted = isDayFullyRestricted(dateStr);
       const dayHealth = healthEntries.find(e => dateStr >= e.start_date && dateStr <= (e.end_date || e.start_date));
-      const dayRestrictionReason = restrictions.find(r => dateStr >= r.start_date && dateStr <= (r.end_date || r.start_date))?.reason;
+      const dayRestrictionsList = getDayRestrictions(dateStr);
+      // Month cells are too small for the coloured tod-badge week view uses -
+      // each restriction gets a plain "Vakars: iemesls" line instead, joined so
+      // a multi-restriction day still reads as one truncatable/expandable note
+      // (see .month-restriction-text's ellipsis + click-to-expand below).
+      const restrictionText = dayRestrictionsList.map(r => `${r.time_of_day ? `${todLabel(r.time_of_day)}: ` : ""}${r.reason}`).join(" · ");
       const cellWeekStart = getWeekStartFromStr(dateStr);
       const cellBlockType = weekBlockTypes.find(b => b.week_start === cellWeekStart)?.block_type || "";
 
@@ -2837,7 +2863,7 @@ function renderMonthViewInline() {
       cells.push(`
         <div class="month-day-cell ${isOtherMonth ? "other-month" : ""}${isToday ? " today" : ""}${fullyRestricted ? " restricted-day" : ""}${cellBlockType ? " week-block-" + cellBlockType : ""}" data-date="${dateStr}">
           <div class="month-day-num">${d.getDate()}.</div>
-          ${fullyRestricted ? `<div class="month-restriction-text" role="button" tabindex="0">🚫 ${escapeHtml(dayRestrictionReason)}</div>` : ""}
+          ${dayRestrictionsList.length ? `<div class="month-restriction-text" role="button" tabindex="0">🚫 ${escapeHtml(restrictionText)}</div>` : ""}
           ${dayHealth ? `<div class="month-health-text" role="button" tabindex="0">⚕ ${escapeHtml(dayHealth.description)}</div>` : ""}
           ${isRestDay && !dayPlans.length && !dayRaces.length ? `<div class="day-rest-text">🌴 Brīvdiena</div>` : ""}
           ${racesHtml}
@@ -4452,6 +4478,16 @@ saveLogBtn.addEventListener("click", async () => {
       const pace = el.querySelector(".log-actual-pace")?.value || "";
       const intervals = [];
       el.querySelectorAll("[data-log-interval]").forEach((inp) => {
+        // A "No"/"Līdz" pair is one logged block, not two - the "to" box is
+        // folded into its "from" partner's entry and skipped on its own.
+        if (inp.classList.contains("log-range-to")) return;
+        if (inp.classList.contains("log-range-from")) {
+          const to = inp.closest(".field-grid")?.querySelector(".log-range-to");
+          const from = inp.value.trim();
+          const toVal = to ? to.value.trim() : "";
+          intervals.push(from && toVal ? from + "-" + toVal : (from || toVal || ""));
+          return;
+        }
         const extraRow = inp.closest('.extra-interval-row');
         if (extraRow) {
           const distInput = extraRow.querySelector('.log-extra-dist');
@@ -4460,9 +4496,6 @@ saveLogBtn.addEventListener("click", async () => {
           intervals.push(inp.value);
         }
       });
-      // An auto-added warmup/cooldown row the athlete left untouched would
-      // otherwise save as a blank "Iesildīšanās:" line on the executed card.
-      if (el.dataset.logAuto && !duration && !pulse && !pace && !intervals.some(Boolean)) return;
       entries.push({ section, duration, pulse, intervals, pace });
     });
     if (logDialogPlanId) {
@@ -4555,7 +4588,7 @@ function logDialogHostDefaults(hostEl, sectionEl) {
   const pace = hostEl.querySelector("[data-log-interval]")?.dataset.targetPace
     || extractPace(label)
     || "";
-  return { dist: repMatch ? repMatch[2] : bareMatch ? bareMatch[1] : "400m", pace };
+  return { dist: repMatch ? repMatch[2] : bareMatch ? bareMatch[1] : "400m", pace, count: repMatch ? parseInt(repMatch[1]) : 1 };
 }
 
 // data-log-interval is only ever read in document order, but keeping the
@@ -4617,68 +4650,85 @@ function addExtraIntervalRow(hostEl, defaultDist, defaultPace) {
   return row;
 }
 
-function addExtraIntervalButton(hostEl, sectionEl) {
-  const { dist, pace } = logDialogHostDefaults(hostEl, sectionEl);
-  const btn = document.createElement("button");
-  btn.className = "extra-interval-btn";
-  btn.textContent = "+ Pievienot papildus intervālu";
-  btn.type = "button";
-  btn.addEventListener("click", () => addExtraIntervalRow(hostEl, dist, pace));
-  const fg = hostEl.querySelector(".field-grid");
-  if (fg) fg.after(btn);
-  else hostEl.appendChild(btn);
-}
-
-function logDialogAddExtraButtons() {
-  logFormContent.querySelectorAll(".log-section-row").forEach(row => {
-    if (!row.querySelector("[data-log-interval]")) return;
-    // One button per block, so an extra 400m and an extra 200m each land under
-    // their own block. There used to be a single button, and because it went
-    // after the section's *first* .field-grid it only ever appeared under the
-    // first block and added there.
-    const groups = [...row.querySelectorAll(".var-seg-log-group")];
-    if (groups.length) groups.forEach(group => addExtraIntervalButton(group, row));
-    else addExtraIntervalButton(row, row);
-  });
-}
+// The "+ Pievienot papildus intervālu" button (and addExtraIntervalButton /
+// logDialogAddExtraButtons, which built it) was removed 2026-09-04 at the
+// owner's request - an unplanned extra rep is now just a line in the free-text
+// comment instead of its own row. addExtraIntervalRow() itself stays: an old
+// log that already has an extra saved (from before this change) still needs
+// somewhere to land when it's reopened - see logDialogFillIntervals below.
 
 function logDialogFillIntervals(sectionEl, intervals) {
-  // An extra is stored as "<distance> <time>" and a planned one as just the
-  // time, which is how the two are told apart when the log is reopened. The
-  // list is walked block by block so each extra goes back under the block it
-  // was added to; appending them all to the first block shifted every later
-  // value into the wrong box.
+  // Three shapes, told apart by punctuation when a saved log is reopened:
+  // a planned single value is just the time; an old-style extra is
+  // "<distance> <time>" (a space); a block logged as a range is one
+  // "<no>-<lidz>" value (a dash - the same range writing already used for
+  // target paces, and never producible by a single logged time, so this is
+  // unambiguous).
   const isExtra = (v) => typeof v === "string" && v.indexOf(" ") > -1;
+  const isRangeValue = (v) => typeof v === "string" && /^[^\s-]+-[^\s-]+$/.test(v);
   const hosts = logDialogHosts(sectionEl);
   let i = 0;
-  hosts.forEach((host, idx) => {
-    i += host.querySelectorAll("[data-log-interval]").length;
+
+  // Any values left over past what a host's own boxes account for are old
+  // extras (or, for the last host, anything at all left over) - materialize a
+  // row per value, same as always.
+  const fillExtras = (host, last) => {
     const { dist, pace } = logDialogHostDefaults(host, sectionEl);
-    const last = idx === hosts.length - 1;
-    // Everything left over at the end belongs to the last block, extra-shaped
-    // or not - that is what an older log with a longer list means.
     while (i < intervals.length && (isExtra(intervals[i]) || last)) {
-      addExtraIntervalRow(host, dist, pace);
+      const row = addExtraIntervalRow(host, dist, pace);
+      const val = intervals[i];
+      const extraInp = row.querySelector("[data-log-interval]");
+      const spaceIdx = val.indexOf(" ");
+      if (spaceIdx > -1 && spaceIdx < val.length - 1) {
+        row.querySelector(".log-extra-dist").value = val.substring(0, spaceIdx);
+        extraInp.value = val.substring(spaceIdx + 1).trim();
+      } else {
+        extraInp.value = val;
+      }
       i++;
     }
-  });
+  };
 
-  // The DOM now matches the saved order again, so fill straight through.
-  sectionEl.querySelectorAll("[data-log-interval]").forEach((inp, idx) => {
-    const val = intervals[idx];
-    if (!val) return;
-    const extraRow = inp.closest(".extra-interval-row");
-    if (!extraRow) {
-      inp.value = val;
+  hosts.forEach((host, hostIdx) => {
+    const last = hostIdx === hosts.length - 1;
+    const rangeFrom = host.querySelector(".log-range-from");
+    const rangeTo = host.querySelector(".log-range-to");
+
+    if (rangeFrom && rangeTo) {
+      const val = intervals[i];
+      if (isRangeValue(val)) {
+        // Already logged with this same "No"/"Līdz" UI - split straight back.
+        const dashIdx = val.indexOf("-");
+        rangeFrom.value = val.substring(0, dashIdx);
+        rangeTo.value = val.substring(dashIdx + 1);
+        i += 1;
+      } else {
+        // An older entry, logged one split per repetition - take this block's
+        // planned share of the list and show the fastest/slowest of whatever
+        // was actually typed, so nothing from the old log is lost.
+        const { count } = logDialogHostDefaults(host, sectionEl);
+        const take = Math.min(count, Math.max(0, intervals.length - i));
+        const legacyVals = intervals.slice(i, i + take).filter(Boolean);
+        const readable = legacyVals
+          .map((v) => { const p = parseAthleteInput(v); return p ? { v, t: p.m * 60 + p.s } : null; })
+          .filter(Boolean);
+        if (readable.length) {
+          rangeFrom.value = readable.reduce((a, b) => (b.t < a.t ? b : a)).v;
+          rangeTo.value = readable.reduce((a, b) => (b.t > a.t ? b : a)).v;
+        }
+        i += take;
+      }
+      fillExtras(host, last);
       return;
     }
-    const spaceIdx = val.indexOf(" ");
-    if (spaceIdx > -1 && spaceIdx < val.length - 1) {
-      extraRow.querySelector(".log-extra-dist").value = val.substring(0, spaceIdx);
-      inp.value = val.substring(spaceIdx + 1).trim();
-    } else {
-      inp.value = val;
+
+    // A single-repetition block, or a plain field - fill its one box directly.
+    const singleInp = host.querySelector("[data-log-interval]");
+    if (singleInp && i < intervals.length) {
+      singleInp.value = intervals[i];
+      i++;
     }
+    fillExtras(host, last);
   });
 }
 function openPlanLogDialog(planId) {
@@ -4692,14 +4742,18 @@ function openPlanLogDialog(planId) {
     html += `<label class="field-label">Izpildes datums (ir iespējams mainīt) <input type="date" id="logDatePicker" value="${plan.date}" /></label>`;
   }
   html += `<div class="log-plan-block"><h3>${displayTitle(plan.title)}</h3>`;
-  const blockStart = html.length;
-  let hasWarmupLine = false;
-  let hasCooldownLine = false;
   const lines = (plan.details || "").split("\n");
   lines.forEach((line) => {
     if (!line.trim()) return;
-    if (line.startsWith("Iesildīšanās:")) hasWarmupLine = true;
-    else if (line.startsWith("Atsildīšanās:")) hasCooldownLine = true;
+    // The athlete isn't asked to log actual warmup/cooldown numbers, a Drill
+    // duration, footwear or race-nutrition use, any more (2026-09-04, the
+    // coach's call) - all of that already showed on the training card (the
+    // checkboxes/fields that produce these lines live there, untouched), and
+    // anything unusual goes in the free-text comment below instead. No row
+    // is built for these lines at all.
+    if (line.startsWith("Iesildīšanās:") || line.startsWith("Atsildīšanās:") || line === "Drill"
+      || line === "Sacensību uzturs" || line === "• Izmantot sacensību uzturu"
+      || line.startsWith("Apavi:") || line.startsWith("• Apavi:")) return;
     if (isVarIntervalLine(line)) {
       const result = parseSegmentsFromVarLine(line);
       html += `<div class="log-section-row" data-log-section="Pamatdaļa">
@@ -4713,14 +4767,14 @@ function openPlanLogDialog(planId) {
         result.segments.forEach((seg) => {
           const count = seg.reps;
           if (count > 1) {
+            const ph = isDurationLength(seg.length) ? ' placeholder="temps"' : "";
             html += `<div class="var-seg-log-group">
               <div class="log-target">${count}x${escapeHtml(seg.length)}${seg.pace ? "(" + escapeHtml(seg.pace) + ")" : ""}</div>
-              <div class="field-grid">`;
-            for (let r = 0; r < count; r++) {
-              html += `<label>${r + 1}. atkārtojums <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}" ${isDurationLength(seg.length) ? 'placeholder="temps"' : ""} /></label>`;
-              globalIdx++;
-            }
-            html += `</div></div>`;
+              <div class="field-grid">
+                <label>No <input class="log-interval-pace var-seg-pace-input log-range-from" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}"${ph} /></label>
+                <label>Līdz <input class="log-interval-pace var-seg-pace-input log-range-to" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}"${ph} /></label>
+              </div></div>`;
+            globalIdx++;
           } else {
             const label = seg.length + (seg.pace ? " @" + seg.pace : "");
             html += `<div class="var-seg-log-row">
@@ -4745,14 +4799,13 @@ function openPlanLogDialog(planId) {
         html += `<div class="log-section-row" data-log-section="Pamatdaļa">
           <div class="log-target">${line}</div>
           <div class="field-grid">`;
-        for (let i = 0; i < count; i++) {
-          html += `<label>${i + 1}. atkārtojums <input class="log-interval-pace" data-log-interval="${i}"${durationPlaceholder} /></label>`;
+        if (count > 1) {
+          html += `<label>No <input class="log-interval-pace log-range-from" data-log-interval="0"${durationPlaceholder} /></label>
+            <label>Līdz <input class="log-interval-pace log-range-to" data-log-interval="0"${durationPlaceholder} /></label>`;
+        } else {
+          html += `<label>1. atkārtojums <input class="log-interval-pace" data-log-interval="0"${durationPlaceholder} /></label>`;
         }
         html += `</div></div>`;
-      } else if (line === "Sacensību uzturs" || line === "• Izmantot sacensību uzturu" || line.startsWith("Apavi:") || line.startsWith("• Apavi:")) {
-        html += `<div class="log-section-row" data-log-section="${line}">
-          <div class="log-target">${line}</div>
-        </div>`;
       } else if (line.includes(":")) {
         const st = (plan.title || "").replace(/\s*Koptreniņš\s*$/, "").trim();
         const isSimple = st === "VFS" || st === "SFS";
@@ -4762,54 +4815,41 @@ function openPlanLogDialog(planId) {
           html += `<div class="log-section-row" data-log-section="${line.split(":")[0]}">
         <div class="log-target">${line}</div>
         <div class="field-grid">
-          <label>Ilgums <input class="log-actual-duration" /></label>
+          <label>Ilgums/garums <input class="log-actual-duration" /></label>
         </div>
       </div>`;
         } else {
         const paceStr = extractPace(line);
-      const paceField = `<label>Vidējais temps <input class="log-actual-pace" /></label>`;
+      // A written pace can be one reading ("4:32") or a "no-lidz" range
+      // ("4:35-4:28", the same dash convention as target paces and interval
+      // blocks) - one free-text box, the athlete's choice which they write.
+      const paceField = `<label>Vidējais/diapazona temps <input class="log-actual-pace" /></label>`;
       const pulseStr = extractPulse(line);
       html += `<div class="log-section-row" data-log-section="${line.split(":")[0]}">
         <div class="log-target">${line}</div>
         <div class="field-grid field-grid-3">
-          <label>Ilgums <input class="log-actual-duration" /></label>
-          <label>Vidējais pulss <input class="log-actual-pulse" /></label>
+          <label>Ilgums/garums <input class="log-actual-duration" /></label>
+          <label>Vidējais/diapazona pulss <input class="log-actual-pulse" /></label>
           ${paceField}
         </div>
       </div>`;
         }
-    } else if (line === "Drill") {
-      html += `<div class="log-section-row" data-log-section="Drill">
-        <div class="log-target">Drill</div>
-        <div class="field-grid">
-          <label>Ilgums <input class="log-actual-duration" /></label>
-        </div>
-      </div>`;
     } else {
       const sectionName = line.startsWith("Velo:") ? "Velo" : "Pamatdaļa";
       html += `<div class="log-section-row" data-log-section="${sectionName}">
         <div class="log-target">${line}</div><div class="field-grid">
-          <label>Ilgums <input class="log-actual-duration" /></label>
-          <label>Vidējais pulss <input class="log-actual-pulse" /></label>
+          <label>Ilgums/garums <input class="log-actual-duration" /></label>
+          <label>Vidējais/diapazona pulss <input class="log-actual-pulse" /></label>
         </div>
       </div>`;
     }
     }
   });
-  if (isIntervalOrTempoPlan(plan)) {
-    if (!hasWarmupLine) {
-      html = html.slice(0, blockStart) + syntheticLogSectionRow("Iesildīšanās", true) + html.slice(blockStart);
-    }
-    if (!hasCooldownLine) {
-      html += syntheticLogSectionRow("Atsildīšanās", true);
-    }
-  }
   html += `</div>`;
 
   html += getRatingHtml(plan.title, plan.custom_icon);
   html += `<div class="comment-label">Papildus komentāri un piezīmes par treniņa norisi</div><textarea class="inline-comment" id="logAthleteComment" rows="5"></textarea>`;
   logFormContent.innerHTML = html;
-  logDialogAddExtraButtons();
 
   if (existingLog?.log_data) {
     existingLog.log_data.forEach((entry) => {
@@ -4857,14 +4897,14 @@ function openLogDialog(dateStr) {
   let html = "";
   dayPlans.forEach((plan) => {
     html += `<div class="log-plan-block"><h3>${displayTitle(plan.title)}</h3>`;
-    const blockStart = html.length;
-    let hasWarmupLine = false;
-    let hasCooldownLine = false;
     const lines = (plan.details || "").split("\n");
     lines.forEach((line) => {
       if (!line.trim()) return;
-      if (line.startsWith("Iesildīšanās:")) hasWarmupLine = true;
-      else if (line.startsWith("Atsildīšanās:")) hasCooldownLine = true;
+      // Same as openPlanLogDialog: no warmup/cooldown/Drill/footwear/race-nutrition
+      // execution row at all.
+      if (line.startsWith("Iesildīšanās:") || line.startsWith("Atsildīšanās:") || line === "Drill"
+        || line === "Sacensību uzturs" || line === "• Izmantot sacensību uzturu"
+        || line.startsWith("Apavi:") || line.startsWith("• Apavi:")) return;
       if (isVarIntervalLine(line)) {
         const result = parseSegmentsFromVarLine(line);
         html += `<div class="log-section-row" data-log-section="Pamatdaļa">
@@ -4877,14 +4917,14 @@ function openLogDialog(dateStr) {
           result.segments.forEach((seg) => {
             const count = seg.reps;
             if (count > 1) {
+              const ph = isDurationLength(seg.length) ? ' placeholder="temps"' : "";
               html += `<div class="var-seg-log-group">
                 <div class="log-target">${count}x${escapeHtml(seg.length)}${seg.pace ? "(" + escapeHtml(seg.pace) + ")" : ""}</div>
-                <div class="field-grid">`;
-              for (let r = 0; r < count; r++) {
-                html += `<label>${r + 1}. atkārtojums <input class="log-interval-pace var-seg-pace-input" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}" ${isDurationLength(seg.length) ? 'placeholder="temps"' : ""} /></label>`;
-                globalIdx++;
-              }
-              html += `</div></div>`;
+                <div class="field-grid">
+                  <label>No <input class="log-interval-pace var-seg-pace-input log-range-from" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}"${ph} /></label>
+                  <label>Līdz <input class="log-interval-pace var-seg-pace-input log-range-to" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}"${ph} /></label>
+                </div></div>`;
+              globalIdx++;
             } else {
               const label = seg.length + (seg.pace ? " @" + seg.pace : "");
               html += `<div class="var-seg-log-row">
@@ -4906,14 +4946,13 @@ function openLogDialog(dateStr) {
           html += `<div class="log-section-row" data-log-section="Pamatdaļa">
             <div class="log-target">${line}</div>
             <div class="field-grid">`;
-          for (let i = 0; i < count; i++) {
-            html += `<label>${i + 1}. atkārtojums <input class="log-interval-pace" data-log-interval="${i}"${durationPlaceholder} /></label>`;
+          if (count > 1) {
+            html += `<label>No <input class="log-interval-pace log-range-from" data-log-interval="0"${durationPlaceholder} /></label>
+              <label>Līdz <input class="log-interval-pace log-range-to" data-log-interval="0"${durationPlaceholder} /></label>`;
+          } else {
+            html += `<label>1. atkārtojums <input class="log-interval-pace" data-log-interval="0"${durationPlaceholder} /></label>`;
           }
           html += `</div></div>`;
-        } else if (line === "Sacensību uzturs" || line === "• Izmantot sacensību uzturu" || line.startsWith("Apavi:") || line.startsWith("• Apavi:")) {
-          html += `<div class="log-section-row" data-log-section="${line}">
-            <div class="log-target">${line}</div>
-          </div>`;
         } else if (line.includes(":")) {
         const st = (plan.title || "").replace(/\s*Koptreniņš\s*$/, "").trim();
         const isSimple = st === "VFS" || st === "SFS";
@@ -4923,29 +4962,23 @@ function openLogDialog(dateStr) {
           html += `<div class="log-section-row" data-log-section="${line.split(":")[0]}">
           <div class="log-target">${line}</div>
           <div class="field-grid">
-            <label>Ilgums <input class="log-actual-duration" /></label>
+            <label>Ilgums/garums <input class="log-actual-duration" /></label>
           </div>
         </div>`;
         } else {
         const paceStr = extractPace(line);
-      const paceField = `<label>Vidējais temps <input class="log-actual-pace" /></label>`;
+      // Same single free-text box as openPlanLogDialog, same dash-range choice.
+      const paceField = `<label>Vidējais/diapazona temps <input class="log-actual-pace" /></label>`;
         const pulseStr = extractPulse(line);
         html += `<div class="log-section-row" data-log-section="${line.split(":")[0]}">
           <div class="log-target">${line}</div>
           <div class="field-grid">
-            <label>Ilgums <input class="log-actual-duration" /></label>
-            <label>Vidējais pulss <input class="log-actual-pulse" /></label>
+            <label>Ilgums/garums <input class="log-actual-duration" /></label>
+            <label>Vidējais/diapazona pulss <input class="log-actual-pulse" /></label>
             ${paceField}
           </div>
         </div>`;
         }
-      } else if (line === "Drill") {
-        html += `<div class="log-section-row" data-log-section="Drill">
-          <div class="log-target">Drill</div>
-          <div class="field-grid">
-            <label>Ilgums <input class="log-actual-duration" /></label>
-          </div>
-        </div>`;
       } else {
         html += `<div class="log-section-row">
           <div class="log-target">${line}</div>
@@ -4953,21 +4986,12 @@ function openLogDialog(dateStr) {
       }
       }
     });
-    if (isIntervalOrTempoPlan(plan)) {
-      if (!hasWarmupLine) {
-        html = html.slice(0, blockStart) + syntheticLogSectionRow("Iesildīšanās", false) + html.slice(blockStart);
-      }
-      if (!hasCooldownLine) {
-        html += syntheticLogSectionRow("Atsildīšanās", false);
-      }
-    }
     html += `</div>`;
   });
 
   html += getRatingHtml(dayPlans[0].title, dayPlans[0].custom_icon);
   html += `<div class="comment-label">Papildus komentāri un piezīmes par treniņa norisi</div><textarea class="inline-comment" id="logAthleteComment" rows="5"></textarea>`;
   logFormContent.innerHTML = html;
-  logDialogAddExtraButtons();
 
   if (existingLog?.log_data) {
     existingLog.log_data.forEach((entry) => {
@@ -5188,6 +5212,45 @@ function attachPaceColouring(inp, bounds) {
   validate();
 }
 
+// A single box can't show two different colours on two different parts of
+// what's typed into it, so a written range is judged as a whole: whichever
+// end sits furthest from "good" decides the colour, so a range that drifts
+// outside the target on either side gets flagged rather than averaged away.
+function getPaceRangeColor(fromP, toP, bounds) {
+  const fromC = fromP ? getPaceColor(fromP, bounds) : "";
+  const toC = toP ? getPaceColor(toP, bounds) : "";
+  if (!fromC) return toC;
+  if (!toC) return fromC;
+  const rank = { good: 0, warn: 1, slow: 2, fast: 2 };
+  return rank[fromC] >= rank[toC] ? fromC : toC;
+}
+
+// "Vidējais/diapazona temps" is one free-text box where the athlete writes
+// either a single reading ("4:32") or a "no-lidz" range ("4:35-4:28", the
+// same dash convention as target paces) - whichever shape it reads as,
+// colour accordingly, on every keystroke.
+function attachAveragePaceColouring(inp, bounds) {
+  function validate() {
+    inp.classList.remove("pace-fast", "pace-good", "pace-slow", "pace-warn");
+    if (!bounds) return;
+    const v = inp.value.trim();
+    const rangeMatch = v.match(/^([^\s-]+)-([^\s-]+)$/);
+    let c = "";
+    if (rangeMatch) {
+      c = getPaceRangeColor(parseAthleteInput(rangeMatch[1]), parseAthleteInput(rangeMatch[2]), bounds);
+    } else {
+      const p = parseAthleteInput(v);
+      c = p ? getPaceColor(p, bounds) : "";
+    }
+    if (c) inp.classList.add("pace-" + c);
+  }
+  if (inp.dataset.avgPaceWired !== "1") {
+    inp.dataset.avgPaceWired = "1";
+    inp.addEventListener("input", validate);
+  }
+  validate();
+}
+
 // One interval session is 20+ boxes filled in by hand on a phone, all within a
 // second of each other, so every interval box gets its own up/down arrows.
 const INTERVAL_STEP_SECONDS = 0.2;
@@ -5352,7 +5415,7 @@ function attachIntervalPaceValidation() {
     });
 
     const paceInp = sectionEl.querySelector(".log-actual-pace");
-    if (paceInp && sectionBounds) attachPaceColouring(paceInp, sectionBounds);
+    if (paceInp && sectionBounds) attachAveragePaceColouring(paceInp, sectionBounds);
   });
 }
 // #endregion

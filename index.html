@@ -510,11 +510,6 @@
               <label class="wbt-option wbt-competition"><input type="radio" name="weekBlockType" value="competition"> Sacensības</label>
               <span class="week-nav-divider" aria-hidden="true"></span>
               <label class="wbt-option wbt-rest"><input type="radio" name="weekBlockType" value="rest"> Atpūta</label>
-              <!-- Coach only; app.js shows/hides it. It sits here rather than by the
-                   comment box because it is a statement about the week itself, like
-                   the three block types next to it. -->
-              <span class="week-nav-divider" id="weekReviewedDivider" aria-hidden="true" hidden></span>
-              <label class="checkbox-row ws-header-reviewed" id="weekReviewedWrap" hidden><input type="checkbox" id="weekReviewedCheckbox"> Nedēļa apskatīta</label>
             </div>
             <div class="view-mode-tabs-group">
               <div class="view-tabs layout-mode-tabs" id="layoutModeTabs">
@@ -563,10 +558,24 @@
             </div>
           </div>
 
-          <!-- The two weekly comments, above Monday rather than at the bottom of
-               the page: they are written and read every week and must not have to
-               be scrolled to. Week view only - they belong to one week. -->
-          <div class="week-comments" id="weekComments"></div>
+          <!-- Wraps the checkbox and the comment box together so the checkbox can
+               be positioned (via CSS) inside the white comment card's corner,
+               without actually being a child of #weekComments - that div's
+               content is fully replaced by renderWeekComments() on every
+               render, which would destroy a real child and its listener. -->
+          <div class="week-comments-wrap">
+            <!-- Coach only; app.js shows/hides it. Static markup - only its
+                 visible/checked state is set by renderWeekReviewed() in
+                 app.js, never rebuilt. -->
+            <div class="week-reviewed-row">
+              <label class="checkbox-row ws-header-reviewed" id="weekReviewedWrap" hidden><input type="checkbox" id="weekReviewedCheckbox"> Nedēļa apskatīta</label>
+            </div>
+
+            <!-- The two weekly comments, above Monday rather than at the bottom of
+                 the page: they are written and read every week and must not have to
+                 be scrolled to. Week view only - they belong to one week. -->
+            <div class="week-comments" id="weekComments"></div>
+          </div>
 
           <div id="weekView">
             <div class="calendar-grid" id="calendarGrid"></div>

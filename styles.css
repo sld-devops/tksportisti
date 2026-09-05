@@ -3155,22 +3155,6 @@ label {
 .extra-interval-row label {
   margin: 0;
 }
-.extra-interval-btn {
-  font-size: 0.8rem;
-  padding: 4px 10px;
-  margin-top: 6px;
-  cursor: pointer;
-  background: none;
-  border: 1px dashed var(--line);
-  border-radius: 6px;
-  color: var(--muted);
-}
-.extra-interval-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--surface-alt);
-}
-
 .pace-text-fast { color: var(--danger); font-weight: 700; }
 .pace-text-good { color: var(--success); font-weight: 700; }
 .pace-text-slow { color: var(--info-accent); font-weight: 700; }
@@ -3973,14 +3957,37 @@ label {
    sit in "Paveiktā statistika", because that is the only thing they are used
    for; the two comments sit in their own band above Monday, because they are
    written and read every week and were being missed at the foot of the page. */
-/* Sits on the coach's comment heading. flex-shrink: 0 so the tight space next
-   to a long heading wraps the whole checkbox onto its own line rather than
-   squeezing the box above its own words. */
 .ws-header-reviewed {
   flex-shrink: 0;
   font-size: 0.85rem;
   font-weight: 600;
   white-space: nowrap;
+  /* .checkbox-row's default border (var(--line), a very light grey) all but
+     disappears against this white card - darkened so the box reads clearly
+     against it instead of blending in. */
+  border-color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* Anchors the wrap around #weekComments so the checkbox row below can be
+   positioned against the white card's corner. */
+.week-comments-wrap {
+  position: relative;
+}
+
+/* Sits visually inside the white comment card's top-right corner (see
+   .ws-comments's padding-top below, which reserves the room for it) while
+   staying a DOM sibling of #weekComments, not a child - that div's content is
+   fully replaced by renderWeekComments() on every render, which would
+   destroy a real child and its listener (see comment in app.js). */
+.week-reviewed-row {
+  position: absolute;
+  top: 10px;
+  /* Matches .ws-comments's own left padding, so the checkbox's left edge
+     lines up with the textarea's left edge below it (also re-matched in the
+     720px query, where that padding shrinks to 14px). */
+  left: 18px;
+  z-index: 1;
 }
 
 #weekNumbers {
@@ -4021,7 +4028,10 @@ label {
   gap: 16px;
   grid-template-columns: 1fr 1fr;
   margin-bottom: 12px;
-  padding: 14px 18px;
+  /* Extra room at the top clears the "Nedēļa apskatīta" checkbox positioned
+     over this card's corner (see .week-reviewed-row) so it never overlaps
+     either heading, however long the "Sportista komentārs..." text runs. */
+  padding: 48px 18px 14px;
 }
 
 .ws-comments label {
@@ -5063,6 +5073,22 @@ textarea:disabled {
   padding: 3px 6px;
   border-radius: 4px;
 }
+/* .tod-badge is display:block by default (it normally sits under a card
+   title), which would otherwise push it onto its own line here - flex keeps
+   the 🚫 icon and the day-part badge glued together on one line, with the
+   reason wrapping after them rather than under the badge. */
+.restriction-note-line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.restriction-note-line .tod-badge {
+  margin: 0;
+}
+.restriction-note-line + .restriction-note-line {
+  margin-top: 4px;
+}
 .restriction-reason {
   font-size: 0.78rem;
   color: var(--danger);
@@ -5710,10 +5736,16 @@ textarea:disabled {
   }
 
   /* One under the other on a phone - side by side there is no room to read
-     either comment. */
+     either comment. Top padding still reserves room for the checkbox corner
+     (see .week-reviewed-row) - narrower columns make the heading text more
+     likely to wrap, not less. */
   .ws-comments {
     grid-template-columns: 1fr;
-    padding: 12px 14px;
+    padding: 44px 14px 12px;
+  }
+
+  .week-reviewed-row {
+    left: 14px;
   }
 
   .calendar-grid {

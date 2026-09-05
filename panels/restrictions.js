@@ -34,6 +34,14 @@ function getRestrictedTods(dateStr) {
   return tods.filter(tod => isTimeSlotRestricted(dateStr, tod));
 }
 
+// Every restriction row covering this date, not just the first - a day can
+// carry more than one (e.g. a separate morning restriction and evening
+// restriction with different reasons), and the calendar note needs all of
+// them, not whichever a naive .find() happened to pick.
+function getDayRestrictions(dateStr, list = restrictions) {
+  return list.filter(r => dateStr >= r.start_date && dateStr <= (r.end_date || r.start_date));
+}
+
 // #endregion
 
 // #region Form state and the small calendar
