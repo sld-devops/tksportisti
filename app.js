@@ -4401,6 +4401,22 @@ function feelingBadgeHtml(feeling, feelingTags) {
     "Normāli — varēja vēlēties justies svaigāk, bet jutos pieņemami, laba slodze uz noguruma fona.": { bg: "var(--info-accent-bg)", color: "var(--info-accent-dark)" },
     "Ļoti labi — jutos pārliecināts fiziski un psiholoģiski, garīgais labs.": { bg: "var(--warning-bg)", color: "var(--warning-dark)" },
     "Lieliski — viena no labākajām dienām, pilns enerģijas.": { bg: "var(--lime-bg)", color: "var(--lime-dark)" },
+    // The 1-8 scale (2026-09-05), replacing the 5-card layout above - kept
+    // side by side with every earlier wording rather than replacing it, so a
+    // training logged under any past version of this feature keeps its badge
+    // colour (the owner cannot run a migration to rewrite old rows).
+    // Pale tint of the same hex the picker button uses (own -50-shade from
+    // the same Material family), not the fully-saturated colour itself - a
+    // badge sitting on a card follows this map's own light-bg/dark-text
+    // convention, same as every other row above.
+    "Slikti — ķermenis un galva bija pilnīgi negatavi treniņam, biju tuvu lēmumam to izlaist.": { bg: "#FFEBEE", color: "#D32F2F" },
+    "Grūti — treniņš prasīja vairāk piepūles nekā parasti, elpošana neregulāra, pulss paaugstināts.": { bg: "#FFF3E0", color: "#F57C00" },
+    "Diezgan grūti — uzdevumu izpildīju, bet ar manāmu piepūli.": { bg: "#FFF3E0", color: "#EF6C00" },
+    "Zem vidējā — nedaudz smagāk nekā parasti, bet nekas dramatisks.": { bg: "#FFF8E1", color: "#F9A825" },
+    "Normāli — būtu vēlējies justies svaigāks, taču slodze uz noguruma fona bija samērā pieņemama.": { bg: "#F5F5F5", color: "#616161" },
+    "Diezgan labi — sajūta bija patīkama, treniņš aizritēja bez lielām grūtībām.": { bg: "#E8F5E9", color: "#2E7D32" },
+    "Ļoti labi — jutos fiziski un psiholoģiski pārliecināts, treniņš aizritēja viegli.": { bg: "#E8F5E9", color: "#388E3C" },
+    "Lieliski — sen nebiju juties tik labi, pilns enerģijas un motivācijas.": { bg: "#E8F5E9", color: "#1B5E20" },
   };
   const all = [];
   if (feeling) all.push(feeling);
@@ -4422,30 +4438,68 @@ function getActivityType(title) {
   return "run";
 }
 
-// The five feeling options, shared by the log dialog and by the athlete's own
-// inline record (panels/self-log.js). The `label` strings are what gets stored
-// in log_entries.feeling and what feelingBadgeHtml() colours by, so they must
-// stay byte-identical in both places — hence one list, not two copies.
+// The eight feeling options (expanded from five, 2026-09-05), shared by the
+// log dialog and by the athlete's own inline record (panels/self-log.js). The
+// `label` strings are what gets stored in log_entries.feeling and what
+// feelingBadgeHtml() colours by, so they must stay byte-identical in both
+// places — hence one list, not two copies.
+// Bg/border are the same solid hex (the owner's own chosen 8-step gradient,
+// 2026-09-05, worst to best); colour is whichever of white/near-black actually
+// reads on that hex, not a fixed choice - the four middle, lighter swatches
+// need dark text, the four saturated/dark ones need white.
 const FEELING_OPTIONS = [
-  { label: "Slikti — kājas nemaz nevilka, motivācija zema.", bg: "var(--danger-bg)", border: "var(--danger)", color: "var(--danger)" },
-  { label: "Grūti — izpildīju ar piepūli, neīpaši pozitīvi.", bg: "var(--violet-bg)", border: "var(--violet)", color: "var(--violet-dark)" },
-  { label: "Normāli — varēja vēlēties justies svaigāk, bet jutos pieņemami, laba slodze uz noguruma fona.", bg: "var(--info-accent-bg)", border: "var(--info-accent)", color: "var(--info-accent-dark)" },
-  { label: "Ļoti labi — jutos pārliecināts fiziski un psiholoģiski, garīgais labs.", bg: "var(--warning-bg)", border: "var(--warning)", color: "var(--warning-dark)" },
-  { label: "Lieliski — viena no labākajām dienām, pilns enerģijas.", bg: "var(--lime-bg)", border: "var(--lime)", color: "var(--lime-dark)" },
+  { label: "Slikti — ķermenis un galva bija pilnīgi negatavi treniņam, biju tuvu lēmumam to izlaist.", bg: "#D32F2F", border: "#D32F2F", color: "#ffffff" },
+  { label: "Grūti — treniņš prasīja vairāk piepūles nekā parasti, elpošana neregulāra, pulss paaugstināts.", bg: "#F57C00", border: "#F57C00", color: "#ffffff" },
+  { label: "Diezgan grūti — uzdevumu izpildīju, bet ar manāmu piepūli.", bg: "#FFA726", border: "#FFA726", color: "#1a1a1a" },
+  { label: "Zem vidējā — nedaudz smagāk nekā parasti, bet nekas dramatisks.", bg: "#FFD54F", border: "#FFD54F", color: "#1a1a1a" },
+  { label: "Normāli — būtu vēlējies justies svaigāks, taču slodze uz noguruma fona bija samērā pieņemama.", bg: "#E0E0E0", border: "#E0E0E0", color: "#1a1a1a" },
+  { label: "Diezgan labi — sajūta bija patīkama, treniņš aizritēja bez lielām grūtībām.", bg: "#81C784", border: "#81C784", color: "#1a1a1a" },
+  { label: "Ļoti labi — jutos fiziski un psiholoģiski pārliecināts, treniņš aizritēja viegli.", bg: "#388E3C", border: "#388E3C", color: "#ffffff" },
+  { label: "Lieliski — sen nebiju juties tik labi, pilns enerģijas un motivācijas.", bg: "#1B5E20", border: "#1B5E20", color: "#ffffff" },
 ];
 
-function getRatingHtml(planTitle, customIcon) {
-  const items = FEELING_OPTIONS;
-  let html = `<div class="feeling-tags-group">
-    <div class="feeling-tags-label">Pašsajūtas novērtējums</div>`;
-  items.forEach((o) => {
-    html += `<label class="feeling-option" style="--fbg:${o.bg};--fborder:${o.border};--fcolor:${o.color}">
-      <input type="radio" name="trainingRating" value="${escapeHtml(o.label)}" />
-      <span>${escapeHtml(o.label)}</span>
-    </label>`;
+// Eight full sentences stacked as cards (the pre-2026-09-05 layout) made the
+// dialog very long to scroll - a compact 1-8 number row instead, with only
+// the selected option's full sentence shown below it. Shared by the log
+// dialog (group "trainingRating") and the athlete's self-log (group
+// "selfLogRating", panels/self-log.js) - one component, not two.
+function feelingScaleHtml(groupName, selectedLabel) {
+  const numbersHtml = FEELING_OPTIONS.map((o, i) => `
+    <label class="feeling-num" style="--fbg:${o.bg};--fborder:${o.border};--fcolor:${o.color}">
+      <input type="radio" name="${groupName}" value="${escapeHtml(o.label)}" ${selectedLabel === o.label ? "checked" : ""} />
+      <span>${i + 1}</span>
+    </label>`).join("");
+  const descHtml = FEELING_OPTIONS.map((o) => `
+    <div class="feeling-desc" data-feeling-desc="${escapeHtml(o.label)}"${selectedLabel === o.label ? "" : " hidden"}>${escapeHtml(o.label)}</div>`).join("");
+  // First word of each end's own label (before the em dash), not hardcoded -
+  // stays correct if the wording is ever revised again without a second edit.
+  const worst = FEELING_OPTIONS[0].label.split("—")[0].trim();
+  const best = FEELING_OPTIONS[FEELING_OPTIONS.length - 1].label.split("—")[0].trim();
+  return `<div class="feeling-scale-wrap">
+    <div class="feeling-tags-label">Pašsajūtas novērtējums (1 - ${escapeHtml(worst)}, ${FEELING_OPTIONS.length} - ${escapeHtml(best)})</div>
+    <div class="feeling-scale">${numbersHtml}</div>
+    <div class="feeling-desc-wrap">${descHtml}</div>
+  </div>`;
+}
+
+// Checking a radio from script (the reopen-fill code below) fires no change
+// event, so revealing the matching description text has to be done by hand
+// there - this is the one function both that code and the live click
+// listener call, so the two can never disagree on how a reveal happens.
+function showFeelingDesc(radioEl) {
+  const wrap = radioEl.closest(".feeling-scale-wrap");
+  wrap?.querySelectorAll("[data-feeling-desc]").forEach((el) => {
+    el.hidden = el.dataset.feelingDesc !== radioEl.value;
   });
-  html += `</div>`;
-  return html;
+}
+
+document.addEventListener("change", (e) => {
+  const radio = e.target.closest('.feeling-scale input[type="radio"]');
+  if (radio) showFeelingDesc(radio);
+});
+
+function getRatingHtml(planTitle, customIcon) {
+  return feelingScaleHtml("trainingRating", "");
 }
 
 // Log entry dialog
@@ -4867,7 +4921,7 @@ function openPlanLogDialog(planId) {
 
   if (existingLog?.feeling) {
     const radio = logFormContent.querySelector(`input[name="trainingRating"][value="${existingLog.feeling}"]`);
-    if (radio) radio.checked = true;
+    if (radio) { radio.checked = true; showFeelingDesc(radio); }
   }
 
   if (existingLog?.notes) {
@@ -5009,7 +5063,7 @@ function openLogDialog(dateStr) {
 
   if (existingLog?.feeling) {
     const radio = logFormContent.querySelector(`input[name="trainingRating"][value="${existingLog.feeling}"]`);
-    if (radio) radio.checked = true;
+    if (radio) { radio.checked = true; showFeelingDesc(radio); }
   }
 
   if (existingLog?.notes) {

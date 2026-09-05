@@ -83,18 +83,11 @@ function cancelSelfLogEdit() {
   renderCalendar();
 }
 
+// feelingScaleHtml (app.js, loads after this file but is only ever called at
+// render time - see "Splitting app.js" in CLAUDE.md) is the same 1-8 scale the
+// log dialog uses; .self-log-form scopes it down to fit a ~104px day column.
 function selfLogRatingHtml(selected) {
-  const opts = FEELING_OPTIONS.map((o) => {
-    // "Grūti — izpildīju ar piepūli..." -> "Grūti". The full sentence is what
-    // gets stored; only the button caption is shortened, because five full
-    // sentences do not fit a day column.
-    const short = o.label.split("—")[0].trim();
-    return `<label class="feeling-option self-log-feeling" style="--fbg:${o.bg};--fborder:${o.border};--fcolor:${o.color}" title="${escapeHtml(o.label)}">
-      <input type="radio" name="selfLogRating" value="${escapeHtml(o.label)}" ${selected === o.label ? "checked" : ""} />
-      <span>${escapeHtml(short)}</span>
-    </label>`;
-  }).join("");
-  return `<div class="self-log-field-label">Pašsajūta</div><div class="self-log-rating">${opts}</div>`;
+  return `<div class="self-log-field-label">Pašsajūta</div>${feelingScaleHtml("selfLogRating", selected)}`;
 }
 
 // The same three choices, the same wording and the same colours as a planned
