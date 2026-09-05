@@ -175,8 +175,8 @@ function renderSelfLogCard(log, dayCommentTaken) {
       <div class="task-card self-log-text-view">
         <div class="self-log-badge">📝 Sportista ieraksts</div>
         ${textHtml}
+        ${feelingBadge}
       </div>
-      ${feelingBadge}
       ${notesHtml}
       ${coachBlock}
       ${athleteIsOwner

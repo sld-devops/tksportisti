@@ -4828,16 +4828,6 @@ textarea:disabled {
   background: #f0fdf4;
 }
 
-.feeling-tag-badge {
-  display: inline-block;
-  font-size: 0.78rem;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 20px;
-  border: 1px solid;
-  margin-top: 6px;
-}
-
 .feeling-scale-wrap {
   margin-top: 12px;
   padding-top: 12px;
@@ -4903,12 +4893,15 @@ textarea:disabled {
   color: var(--ink);
 }
 
+/* This used to be defined twice (an earlier, fully-shadowed copy sat higher up
+   the file with its own, rounder radius) - consolidated into this one rule,
+   matching .task-card's corner rounding rather than a rounder one of its own. */
 .feeling-tag-badge {
   display: inline-block;
   font-size: 0.72rem;
   font-weight: 700;
   padding: 2px 8px;
-  border-radius: 16px;
+  border-radius: 6px;
   border: 1px solid;
   margin-top: 4px;
   margin-right: 4px;

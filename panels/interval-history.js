@@ -322,8 +322,7 @@ function renderIntervalHistorySelfCard(log) {
       <div class="task-card">
         <strong>${escapeHtml(displayTitle(title))}</strong>
       </div>
-      ${textHtml ? `<div class="task-card self-log-text-view">${textHtml}</div>` : ""}
-      ${feelingBadge}
+      ${textHtml ? `<div class="task-card self-log-text-view">${textHtml}${feelingBadge}</div>` : feelingBadge}
       ${notesHtml}
     </article>
   `;
