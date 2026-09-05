@@ -410,9 +410,11 @@ function getGeneratedTraining() {
   if (raceShoes.checked && (isIntervalType(type) || type === "Tempa skrējiens")) footwearParts.push("Sacensību apavi");
   if (footwearParts.length) lines.push(`• Apavi: ${footwearParts.join(", ")}`);
 
-  if (cooldown) lines.push(cooldown);
-
+  // Grouped with the main part/footwear, not trailing after cooldown - the
+  // owner's call 2026-09-05, reads more naturally next to what it applies to.
   if (raceNutrition.checked) lines.push("• Izmantot sacensību uzturu");
+
+  if (cooldown) lines.push(cooldown);
 
   const koptreniņš = isSimple && document.getElementById("includeKoptreniņš")?.checked;
   const title = koptreniņš ? `${type} Koptreniņš` : type;
@@ -507,9 +509,11 @@ function getEditPlanTraining() {
   if (getBool("epRaceShoes") && (isIntervalType(type) || type === "Tempa skrējiens")) footwearParts.push("Sacensību apavi");
   if (footwearParts.length) lines.push(`• Apavi: ${footwearParts.join(", ")}`);
 
-  if (cooldown) lines.push(cooldown);
-
+  // Same order as getGeneratedTraining(): grouped with the main part/footwear,
+  // before cooldown, not trailing after it.
   if (getBool("epRaceNutrition")) lines.push("• Izmantot sacensību uzturu");
+
+  if (cooldown) lines.push(cooldown);
 
   const koptreniņš = isSimple && document.getElementById("epIncludeKoptreniņš")?.checked;
   const title = koptreniņš ? `${type} Koptreniņš` : type;
