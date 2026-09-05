@@ -2140,18 +2140,23 @@ function extractLogMainPartHtml(logData, paceBoundsMap, plannedIntervalCount, pl
 function formatDetailsForCard(details) {
   if (!details) return "";
   const lines = details.split("\n");
-  const result = [];
+  // Merge the raw text first (Drill folds onto whatever line came before it),
+  // then decide bold-vs-secondary per finished line - so a Drill folded onto
+  // a non-Pamatdaļa line still ends up inside that line's smaller-text span,
+  // not sitting after it at full size.
+  const merged = [];
   for (const line of lines) {
     if (line.trim() === "Drill") {
-      if (result.length > 0) {
-        result[result.length - 1] += " + Drill";
+      if (merged.length > 0) {
+        merged[merged.length - 1] += " + Drill";
       }
-    } else if (line.startsWith("Pamatdaļa:")) {
-      result.push(`<strong>${line}</strong>`);
     } else {
-      result.push(line);
+      merged.push(line);
     }
   }
+  const result = merged.map((line) =>
+    line.startsWith("Pamatdaļa:") ? `<strong>${line}</strong>` : `<span class="task-secondary">${line}</span>`
+  );
   return result.join("\n");
 }
 

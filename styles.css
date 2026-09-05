@@ -2825,6 +2825,13 @@ label {
   padding: 8px;
 }
 
+/* Everything on the card except Pamatdaļa (Iesildīšanās/Atsildīšanās/Apavi/
+   sacensību uzturs/Drill) is secondary to the main part, so it reads smaller -
+   see formatDetailsForCard() in app.js, the only place this class is written. */
+.task-secondary {
+  font-size: 0.8rem;
+}
+
 .task-card textarea.inline-comment {
   margin-top: 8px;
 }
@@ -6617,13 +6624,15 @@ body.is-dragging .session-card.is-draggable {
 .self-log-badge {
   background: var(--surface-alt);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  /* Matches .task-card's corner rounding, not a rounder pill shape of its own. */
+  border-radius: 6px;
   color: var(--muted);
   display: inline-block;
   font-size: 0.7rem;
   font-weight: 700;
   padding: 2px 8px;
   margin-bottom: 6px;
+  white-space: nowrap;
 }
 
 .task-card.self-log-text-view {
