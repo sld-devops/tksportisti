@@ -54,6 +54,7 @@
      --danger-bg / --lime-bg so adjacent cards don't read as one colour. */
   --card-plan-bg: #fef4f4;
   --card-done-bg: #f8fdec;
+  --card-race-bg: #f1f6fe;
 
   --info: #435068;
   --info-dark: #313c50;
@@ -2440,8 +2441,9 @@ label {
 }
 
 .race-chip.upcoming {
-  background: var(--race);
-  border-color: var(--race-dark);
+  background: var(--card-race-bg);
+  border: 1px solid var(--ink);
+  padding: 8px;
   color: var(--ink);
 }
 
