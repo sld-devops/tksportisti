@@ -2438,6 +2438,8 @@ label {
   font-size: 0.8rem;
   padding: 6px 8px;
   white-space: nowrap;
+  margin-top: 10px;
+  text-transform: uppercase;
 }
 
 .race-chip.upcoming {
