@@ -6632,7 +6632,6 @@ body.is-dragging .session-card.is-draggable {
   font-weight: 700;
   padding: 2px 8px;
   margin-bottom: 6px;
-  white-space: nowrap;
 }
 
 .task-card.self-log-text-view {
