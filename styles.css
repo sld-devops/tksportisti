@@ -4549,9 +4549,9 @@ textarea:disabled {
 
 .month-race {
   align-items: baseline;
-  background: var(--race);
-  border: 1px solid var(--race-dark);
-  border-radius: 4px;
+  background: var(--race-bg);
+  border: 1px solid var(--race-border);
+  border-radius: 3px;
   color: var(--ink);
   display: flex;
   flex-wrap: wrap;
