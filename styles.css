@@ -4507,8 +4507,8 @@ textarea:disabled {
 }
 
 .month-plan {
-  background: #E1E5EB;
-  border: 1px solid #B3BFCC;
+  background: var(--card-plan-bg);
+  border: 1px solid var(--danger-border);
   border-radius: 3px;
   cursor: pointer;
   font-size: 0.85rem;
@@ -4543,7 +4543,7 @@ textarea:disabled {
 }
 
 .month-plan.month-log {
-  background: var(--success-bg);
+  background: var(--card-done-bg);
   border-color: var(--success-border);
 }
 
