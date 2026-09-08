@@ -2137,7 +2137,11 @@ function extractLogMainPartHtml(logData, paceBoundsMap, plannedIntervalCount, pl
   return [main.duration, rawPulse, paceHtml].filter(Boolean).join("; ");
 }
 
-function formatDetailsForCard(details) {
+// calendarMode: undefined = unchanged (sagatavju izvēlne, "Biežāk lietotie",
+// abu dialogu priekšskatījumi - "Pamatdaļa:" paliek redzams). "week"/"month" -
+// kalendāra kartītes, kur vārds "Pamatdaļa:" tiek noņemts; "week" papildus
+// pievieno apakšsvītras klasi.
+function formatDetailsForCard(details, calendarMode) {
   if (!details) return "";
   const lines = details.split("\n");
   // Merge the raw text first (Drill folds onto whatever line came before it),
@@ -2154,9 +2158,12 @@ function formatDetailsForCard(details) {
       merged.push(line);
     }
   }
-  const result = merged.map((line) =>
-    line.startsWith("Pamatdaļa:") ? `<strong>${line}</strong>` : `<span class="task-secondary">${line}</span>`
-  );
+  const result = merged.map((line) => {
+    if (!line.startsWith("Pamatdaļa:")) return `<span class="task-secondary">${line}</span>`;
+    const text = calendarMode ? line.replace(/^Pamatdaļa:\s*/, "") : line;
+    const cls = calendarMode === "week" ? ' class="plan-main-line"' : "";
+    return `<strong${cls}>${text}</strong>`;
+  });
   return result.join("\n");
 }
 
@@ -2199,16 +2206,23 @@ document.addEventListener("click", (e) => {
 // showPlannedPrefix puts the planned task ("6x400m + 4x200m") above the
 // executed times; only the month-view detail asks for it. planDetails is
 // passed everywhere, because block-by-block averaging needs it regardless.
-function renderLogEntryLines(data, paceBoundsMap, plannedIntervalCount, planDetails, showPlannedPrefix) {
+// calendarMode: undefined = unchanged (interval-history panel - keeps the
+// "Pamatdaļa" label, no underline). "week"/"month" = calendar cards, where
+// the label is dropped; "week" additionally gets the underline class.
+function renderLogEntryLines(data, paceBoundsMap, plannedIntervalCount, planDetails, showPlannedPrefix, calendarMode) {
   const plannedMainPart = showPlannedPrefix && planDetails ? getPlannedMainPartSummary(planDetails) : "";
+  const stripLabel = calendarMode === "week" || calendarMode === "month";
   return (data || []).map(entry => {
     let line = `<div class="log-line">`;
+    const isMainSection = entry.section === "Pamatdaļa";
+    const mainCls = calendarMode === "week" ? ' class="plan-main-line"' : "";
+    const label = isMainSection && stripLabel ? "" : `${entry.section}: `;
     if (entry.intervals && entry.intervals.length) {
       const done = entry.intervals.filter(Boolean);
       const display = buildIntervalDisplayHtml(done, paceBoundsMap, entry.section, plannedIntervalCount, planDetails);
       // The executed times always start on their own line, below the planned task.
-      const mainPartPrefix = entry.section === "Pamatdaļa" && plannedMainPart ? `${plannedMainPart}<br>` : "";
-      line += `${entry.section === "Pamatdaļa" ? `<strong>${entry.section}: ${mainPartPrefix}${display}</strong>` : `${entry.section}: ${display}`}`;
+      const mainPartPrefix = isMainSection && plannedMainPart ? `${plannedMainPart}<br>` : "";
+      line += isMainSection ? `<strong${mainCls}>${label}${mainPartPrefix}${display}</strong>` : `${label}${display}`;
     } else {
       const dur = entry.duration || "";
       const rawPulse = entry.pulse ? entry.pulse + (entry.pulse.includes("vid.") ? "" : "vid.") : "";
@@ -2218,7 +2232,8 @@ function renderLogEntryLines(data, paceBoundsMap, plannedIntervalCount, planDeta
       if (rawPulse) {
         pulseHtml = "; " + entry.pulse + "vid.";
       }
-      line += `${entry.section === "Pamatdaļa" ? `<strong>${entry.section}: ${dur}${pulseHtml}${paceHtml ? "; " + paceHtml : ""}</strong>` : `${entry.section}: ${dur}${pulseHtml}${paceHtml ? "; " + paceHtml : ""}`}`;
+      const valueHtml = `${dur}${pulseHtml}${paceHtml ? "; " + paceHtml : ""}`;
+      line += isMainSection ? `<strong${mainCls}>${label}${valueHtml}</strong>` : `${label}${valueHtml}`;
     }
     line += `</div>`;
     return line;
@@ -2243,7 +2258,7 @@ function renderPlanCard(plan) {
 
   if (isCoach) {
     const logBlock = planLog
-      ? `<div class="log-card log-inline">${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details) : ""}${feelingBadge}${planLogNotes}</div>`
+      ? `<div class="log-card log-inline">${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details, false, "week") : ""}${feelingBadge}${planLogNotes}</div>`
       : "";
 
     return `
@@ -2253,7 +2268,7 @@ function renderPlanCard(plan) {
         ${movedBadge}
         <span class="plan-type-badge">${plan.custom_icon || badgeForTitle(plan.title)}</span>
         ${notCompleted ? '<span class="not-completed-icon-abs">!</span>' : ""}
-        ${hasPamatdala ? `<div class="task-card">${formatDetailsForCard(plan.details).replace(/\n/g, "<br>")}<textarea class="inline-comment" data-comment-plan="${plan.id}" data-comment-type="coach" placeholder="Trenera komentārs...">${plan.coach_comment || ""}</textarea></div>` : `<textarea class="inline-comment" data-comment-plan="${plan.id}" data-comment-type="coach" placeholder="Trenera komentārs...">${plan.coach_comment || ""}</textarea>`}
+        ${hasPamatdala ? `<div class="task-card">${formatDetailsForCard(plan.details, "week").replace(/\n/g, "<br>")}<textarea class="inline-comment" data-comment-plan="${plan.id}" data-comment-type="coach" placeholder="Trenera komentārs...">${plan.coach_comment || ""}</textarea></div>` : `<textarea class="inline-comment" data-comment-plan="${plan.id}" data-comment-type="coach" placeholder="Trenera komentārs...">${plan.coach_comment || ""}</textarea>`}
         ${logBlock}
         ${notCompleted ? `<div class="not-completed-badge"><span class="not-completed-icon">!</span> Sportists atzīmēja kā neizpildītu</div>${plan.athlete_comment ? `<div class="log-notes not-completed-comment">${plan.athlete_comment}</div>` : ""}` : ""}
         <div class="card-actions"><button class="icon-action-btn" data-edit-plan="${plan.id}" type="button" title="Rediģēt">✏️</button><button class="icon-action-btn is-delete" data-delete-plan="${plan.id}" type="button" title="Dzēst">✕</button></div>
@@ -2264,7 +2279,7 @@ function renderPlanCard(plan) {
   const logActions = planLog ? `<div class="log-actions"><button class="edit-log-btn icon-action-btn" data-log-plan="${plan.id}" type="button" title="Rediģēt">✏️</button><button class="log-delete-btn icon-action-btn is-delete" data-delete-log="${planLog.id}" type="button" title="Dzēst">✕</button></div>` : "";
 
   const logBlock = planLog
-    ? `<div class="log-card log-inline">${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details) : ""}${feelingBadge}${planLogNotes}</div>`
+    ? `<div class="log-card log-inline">${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details, false, "week") : ""}${feelingBadge}${planLogNotes}</div>`
     : `<button class="add-day-button log-plan-button" data-log-plan="${plan.id}" type="button">IERAKSTĪT IZPILDI</button>`;
 
   return `
@@ -2274,7 +2289,7 @@ function renderPlanCard(plan) {
       ${movedBadge}
       <span class="plan-type-badge">${plan.custom_icon || badgeForTitle(plan.title)}</span>
       ${notCompleted ? '<span class="not-completed-icon-abs">!</span>' : ""}
-      ${hasPamatdala ? `<div class="task-card">${formatDetailsForCard(plan.details).replace(/\n/g, "<br>")}${plan.coach_comment ? `<div class="log-notes">${escapeHtml(plan.coach_comment)}</div>` : ""}</div>` : plan.coach_comment ? `<div class="log-notes">${escapeHtml(plan.coach_comment)}</div>` : ""}
+      ${hasPamatdala ? `<div class="task-card">${formatDetailsForCard(plan.details, "week").replace(/\n/g, "<br>")}${plan.coach_comment ? `<div class="log-notes">${escapeHtml(plan.coach_comment)}</div>` : ""}</div>` : plan.coach_comment ? `<div class="log-notes">${escapeHtml(plan.coach_comment)}</div>` : ""}
       ${logBlock}
       ${!planLog ? `<label class="checkbox-row not-completed-row"><input type="checkbox" data-cb-plan="${plan.id}" ${notCompleted ? "checked" : ""} /> Neizpildīts treniņš</label>` : ""}
       ${notCompleted ? `<div class="comment-label">Kas noticis?</div><textarea class="inline-comment not-completed-comment" data-comment-plan="${plan.id}" data-comment-type="athlete">${plan.athlete_comment || ""}</textarea>` : ""}
@@ -2293,7 +2308,7 @@ function renderLogCard(log, dayCommentTaken) {
   const plan = log.plan_id ? plans.find(p => p.id === log.plan_id) : null;
   const paceBoundsMap = buildPaceBoundsMap(plan?.details);
   const plannedIntervalCount = getPlannedIntervalCount(plan?.details);
-  const items = data.length ? renderLogEntryLines(data, paceBoundsMap, plannedIntervalCount, plan?.details) : "";
+  const items = data.length ? renderLogEntryLines(data, paceBoundsMap, plannedIntervalCount, plan?.details, false, "week") : "";
   const feelingBadge = log?.feeling || log?.feeling_tags ? feelingBadgeHtml(log.feeling, log.feeling_tags) : "";
   const logNotes = log?.notes ? `<div class="log-notes">${log.notes}</div>` : "";
   const athleteIsOwner = (activeRole === "athlete") && currentUser.id === getSelectedAthleteId();
@@ -2791,11 +2806,11 @@ function renderMonthViewInline() {
           ${p.completed === false ? '<span class="month-not-completed-icon">!</span>' : ""}
           <div class="month-plan-summary">
             ${titleHtml}
-            <span>${extractMainPart(p.details)}</span>
+            <span>${extractMainPart(p.details).replace(/^Pamatdaļa:\s*/, "")}</span>
           </div>
           <div class="month-plan-full">
             ${titleHtml}
-            ${formatDetailsForCard(p.details).replace(/\n/g, "<br>")}
+            ${formatDetailsForCard(p.details, "month").replace(/\n/g, "<br>")}
           </div>
         </div>
         ${p.completed === false && p.athlete_comment ? `<div class="month-comment-text" role="button" tabindex="0">💬 ${escapeHtml(p.athlete_comment)}</div>` : ""}
@@ -2845,7 +2860,7 @@ function renderMonthViewInline() {
           </div>
           <div class="month-plan-full">
             ${titleHtml}
-            ${renderLogEntryLines(logData, paceBoundsMap, plannedIntervalCount, plan?.details, true)}
+            ${renderLogEntryLines(logData, paceBoundsMap, plannedIntervalCount, plan?.details, true, "month")}
             ${feelingBadge}
             ${logNotes}
           </div>

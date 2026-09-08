@@ -2836,6 +2836,15 @@ label {
   font-size: 0.8rem;
 }
 
+/* The main-part line drops its "Pamatdaļa:" label in the calendar (both
+   formatDetailsForCard() and renderLogEntryLines() in app.js), so in week
+   view a thin underline is what marks it as the main line instead. */
+.plan-main-line {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
 .task-card textarea.inline-comment {
   margin-top: 8px;
 }
