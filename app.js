@@ -548,7 +548,7 @@ function createVarSegmentRow(container, lengthVal, paceVal, restVal, repsVal) {
   row.className = "var-segment-row";
   row.style.marginBottom = "6px";
   row.innerHTML = `
-    <label>Garums/Ilgums <input class="var-seg-length" type="text" value="${lengthVal || ""}" /></label>
+    <label>Garums/ilgums <input class="var-seg-length" type="text" value="${lengthVal || ""}" /></label>
     <label>Temps <input class="var-seg-pace" type="text" value="${paceVal || ""}" /></label>
     <label>Atpūta <input class="var-seg-rest" type="text" value="${restVal || ""}" /></label>
     <label>Reizes <input class="var-seg-reps" type="number" min="1" value="${repsVal || "1"}" style="width:60px" /></label>
@@ -2141,6 +2141,43 @@ function extractLogMainPartHtml(logData, paceBoundsMap, plannedIntervalCount, pl
 // abu dialogu priekšskatījumi - "Pamatdaļa:" paliek redzams). "week"/"month" -
 // kalendāra kartītes, kur vārds "Pamatdaļa:" tiek noņemts; "week" papildus
 // pievieno apakšsvītras klasi.
+// Calendar-only shorthand for the warmup/cooldown labels - the coach still
+// sees "Iesildīšanās"/"Atsildīšanās" everywhere in the training builder and
+// its previews (any caller that doesn't pass calendarMode); only the actual
+// week/month calendar cards below show "IES:"/"ATS:" instead.
+const CALENDAR_SECTION_LABELS = { "Iesildīšanās": "IES", "Atsildīšanās": "ATS" };
+
+// Calendar-only: shows a duration/length value as just a number and a tick
+// mark - ' for minutes, '' for hours - however the coach actually typed it
+// ("20 min", "20min.", "20 minūtes", "20'" all become "20'"). A bare number
+// becomes minutes only when assumeMinutesIfBare is true (the warmup/cooldown/
+// main-part duration field); for an interval length a bare number means
+// metres instead (matching parseDistanceMeters() in panels/interval-history.js),
+// so it is left alone there. Anything else unrecognized - a distance like
+// "10km"/"400m", or free text like "Koptrenins" - is returned unchanged,
+// same "leave it alone if unsure" rule every other text-guessing function in
+// this file already follows.
+function formatDurationTick(raw, assumeMinutesIfBare) {
+  const str = (raw || "").trim();
+  if (!str) return str;
+  let m = str.match(/^(\d+(?:[.,]\d+)?)\s*(?:h|stundas?|stund\.)$/iu);
+  if (m) return `${m[1].replace(",", ".")}''`;
+  m = str.match(/^(\d+(?:[.,]\d+)?)\s*(?:min\.?|minūtes?|['′])$/iu);
+  if (m) return `${m[1].replace(",", ".")}'`;
+  m = str.match(/^(\d+(?:[.,]\d+)?)$/);
+  if (m && assumeMinutesIfBare) return `${m[1].replace(",", ".")}'`;
+  return str;
+}
+
+// Splits "<first field>; <everything else>" so only the first field gets
+// tick-formatted - "rest" (semicolon included) is returned exactly as
+// written, never touched.
+function splitFirstFieldForTick(afterLabel) {
+  const semi = afterLabel.indexOf(";");
+  if (semi === -1) return { first: afterLabel.trim(), rest: "" };
+  return { first: afterLabel.slice(0, semi).trim(), rest: afterLabel.slice(semi) };
+}
+
 function formatDetailsForCard(details, calendarMode) {
   if (!details) return "";
   const lines = details.split("\n");
@@ -2159,7 +2196,17 @@ function formatDetailsForCard(details, calendarMode) {
     }
   }
   const result = merged.map((line) => {
-    if (!line.startsWith("Pamatdaļa:")) return `<span class="task-secondary">${line}</span>`;
+    if (!line.startsWith("Pamatdaļa:")) {
+      let relabeled = line;
+      if (calendarMode) {
+        const m = line.match(/^(Iesildīšanās|Atsildīšanās):(.*)$/su);
+        if (m) {
+          const { first, rest } = splitFirstFieldForTick(m[2]);
+          relabeled = `${CALENDAR_SECTION_LABELS[m[1]]}: ${formatDurationTick(first, true)}${rest}`;
+        }
+      }
+      return `<span class="task-secondary">${relabeled}</span>`;
+    }
     const text = calendarMode ? line.replace(/^Pamatdaļa:\s*/, "") : line;
     const cls = calendarMode === "week" ? ' class="plan-main-line"' : "";
     return `<strong${cls}>${text}</strong>`;
@@ -2216,7 +2263,8 @@ function renderLogEntryLines(data, paceBoundsMap, plannedIntervalCount, planDeta
     let line = `<div class="log-line">`;
     const isMainSection = entry.section === "Pamatdaļa";
     const mainCls = calendarMode === "week" ? ' class="plan-main-line"' : "";
-    const label = isMainSection && stripLabel ? "" : `${entry.section}: `;
+    const sectionText = stripLabel ? (CALENDAR_SECTION_LABELS[entry.section] || entry.section) : entry.section;
+    const label = isMainSection && stripLabel ? "" : `${sectionText}: `;
     if (entry.intervals && entry.intervals.length) {
       const done = entry.intervals.filter(Boolean);
       const display = buildIntervalDisplayHtml(done, paceBoundsMap, entry.section, plannedIntervalCount, planDetails);
@@ -2224,7 +2272,9 @@ function renderLogEntryLines(data, paceBoundsMap, plannedIntervalCount, planDeta
       const mainPartPrefix = isMainSection && plannedMainPart ? `${plannedMainPart}<br>` : "";
       line += isMainSection ? `<strong${mainCls}>${label}${mainPartPrefix}${display}</strong>` : `${label}${display}`;
     } else {
-      const dur = entry.duration || "";
+      const dur = (stripLabel && CALENDAR_SECTION_LABELS[entry.section])
+        ? formatDurationTick(entry.duration || "", true)
+        : (entry.duration || "");
       const rawPulse = entry.pulse ? entry.pulse + (entry.pulse.includes("vid.") ? "" : "vid.") : "";
       const bounds = paceBoundsMap?.[entry.section];
       const paceHtml = entry.pace ? colorPaceValue(entry.pace, bounds) : "";
@@ -4930,7 +4980,7 @@ function openPlanLogDialog(planId) {
           html += `<div class="log-section-row" data-log-section="${line.split(":")[0]}">
         <div class="log-target">${line}</div>
         <div class="field-grid">
-          <label>Ilgums/garums <input class="log-actual-duration" /></label>
+          <label>Garums/ilgums <input class="log-actual-duration" /></label>
         </div>
       </div>`;
         } else {
@@ -4943,7 +4993,7 @@ function openPlanLogDialog(planId) {
       html += `<div class="log-section-row" data-log-section="${line.split(":")[0]}">
         <div class="log-target">${line}</div>
         <div class="field-grid field-grid-3">
-          <label>Ilgums/garums <input class="log-actual-duration" /></label>
+          <label>Garums/ilgums <input class="log-actual-duration" /></label>
           <label>Vidējais/diapazona pulss <input class="log-actual-pulse" /></label>
           ${paceField}
         </div>
@@ -4953,7 +5003,7 @@ function openPlanLogDialog(planId) {
       const sectionName = line.startsWith("Velo:") ? "Velo" : "Pamatdaļa";
       html += `<div class="log-section-row" data-log-section="${sectionName}">
         <div class="log-target">${line}</div><div class="field-grid">
-          <label>Ilgums/garums <input class="log-actual-duration" /></label>
+          <label>Garums/ilgums <input class="log-actual-duration" /></label>
           <label>Vidējais/diapazona pulss <input class="log-actual-pulse" /></label>
         </div>
       </div>`;
@@ -5077,7 +5127,7 @@ function openLogDialog(dateStr) {
           html += `<div class="log-section-row" data-log-section="${line.split(":")[0]}">
           <div class="log-target">${line}</div>
           <div class="field-grid">
-            <label>Ilgums/garums <input class="log-actual-duration" /></label>
+            <label>Garums/ilgums <input class="log-actual-duration" /></label>
           </div>
         </div>`;
         } else {
@@ -5088,7 +5138,7 @@ function openLogDialog(dateStr) {
         html += `<div class="log-section-row" data-log-section="${line.split(":")[0]}">
           <div class="log-target">${line}</div>
           <div class="field-grid">
-            <label>Ilgums/garums <input class="log-actual-duration" /></label>
+            <label>Garums/ilgums <input class="log-actual-duration" /></label>
             <label>Vidējais/diapazona pulss <input class="log-actual-pulse" /></label>
             ${paceField}
           </div>

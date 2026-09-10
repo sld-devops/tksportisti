@@ -408,6 +408,7 @@ h4 {
      the two together left a band of empty background under the title. */
   padding: 10px 20px 20px;
   position: relative;
+  transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .layout {
@@ -446,14 +447,28 @@ h4 {
   .app-body.panel-collapsed {
     grid-template-columns: 0 1fr;
   }
+  /* Width itself is never set here - the panel is a default-stretch grid item,
+     so animating .app-body's grid-template-columns above already resizes it
+     smoothly frame by frame. Setting an explicit width would freeze it at that
+     value instantly and defeat the animation entirely. Opacity is faded on top
+     to hide the text reflowing as the column narrows, and `visibility` is only
+     delayed (not transitioned) so the panel stays interactive/visible for the
+     whole shrink and is taken out of the tab order only once fully collapsed;
+     expanding switches it back to visible immediately (no delay declared on
+     the base `.planner-panel` rule below). */
+  .planner-panel {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+  }
   .app-body.panel-collapsed .planner-panel {
     overflow: hidden;
     min-width: 0;
-    width: 0;
     visibility: hidden;
+    opacity: 0;
     padding: 0;
     margin: 0;
     border: 0;
+    transition: opacity 0.2s ease, visibility 0s linear 0.3s;
   }
 }
 
@@ -928,7 +943,7 @@ h4 {
   overflow: hidden;
   max-height: 2000px;
   opacity: 1;
-  transition: max-height 0.35s ease, opacity 0.25s ease, margin 0.25s ease;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, margin 0.25s ease;
 }
 .panel.collapsed .panel-body {
   max-height: 0;
@@ -1377,7 +1392,7 @@ h4 {
 .training-bar-body {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .training-bar:not(.collapsed) .training-bar-body {
@@ -1771,7 +1786,7 @@ h4 {
   overflow: hidden;
   max-height: 2000px;
   opacity: 1;
-  transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.25s ease;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, padding 0.25s ease;
 }
 .stats-collapsible.collapsed .panel-body {
   max-height: 0;
@@ -2615,10 +2630,17 @@ label {
   font-size: 0.8rem;
   font-weight: 600;
   padding: 4px 8px;
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 
 .secondary-action-sm:hover {
   background: var(--surface-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(21, 23, 26, 0.16);
+}
+
+.secondary-action-sm:active {
+  transform: translateY(0);
 }
 
 .race-tabs {
@@ -2646,12 +2668,21 @@ label {
   background: var(--surface-alt);
   border: 1px solid var(--line);
   color: var(--ink);
-  transition: background 0.15s;
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 
+.add-day-button:hover,
 .secondary-action:hover,
 .delete-action:hover {
   background: var(--surface-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(21, 23, 26, 0.18);
+}
+
+.add-day-button:active,
+.secondary-action:active,
+.delete-action:active {
+  transform: translateY(0);
 }
 
 .add-day-button {
@@ -3308,6 +3339,12 @@ label {
   padding: 12px;
   position: relative;
   box-shadow: 0 3px 8px rgba(21, 23, 26, 0.18), 0 1px 3px rgba(21, 23, 26, 0.12);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.session-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(21, 23, 26, 0.22), 0 2px 5px rgba(21, 23, 26, 0.15);
 }
 
 .session-card h3 {
@@ -3359,12 +3396,14 @@ label {
 .log-notes {
   background: #fff;
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: 6px;
+  box-sizing: border-box;
   color: var(--ink);
   font-size: 0.86rem;
   line-height: 1.35;
   margin-bottom: 8px;
   padding: 8px;
+  width: 100%;
 }
 
 .comment-label {
@@ -4235,6 +4274,17 @@ label {
 @keyframes backdrop-in {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* Runs once each time #appView goes from [hidden] to visible (login, or
+   switching back from the auth screen) - the browser starts a CSS animation
+   the moment an element becomes rendered, so no JS trigger is needed. */
+@keyframes app-view-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+#appView {
+  animation: app-view-in 0.3s ease;
 }
 
 /* ---- Session dialog ---- */
