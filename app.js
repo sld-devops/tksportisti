@@ -2010,6 +2010,26 @@ function getPlannedIntervalBlocks(planDetails) {
   return [];
 }
 
+// Parallel to getPlannedIntervalBlocks: the segment length for each of the
+// same blocks (6x400m + 4x200m -> ["400m", "200m"]), used to label a logged
+// "No"/"Līdz" range with what it actually represents ("7x400m ...").
+function getPlannedIntervalLengths(planDetails) {
+  if (!planDetails) return [];
+  for (const line of planDetails.split("\n")) {
+    if (!line.includes("Pamatdaļa:")) continue;
+    if (isVarIntervalLine(line)) {
+      const result = parseSegmentsFromVarLine(line);
+      const pattern = result.segments.map((seg) => seg.length);
+      const lengths = [];
+      for (let lap = 0; lap < Math.max(1, result.laps); lap++) lengths.push(...pattern);
+      return lengths;
+    }
+    const m = closeLengthUnitGap(line).match(/(\d+)x([^\s;()]+)/);
+    if (m) return [m[2]];
+  }
+  return [];
+}
+
 // The athlete writes either bare seconds ("72.5") or mm:ss ("5:30"), so the
 // average comes back in whichever style was used. One value is not an
 // average, so a lone interval gets nothing.
@@ -2028,10 +2048,25 @@ function averageIntervalTime(paceStrings) {
   return String(Math.round(avg * 10) / 10);
 }
 
+// Filters out empty logged intervals while keeping any saved "Reizes" counts
+// lined up with the values that survive - `intervals` and `reps` are saved
+// as two same-length, same-order arrays (see saveLogBtn), but only
+// `intervals` is ever filtered for display.
+function zipDoneIntervals(intervals, reps) {
+  const done = [];
+  const doneReps = [];
+  (intervals || []).forEach((v, i) => {
+    if (!v) return;
+    done.push(v);
+    doneReps.push(reps ? reps[i] : "");
+  });
+  return { done, doneReps };
+}
+
 // Builds the "76.5, 77.5, ... (vid. 74.6) + 31.5, 33.1, ... (vid. 32.3)" line:
 // each planned block on its own, joined with " + ", extras beyond the plan
 // appended the way they always were.
-function buildIntervalDisplayHtml(done, paceBoundsMap, section, plannedIntervalCount, planDetails) {
+function buildIntervalDisplayHtml(done, paceBoundsMap, section, plannedIntervalCount, planDetails, doneReps) {
   const colored = [];
   const paces = [];
   const isRange = [];
@@ -2072,9 +2107,19 @@ function buildIntervalDisplayHtml(done, paceBoundsMap, section, plannedIntervalC
     ? Math.min(done.length, plannedIntervalCount)
     : done.length;
 
-  const blockPart = (from, to) => {
+  const lengths = getPlannedIntervalLengths(planDetails);
+  const blockPart = (from, to, blockIdx) => {
     // A range already IS the block's summary - nothing to list or average.
-    if (isRange[from]) return colored[from];
+    // Label it with how many reps it actually represents (what the athlete
+    // typed in "Reizes", or the planned count when nothing was saved for it,
+    // e.g. an older log) and the segment's length, so "3:49 - 3:53" reads as
+    // "7x1km 3:49 - 3:53" instead of looking like a single unrepeated rep.
+    if (isRange[from]) {
+      const repsVal = (doneReps && doneReps[from]) || (blockIdx != null && sizes[blockIdx] != null ? sizes[blockIdx] : "");
+      const lengthVal = blockIdx != null ? lengths[blockIdx] : "";
+      const prefix = repsVal && lengthVal ? `${escapeHtml(String(repsVal))}x${escapeHtml(lengthVal)} ` : "";
+      return prefix + colored[from];
+    }
     const avg = averageIntervalTime(paces.slice(from, to));
     return colored.slice(from, to).join(", ")
       + (avg ? ` <span class="interval-avg">(vid. ${avg})</span>` : "");
@@ -2083,12 +2128,12 @@ function buildIntervalDisplayHtml(done, paceBoundsMap, section, plannedIntervalC
   const sizes = getPlannedIntervalBlocks(planDetails);
   const parts = [];
   let idx = 0;
-  sizes.forEach((size) => {
+  sizes.forEach((size, blockIdx) => {
     if (idx >= plannedCount) return;
     // A range block collapses the plan's whole rep count into the one value
     // that was actually saved for it.
     const take = isRange[idx] ? 1 : Math.min(size, plannedCount - idx);
-    parts.push(blockPart(idx, idx + take));
+    parts.push(blockPart(idx, idx + take, blockIdx));
     idx += take;
   });
   // No plan to group by, or the plan's blocks ran out before the times did.
@@ -2128,8 +2173,8 @@ function extractLogMainPartHtml(logData, paceBoundsMap, plannedIntervalCount, pl
   const main = entries.find(e => e.section === "Pamatdaļa") || entries[0];
   if (!main) return "";
   if (main.intervals && main.intervals.length) {
-    const done = main.intervals.filter(Boolean);
-    return buildIntervalDisplayHtml(done, paceBoundsMap, main.section, plannedIntervalCount, planDetails);
+    const { done, doneReps } = zipDoneIntervals(main.intervals, main.reps);
+    return buildIntervalDisplayHtml(done, paceBoundsMap, main.section, plannedIntervalCount, planDetails, doneReps);
   }
   const rawPulse = main.pulse ? main.pulse + (main.pulse.includes("vid.") ? "" : "vid.") : "";
   const bounds = paceBoundsMap?.[main.section];
@@ -2266,8 +2311,8 @@ function renderLogEntryLines(data, paceBoundsMap, plannedIntervalCount, planDeta
     const sectionText = stripLabel ? (CALENDAR_SECTION_LABELS[entry.section] || entry.section) : entry.section;
     const label = isMainSection && stripLabel ? "" : `${sectionText}: `;
     if (entry.intervals && entry.intervals.length) {
-      const done = entry.intervals.filter(Boolean);
-      const display = buildIntervalDisplayHtml(done, paceBoundsMap, entry.section, plannedIntervalCount, planDetails);
+      const { done, doneReps } = zipDoneIntervals(entry.intervals, entry.reps);
+      const display = buildIntervalDisplayHtml(done, paceBoundsMap, entry.section, plannedIntervalCount, planDetails, doneReps);
       // The executed times always start on their own line, below the planned task.
       const mainPartPrefix = isMainSection && plannedMainPart ? `${plannedMainPart}<br>` : "";
       line += isMainSection ? `<strong${mainCls}>${label}${mainPartPrefix}${display}</strong>` : `${label}${display}`;
@@ -4642,15 +4687,23 @@ saveLogBtn.addEventListener("click", async () => {
       const pulse = el.querySelector(".log-actual-pulse")?.value || "";
       const pace = el.querySelector(".log-actual-pace")?.value || "";
       const intervals = [];
+      // Parallel to `intervals`, one entry per block - the actual rep count
+      // typed in a block's own "Reizes" box (see the "No"/"Līdz" branch
+      // below), or "" for a block that has none (a single-rep box, or an
+      // old-style extra row).
+      const reps = [];
       el.querySelectorAll("[data-log-interval]").forEach((inp) => {
         // A "No"/"Līdz" pair is one logged block, not two - the "to" box is
         // folded into its "from" partner's entry and skipped on its own.
         if (inp.classList.contains("log-range-to")) return;
         if (inp.classList.contains("log-range-from")) {
-          const to = inp.closest(".field-grid")?.querySelector(".log-range-to");
+          const fg = inp.closest(".field-grid");
+          const to = fg?.querySelector(".log-range-to");
+          const repsInp = fg?.querySelector(".log-actual-reps");
           const from = inp.value.trim();
           const toVal = to ? to.value.trim() : "";
           intervals.push(from && toVal ? from + "-" + toVal : (from || toVal || ""));
+          reps.push(repsInp ? repsInp.value.trim() : "");
           return;
         }
         const extraRow = inp.closest('.extra-interval-row');
@@ -4660,8 +4713,9 @@ saveLogBtn.addEventListener("click", async () => {
         } else {
           intervals.push(inp.value);
         }
+        reps.push("");
       });
-      entries.push({ section, duration, pulse, intervals, pace });
+      entries.push({ section, duration, pulse, intervals, reps, pace });
     });
     if (logDialogPlanId) {
       // Looked up straight from the database (not the in-memory `logEntries`
@@ -4822,7 +4876,7 @@ function addExtraIntervalRow(hostEl, defaultDist, defaultPace) {
 // log that already has an extra saved (from before this change) still needs
 // somewhere to land when it's reopened - see logDialogFillIntervals below.
 
-function logDialogFillIntervals(sectionEl, intervals) {
+function logDialogFillIntervals(sectionEl, intervals, reps) {
   // Three shapes, told apart by punctuation when a saved log is reopened:
   // a planned single value is just the time; an old-style extra is
   // "<distance> <time>" (a space); a block logged as a range is one
@@ -4866,6 +4920,13 @@ function logDialogFillIntervals(sectionEl, intervals) {
         const dashIdx = val.indexOf("-");
         rangeFrom.value = val.substring(0, dashIdx);
         rangeTo.value = val.substring(dashIdx + 1);
+        // The reps box already defaults to the planned count from the HTML
+        // itself - only overwrite it when a saved value actually exists.
+        const repVal = reps ? reps[i] : "";
+        if (repVal) {
+          const repsInp = host.querySelector(".log-actual-reps");
+          if (repsInp) repsInp.value = repVal;
+        }
         i += 1;
       } else {
         // An older entry, logged one split per repetition - take this block's
@@ -4921,8 +4982,10 @@ function openPlanLogDialog(planId) {
       || line.startsWith("Apavi:") || line.startsWith("• Apavi:")) return;
     if (isVarIntervalLine(line)) {
       const result = parseSegmentsFromVarLine(line);
-      html += `<div class="log-section-row" data-log-section="Pamatdaļa">
-        <div class="log-target">${line}</div>`;
+      // No section-wide `.log-target` here (unlike the other branches below) -
+      // every segment box already carries its own "NxLENGTH(pace)" label right
+      // above its fields, so repeating the whole line here duplicated it.
+      html += `<div class="log-section-row" data-log-section="Pamatdaļa">`;
       let globalIdx = 0;
       const lapCount = Math.max(1, result.laps);
       // The whole block comes round again on every lap, so each lap gets its
@@ -4935,9 +4998,10 @@ function openPlanLogDialog(planId) {
             const ph = isDurationLength(seg.length) ? ' placeholder="temps"' : "";
             html += `<div class="var-seg-log-group">
               <div class="log-target">${count}x${escapeHtml(seg.length)}${seg.pace ? "(" + escapeHtml(seg.pace) + ")" : ""}</div>
-              <div class="field-grid">
+              <div class="field-grid field-grid-3">
                 <label>No <input class="log-interval-pace var-seg-pace-input log-range-from" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}"${ph} /></label>
                 <label>Līdz <input class="log-interval-pace var-seg-pace-input log-range-to" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}"${ph} /></label>
+                <label>Reizes <input class="log-actual-reps" type="text" inputmode="numeric" value="${count}" /></label>
               </div></div>`;
             globalIdx++;
           } else {
@@ -4963,10 +5027,11 @@ function openPlanLogDialog(planId) {
         const durationPlaceholder = lengthMatch && isDurationLength(lengthMatch[2]) ? ' placeholder="temps"' : "";
         html += `<div class="log-section-row" data-log-section="Pamatdaļa">
           <div class="log-target">${line}</div>
-          <div class="field-grid">`;
+          <div class="field-grid${count > 1 ? " field-grid-3" : ""}">`;
         if (count > 1) {
           html += `<label>No <input class="log-interval-pace log-range-from" data-log-interval="0"${durationPlaceholder} /></label>
-            <label>Līdz <input class="log-interval-pace log-range-to" data-log-interval="0"${durationPlaceholder} /></label>`;
+            <label>Līdz <input class="log-interval-pace log-range-to" data-log-interval="0"${durationPlaceholder} /></label>
+            <label>Reizes <input class="log-actual-reps" type="text" inputmode="numeric" value="${count}" /></label>`;
         } else {
           html += `<label>1. atkārtojums <input class="log-interval-pace" data-log-interval="0"${durationPlaceholder} /></label>`;
         }
@@ -5026,7 +5091,7 @@ function openPlanLogDialog(planId) {
       if (pulseInput && entry.pulse) pulseInput.value = entry.pulse;
       const paceInput = sectionEl.querySelector(".log-actual-pace");
       if (paceInput && entry.pace) paceInput.value = entry.pace;
-      if (entry.intervals) logDialogFillIntervals(sectionEl, entry.intervals);
+      if (entry.intervals) logDialogFillIntervals(sectionEl, entry.intervals, entry.reps);
     });
   }
 
@@ -5072,8 +5137,8 @@ function openLogDialog(dateStr) {
         || line.startsWith("Apavi:") || line.startsWith("• Apavi:")) return;
       if (isVarIntervalLine(line)) {
         const result = parseSegmentsFromVarLine(line);
-        html += `<div class="log-section-row" data-log-section="Pamatdaļa">
-          <div class="log-target">${line}</div>`;
+        // No section-wide `.log-target` here - see openPlanLogDialog.
+        html += `<div class="log-section-row" data-log-section="Pamatdaļa">`;
         let globalIdx = 0;
         const lapCount = Math.max(1, result.laps);
         // Same as in openLogDialog: one set of boxes per lap.
@@ -5085,9 +5150,10 @@ function openLogDialog(dateStr) {
               const ph = isDurationLength(seg.length) ? ' placeholder="temps"' : "";
               html += `<div class="var-seg-log-group">
                 <div class="log-target">${count}x${escapeHtml(seg.length)}${seg.pace ? "(" + escapeHtml(seg.pace) + ")" : ""}</div>
-                <div class="field-grid">
+                <div class="field-grid field-grid-3">
                   <label>No <input class="log-interval-pace var-seg-pace-input log-range-from" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}"${ph} /></label>
                   <label>Līdz <input class="log-interval-pace var-seg-pace-input log-range-to" data-log-interval="${globalIdx}" data-target-pace="${escapeHtml(seg.pace || "")}" data-target-dist="${escapeHtml(seg.length || "")}"${ph} /></label>
+                  <label>Reizes <input class="log-actual-reps" type="text" inputmode="numeric" value="${count}" /></label>
                 </div></div>`;
               globalIdx++;
             } else {
@@ -5110,10 +5176,11 @@ function openLogDialog(dateStr) {
           const durationPlaceholder = lengthMatch && isDurationLength(lengthMatch[2]) ? ' placeholder="temps"' : "";
           html += `<div class="log-section-row" data-log-section="Pamatdaļa">
             <div class="log-target">${line}</div>
-            <div class="field-grid">`;
+            <div class="field-grid${count > 1 ? " field-grid-3" : ""}">`;
           if (count > 1) {
             html += `<label>No <input class="log-interval-pace log-range-from" data-log-interval="0"${durationPlaceholder} /></label>
-              <label>Līdz <input class="log-interval-pace log-range-to" data-log-interval="0"${durationPlaceholder} /></label>`;
+              <label>Līdz <input class="log-interval-pace log-range-to" data-log-interval="0"${durationPlaceholder} /></label>
+              <label>Reizes <input class="log-actual-reps" type="text" inputmode="numeric" value="${count}" /></label>`;
           } else {
             html += `<label>1. atkārtojums <input class="log-interval-pace" data-log-interval="0"${durationPlaceholder} /></label>`;
           }
@@ -5168,7 +5235,7 @@ function openLogDialog(dateStr) {
       if (pulseInput && entry.pulse) pulseInput.value = entry.pulse;
       const paceInput = sectionEl.querySelector(".log-actual-pace");
       if (paceInput && entry.pace) paceInput.value = entry.pace;
-      if (entry.intervals) logDialogFillIntervals(sectionEl, entry.intervals);
+      if (entry.intervals) logDialogFillIntervals(sectionEl, entry.intervals, entry.reps);
     });
   }
 
