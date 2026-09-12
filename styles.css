@@ -3470,8 +3470,9 @@ label {
 
 .profile-url-row {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
 }
 
 .profile-url-row a {
@@ -3517,8 +3518,6 @@ label {
   padding: 2px 8px;
   border-radius: 4px;
   transition: background 0.15s;
-  margin-top: 4px;
-  align-self: flex-start;
 }
 .url-edit-btn:hover {
   background: var(--bg-secondary);

@@ -360,7 +360,7 @@ function getGeneratedTraining() {
     const mainAdditionalText = mainAdditional.value.trim();
     if (mainAdditionalText) lines.push(`Papildus uzdevums: ${mainAdditionalText}`);
     if (cooldown) lines.push(cooldown);
-    if (raceNutrition.checked) lines.push("• Izmantot sacensību uzturu");
+    if (raceNutrition.checked) lines.push("✓ Sacensību uzturs");
     const title = customName.value.trim() || OTHER_RUN_TYPE;
     const customIcon = getSelectedIcon("customIconPicker");
     return { title, details: lines.join("\n"), custom_icon: customIcon };
@@ -408,11 +408,11 @@ function getGeneratedTraining() {
   const footwearParts = [];
   if (spikes.checked && isIntervalType(type)) footwearParts.push("Naglenes");
   if (raceShoes.checked && (isIntervalType(type) || type === "Tempa skrējiens")) footwearParts.push("Sacensību apavi");
-  if (footwearParts.length) lines.push(`• Apavi: ${footwearParts.join(", ")}`);
+  if (footwearParts.length) lines.push(`✓ ${footwearParts.join(", ")}`);
 
   // Grouped with the main part/footwear, not trailing after cooldown - the
   // owner's call 2026-09-05, reads more naturally next to what it applies to.
-  if (raceNutrition.checked) lines.push("• Izmantot sacensību uzturu");
+  if (raceNutrition.checked) lines.push("✓ Sacensību uzturs");
 
   if (cooldown) lines.push(cooldown);
 
@@ -452,7 +452,7 @@ function getEditPlanTraining() {
     const mainAdditionalText = getVal("epMainAdditional");
     if (mainAdditionalText) lines.push(`Papildus uzdevums: ${mainAdditionalText}`);
     if (cooldown) lines.push(cooldown);
-    if (getBool("epRaceNutrition")) lines.push("• Izmantot sacensību uzturu");
+    if (getBool("epRaceNutrition")) lines.push("✓ Sacensību uzturs");
     const title = getVal("epCustomName") || OTHER_RUN_TYPE;
     const customIcon = getSelectedIcon("epIconPicker");
     return { title, details: lines.join("\n"), custom_icon: customIcon };
@@ -507,11 +507,11 @@ function getEditPlanTraining() {
   const footwearParts = [];
   if (getBool("epSpikes") && isIntervalType(type)) footwearParts.push("Naglenes");
   if (getBool("epRaceShoes") && (isIntervalType(type) || type === "Tempa skrējiens")) footwearParts.push("Sacensību apavi");
-  if (footwearParts.length) lines.push(`• Apavi: ${footwearParts.join(", ")}`);
+  if (footwearParts.length) lines.push(`✓ ${footwearParts.join(", ")}`);
 
   // Same order as getGeneratedTraining(): grouped with the main part/footwear,
   // before cooldown, not trailing after it.
-  if (getBool("epRaceNutrition")) lines.push("• Izmantot sacensību uzturu");
+  if (getBool("epRaceNutrition")) lines.push("✓ Sacensību uzturs");
 
   if (cooldown) lines.push(cooldown);
 
@@ -1687,6 +1687,26 @@ function renderEditPlanPreview() {
 }
 // #endregion
 
+// A footwear line is written as "✓ Naglenes"/"✓ Sacensību apavi"/"✓ Naglenes,
+// Sacensību apavi" (2026-09-12 - the "Apavi:" label was dropped and the marker
+// changed from "•" to "✓", matching the nutrition line's own "✓ Sacensību
+// uzturu"). Older saved plans still carry the old "Apavi:"/"• Apavi:" label,
+// so both forms are recognised here - this is the one place that should know
+// either shape.
+function isFootwearDetailLine(line) {
+  return line.startsWith("Apavi:") || line.startsWith("• Apavi:")
+    || ((line.startsWith("✓ ") || line.startsWith("• ")) && (line.includes("Naglenes") || line.includes("Sacensību apavi")));
+}
+function extractFootwearText(line) {
+  return line.replace(/^[✓•]\s*/, "").replace(/^Apavi:\s*/, "");
+}
+// Same idea for the nutrition line: "✓ Sacensību uzturs" now, "•
+// Izmantot sacensību uzturu" (or the older label-less "Sacensību uzturs")
+// in plans saved before 2026-09-12.
+function isRaceNutritionLine(line) {
+  return line === "Sacensību uzturs" || line === "• Izmantot sacensību uzturu" || line === "✓ Sacensību uzturs";
+}
+
 // #region Reading the training "details" text back into the form (editing, templates)
 // This is the flip side of what getGeneratedTraining() does further up the
 // file - there the boxes were assembled into ONE text, here that text is
@@ -1764,10 +1784,10 @@ function parsePlanToForm(plan) {
       } else {
         document.getElementById("epIncludeDrills").checked = true;
       }
-    } else if (line === "Sacensību uzturs" || line === "• Izmantot sacensību uzturu") {
+    } else if (isRaceNutritionLine(line)) {
       document.getElementById("epRaceNutrition").checked = true;
-    } else if (line.startsWith("Apavi:") || line.startsWith("• Apavi:")) {
-      const footwearText = line.replace(/^•\s*/, "").slice("Apavi:".length);
+    } else if (isFootwearDetailLine(line)) {
+      const footwearText = extractFootwearText(line);
       document.getElementById("epSpikes").checked = footwearText.includes("Naglenes");
       document.getElementById("epRaceShoes").checked = footwearText.includes("Sacensību apavi");
     } else if (line.startsWith("Papildus uzdevums:")) {
@@ -1921,11 +1941,12 @@ function loadTemplateToForm(template) {
       } else {
         hasDrills = true;
       }
-    } else if (line === "Sacensību uzturs" || line === "• Izmantot sacensību uzturu") {
+    } else if (isRaceNutritionLine(line)) {
       setChecked("raceNutrition", true);
-    } else if (label === "Apavi" || label === "• Apavi") {
-      setChecked("spikes", rest.includes("Naglenes"));
-      setChecked("raceShoes", rest.includes("Sacensību apavi"));
+    } else if (isFootwearDetailLine(line)) {
+      const footwearText = extractFootwearText(line);
+      setChecked("spikes", footwearText.includes("Naglenes"));
+      setChecked("raceShoes", footwearText.includes("Sacensību apavi"));
     } else if (label === "Papildus uzdevums") {
       setVal("mainAdditional", rest);
     } else if (label === "Pamatdaļa" || label === "Velo") {
@@ -3083,6 +3104,11 @@ function render() {
     // Both belong to one week, so neither means anything in the month view.
     document.getElementById("weekComments").hidden = viewMode !== "week";
     document.getElementById("weekNumbers").hidden = viewMode !== "week";
+    // weekReviewedWrap sits outside #weekComments on purpose (see its own
+    // comment in index.html), so it isn't covered by the line above and needs
+    // its own hide here - otherwise switching to month view leaves it exactly
+    // as visible as it was on the last week-view render.
+    document.getElementById("weekReviewedWrap").hidden = viewMode !== "week";
     renderWeekEntryBadge();
     document.getElementById("monthModeTabs").hidden = viewMode !== "month";
     weekLabel.hidden = viewMode !== "week";
@@ -4978,8 +5004,7 @@ function openPlanLogDialog(planId) {
     // anything unusual goes in the free-text comment below instead. No row
     // is built for these lines at all.
     if (line.startsWith("Iesildīšanās:") || line.startsWith("Atsildīšanās:") || line === "Drill"
-      || line === "Sacensību uzturs" || line === "• Izmantot sacensību uzturu"
-      || line.startsWith("Apavi:") || line.startsWith("• Apavi:")) return;
+      || isRaceNutritionLine(line) || isFootwearDetailLine(line)) return;
     if (isVarIntervalLine(line)) {
       const result = parseSegmentsFromVarLine(line);
       // No section-wide `.log-target` here (unlike the other branches below) -
@@ -5133,8 +5158,7 @@ function openLogDialog(dateStr) {
       // Same as openPlanLogDialog: no warmup/cooldown/Drill/footwear/race-nutrition
       // execution row at all.
       if (line.startsWith("Iesildīšanās:") || line.startsWith("Atsildīšanās:") || line === "Drill"
-        || line === "Sacensību uzturs" || line === "• Izmantot sacensību uzturu"
-        || line.startsWith("Apavi:") || line.startsWith("• Apavi:")) return;
+        || isRaceNutritionLine(line) || isFootwearDetailLine(line)) return;
       if (isVarIntervalLine(line)) {
         const result = parseSegmentsFromVarLine(line);
         // No section-wide `.log-target` here - see openPlanLogDialog.
