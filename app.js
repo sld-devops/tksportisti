@@ -2088,6 +2088,43 @@ function zipDoneIntervals(intervals, reps) {
 // each planned block on its own, joined with " + ", extras beyond the plan
 // appended the way they always were.
 function buildIntervalDisplayHtml(done, paceBoundsMap, section, plannedIntervalCount, planDetails, doneReps) {
+  const sizes = getPlannedIntervalBlocks(planDetails);
+
+  // paceBoundsMap's "segN" keys are numbered per planned REP (see
+  // parseVarIntervalPaceBounds - a block of 8 reps takes up seg1..seg8), but
+  // a block logged as one collapsed "No-Līdz" range takes up only ONE `done`
+  // slot for its whole planned rep count. Once an earlier block is logged
+  // that way, `done`'s own index no longer lines up with the "segN" it
+  // should be coloured against - e.g. a 8x1km block logged as a single range
+  // leaves the following 2x200m block's value at done[1], which naively
+  // reads as "seg2" (still part of the 1km block) instead of "seg9" (the
+  // 200m target). Walk the planned blocks the same way the grouping loop
+  // below does, and remember which absolute rep number each done[i] should
+  // look its bounds up under.
+  const isRangeValueStr = (v) => {
+    const spaceIdx = v.indexOf(' ');
+    const paceStr = spaceIdx > -1 && spaceIdx < v.length - 1 ? v.substring(spaceIdx + 1).trim() : v;
+    const distStr = spaceIdx > -1 && spaceIdx < v.length - 1 ? v.substring(0, spaceIdx) : '';
+    return !distStr && /^[^\s-]+-[^\s-]+$/.test(paceStr);
+  };
+  const segNumForIndex = [];
+  {
+    let repNum = 1;
+    let di = 0;
+    sizes.forEach((size) => {
+      if (di >= done.length) return;
+      if (isRangeValueStr(done[di])) {
+        segNumForIndex[di] = repNum;
+        di += 1;
+      } else {
+        const take = Math.min(size, done.length - di);
+        for (let k = 0; k < take; k++) segNumForIndex[di + k] = repNum + k;
+        di += take;
+      }
+      repNum += size;
+    });
+  }
+
   const colored = [];
   const paces = [];
   const isRange = [];
@@ -2095,7 +2132,8 @@ function buildIntervalDisplayHtml(done, paceBoundsMap, section, plannedIntervalC
     const spaceIdx = v.indexOf(' ');
     const paceStr = spaceIdx > -1 && spaceIdx < v.length - 1 ? v.substring(spaceIdx + 1).trim() : v;
     const distStr = spaceIdx > -1 && spaceIdx < v.length - 1 ? v.substring(0, spaceIdx) : '';
-    const segBounds = paceBoundsMap?.[`seg${i + 1}`] || paceBoundsMap?.[section];
+    const segKey = segNumForIndex[i] != null ? `seg${segNumForIndex[i]}` : `seg${i + 1}`;
+    const segBounds = paceBoundsMap?.[segKey] || paceBoundsMap?.[section];
 
     // A block logged as "No"/"Līdz" is saved as one "<no>-<lidz>" value - no
     // space (that's the older extra-row shape), but a dash, which a single
@@ -2146,7 +2184,6 @@ function buildIntervalDisplayHtml(done, paceBoundsMap, section, plannedIntervalC
       + (avg ? ` <span class="interval-avg">(vid. ${avg})</span>` : "");
   };
 
-  const sizes = getPlannedIntervalBlocks(planDetails);
   const parts = [];
   let idx = 0;
   sizes.forEach((size, blockIdx) => {
@@ -2674,15 +2711,15 @@ function isWeekEntryFilled() {
   return [s.run_km, s.run_min, s.vfs_sfs_min, s.velo_min].some((v) => Number(v) > 0);
 }
 
-// Both roles see it: the athlete as a reminder, the coach as an answer to "has
-// this week been filled in yet" without having to ask.
+// Athlete-only reminder (2026-09-12): the coach isn't the one filling this in,
+// so seeing whether the athlete has done it yet isn't useful to them.
 function renderWeekEntryBadge() {
   const badge = document.getElementById("weekEntryBadge");
   if (!badge) return;
   const filled = isWeekEntryFilled();
   badge.textContent = filled ? "Nedēļas izpilde ievadīta" : "Nedēļas izpilde neievadīta";
   badge.classList.toggle("is-filled", filled);
-  badge.hidden = viewMode !== "week" || !getSelectedAthleteId();
+  badge.hidden = viewMode !== "week" || !getSelectedAthleteId() || isCoach();
 }
 
 function renderWeekNumbers() {
@@ -4075,7 +4112,7 @@ calendarGrid.addEventListener("click", async (event) => {
 
 // --- Month view expandable restriction/health text, and tap-a-training-to-reveal-full-plan ---
 document.addEventListener("click", (e) => {
-  const el = e.target.closest(".month-restriction-text, .month-health-text, .month-comment-text, .month-plan");
+  const el = e.target.closest(".month-restriction-text, .month-health-text, .month-comment-text, .month-plan-full .log-notes, .month-plan");
   if (el) el.classList.toggle("expanded");
 });
 

@@ -1045,7 +1045,7 @@ h4 {
   border-bottom: 1px solid var(--line);
 }
 #athleteDropdown .athlete-row:hover {
-  background: #f3f4f6;
+  background: var(--surface-hover);
 }
 #athleteDropdown .athlete-row.selected {
   background: #fff;
@@ -1080,7 +1080,8 @@ h4 {
   justify-content: center;
   /* The finished-week cross is drawn as two over-long bars and clipped to the
      box, which is what makes it run corner to corner whatever the border
-     width - a typed slot has a 3px border, an untyped one 2px. */
+     width - a typed slot and a finished untyped one both use a 3px border;
+     only a not-yet-finished slot (no cross drawn) keeps the base 2px. */
   overflow: hidden;
   position: relative;
   width: 22px;
@@ -1105,11 +1106,13 @@ h4 {
   transform: translate(-50%, -50%) rotate(-45deg);
 }
 /* A finished week with no type set is neutral, not green - green would read as
-   a fourth block-type colour next to the orange/blue/yellow ones. */
+   a fourth block-type colour next to the orange/blue/yellow ones. Border and
+   cross share --muted (not --ink) so the frame and the X read as one colour,
+   the same way a typed slot's frame and cross share its block-type colour. */
 .week-slot.week-slot-done {
   background: var(--info-bg);
-  border-color: var(--muted);
-  color: var(--ink);
+  border: 3px solid var(--muted);
+  color: var(--muted);
 }
 .week-slot.week-slot-no-plans {
   border-color: var(--danger);
@@ -2183,6 +2186,13 @@ label {
   grid-template-columns: auto auto;
 }
 
+/* The edit-plan dialog's Pamatdaļa duration box ("45-60min") sits in a
+   2-column .field-grid with Temps wrapping below it into the same column -
+   both were narrower than they needed to be for a range value. */
+#epMainDuration {
+  min-width: 150px;
+}
+
 .field-grid-3 {
   display: grid;
   gap: 12px;
@@ -2864,7 +2874,7 @@ label {
    sacensību uzturs/Drill) is secondary to the main part, so it reads smaller -
    see formatDetailsForCard() in app.js, the only place this class is written. */
 .task-secondary {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
 }
 
 /* The main-part line drops its "Pamatdaļa:" label in the calendar (both
@@ -4998,7 +5008,9 @@ textarea:disabled {
    the file with its own, rounder radius) - consolidated into this one rule,
    matching .task-card's corner rounding rather than a rounder one of its own. */
 .feeling-tag-badge {
-  display: inline-block;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
   font-size: 0.72rem;
   font-weight: 700;
   padding: 2px 8px;
@@ -5292,6 +5304,23 @@ textarea:disabled {
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
+}
+
+/* The athlete's free-text execution comment can run to several sentences -
+   clamped to 5 lines so one long comment doesn't stretch the whole day
+   column; a further click (wired next to the other .month-*-text toggles in
+   app.js) removes the clamp. Scoped to .month-plan-full only, since .log-notes
+   is shared with the week view and other dialogs where no clamp is wanted. */
+.month-plan-full .log-notes {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  overflow: hidden;
+  cursor: pointer;
+}
+.month-plan-full .log-notes.expanded {
+  display: block;
+  overflow: visible;
 }
 
 .day-health-text {
