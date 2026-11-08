@@ -1,4 +1,4 @@
-// "Pievienot savam kalendāram" - the athlete's personal calendar-subscription
+// "Pievienot plānu mobilajam kalendāram" - the athlete's personal calendar-subscription
 // link (supabase/functions/calendar-feed). The markup is static in index.html;
 // renderProfile() (panels/profile.js) only decides whether to show it.
 // Everything here runs on a tap, nothing on page load, so no request is made
