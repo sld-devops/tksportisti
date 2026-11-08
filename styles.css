@@ -1,7 +1,7 @@
 :root {
   color-scheme: light;
   --ink: #15171a;
-  --muted: #667085;
+  --muted: #566073;
   --line: #d9dee7;
   --panel: #eef7d9;
   /* Fixed page background photo (rotation removed 2026-09-03 at the owner's
@@ -66,7 +66,7 @@
   --race-bg: #e8f0fe;
   --race-border: #b9d0fb;
 
-  --rest: #4a7d78;
+  --rest: #3b6a65;
   --rest-dark: #386560;
   --rest-bg: #eaf3f2;
   --rest-border: #c7ddd9;
@@ -82,10 +82,10 @@
   --zone2-text: #2563eb;
   --zone3-tint: #fdf6dc;
   --zone3-line: #e2c85f;
-  --zone3-text: #a1730a;
+  --zone3-text: #7f5a05;
   --zone4-tint: #fdeedd;
   --zone4-line: #f0b47a;
-  --zone4-text: #c2620c;
+  --zone4-text: #9a4a08;
   --zone5-tint: #fdeaea;
   --zone5-line: #eb9f9f;
   --zone5-text: #c02c2c;
