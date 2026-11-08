@@ -722,6 +722,10 @@ async function getWeekStatuses(athleteIds, weekStartStr) {
   });
   (restrictionsRes.data || []).forEach(r => {
     if (!covered[r.athlete_id]) return;
+    // A work shift is information only and must not fill the week's cross (the
+    // coach decides what to do with that day). Function lives in
+    // panels/restrictions.js; guarded because db.js loads before it.
+    if (typeof isShiftRestriction === "function" && isShiftRestriction(r)) return;
     // end_date: null means single-day (= start_date), not open-ended - same
     // convention as everywhere else this table is read.
     const rStart = r.start_date < weekStartStr ? weekStartStr : r.start_date;

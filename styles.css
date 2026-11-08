@@ -7012,3 +7012,40 @@ body.is-dragging .session-card.is-draggable {
     margin-top: 20px;
   }
 }
+
+/* Quick work-shift choices under the restriction form's reason box: tapping one
+   writes its name into the box. Compact chips so all four fit a ~300px column. */
+.shift-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+
+.shift-preset-btn {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 10px;
+}
+
+.shift-preset-btn:hover {
+  background: var(--surface-hover);
+}
+
+/* A work shift is information the coach must not miss when planning, so its
+   note is larger and bolder than an ordinary restriction note (same colours). */
+.restriction-note-line.is-shift {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.month-restriction-text.is-shift {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
