@@ -341,17 +341,21 @@ function getDrillsPart() {
   return includeDrills.checked ? "Drill" : "";
 }
 
-// "Kāpinājumi beigās" — strides after an easy or medium run. A line of its own
+// "Kāpinājumi" — strides after an easy or medium run. A line of its own
 // in the details text, written either bare or with a small detail after a
-// colon ("Kāpinājumi beigās: 6x100m"). Offered for the easy and medium run
+// colon ("Kāpinājumi: 6x100m"). Offered for the easy and medium run
 // types only. Everything that reads or writes this line goes through these
 // four helpers, so the exact wording lives in one place.
-const STRIDES_LABEL = "Kāpinājumi beigās";
+const STRIDES_LABEL = "Kāpinājumi";
+// The first version wrote "Kāpinājumi beigās"; still recognised, so nothing
+// written in that wording is ever left unread.
+const STRIDES_LABEL_OLD = "Kāpinājumi beigās";
 function supportsStrides(type) {
   return type === "Atjaunojošais/lēnais skrējiens" || type === "Vidējas intensitātes skrējiens";
 }
 function isStridesLine(line) {
-  return typeof line === "string" && (line === STRIDES_LABEL || line.startsWith(STRIDES_LABEL + ":"));
+  return typeof line === "string"
+    && [STRIDES_LABEL, STRIDES_LABEL_OLD].some((l) => line === l || line.startsWith(l + ":"));
 }
 function buildStridesLine(checked, detail) {
   if (!checked) return "";
