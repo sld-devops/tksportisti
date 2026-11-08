@@ -7096,3 +7096,14 @@ body.is-dragging .session-card.is-draggable {
   font-size: 0.8rem;
   margin: 0;
 }
+
+/* The two sidebar buttons (calendar link, notification e-mail) each take their
+   own line, sized to their text, with a small gap between them. */
+.calendar-link > .panel-add-btn {
+  display: block;
+  width: fit-content;
+}
+
+.calendar-link > .panel-add-btn + .panel-add-btn {
+  margin-top: 6px;
+}

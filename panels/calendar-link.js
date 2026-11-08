@@ -14,6 +14,10 @@ let calendarLinkUrl = ""; // fetched once, kept until the page is reloaded
 function renderCalendarLink(show) {
   if (!calendarLinkBox) return;
   calendarLinkBox.hidden = !show;
+  // The athlete's "notification e-mail" button moves from the header to this
+  // box; the coach never sees the box, so the header button stays for them.
+  // (notifyEmailBtn is declared in auth.js.)
+  if (typeof notifyEmailBtn !== "undefined" && notifyEmailBtn) notifyEmailBtn.style.display = show ? "none" : "";
   // Leaving the athlete's own profile (e.g. switching role/account) closes it.
   if (!show) calendarLinkPanel.hidden = true;
 }
@@ -65,3 +69,6 @@ document.getElementById("calendarLinkCopy")?.addEventListener("click", async (e)
 });
 
 calendarLinkInput?.addEventListener("focus", () => calendarLinkInput.select());
+
+// Opens the very same dialog as the header button (auth.js owns its logic).
+document.getElementById("notifyEmailSideBtn")?.addEventListener("click", () => notifyEmailBtn.click());

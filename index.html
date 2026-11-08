@@ -148,6 +148,10 @@
                    calendar-subscription link for Google / iPhone calendars. -->
               <div class="calendar-link" id="calendarLinkBox" hidden>
                 <button class="secondary-action panel-add-btn" id="calendarLinkBtn" type="button">Pievienot plānu mobilajam kalendāram</button>
+                <!-- The athlete's notification-email button lives here (it leaves
+                     the header while this is shown); it just opens the same
+                     dialog as the header button the coach still uses. -->
+                <button class="secondary-action panel-add-btn" id="notifyEmailSideBtn" type="button">Pievienot e-pastu paziņojumiem</button>
                 <div class="calendar-link-panel" id="calendarLinkPanel" hidden>
                   <p class="calendar-link-error" id="calendarLinkError" hidden></p>
                   <div id="calendarLinkReady" hidden>
@@ -1087,7 +1091,7 @@
     <script src="panels/restrictions.js?v=6" defer></script>
     <script src="panels/races.js?v=3" defer></script>
     <script src="panels/profile.js?v=10" defer></script>
-    <script src="panels/calendar-link.js?v=2" defer></script>
+    <script src="panels/calendar-link.js?v=3" defer></script>
     <script src="panels/stats.js?v=12" defer></script>
     <script src="panels/interval-history.js?v=10" defer></script>
     <script src="panels/diary.js?v=2" defer></script>
