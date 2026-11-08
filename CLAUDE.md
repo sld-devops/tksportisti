@@ -494,6 +494,17 @@ Rebuilt twice on 2026-08-02: stacked bars → one combined line chart → **one 
 - Metrics that are zero across the whole period keep their heading but draw no line — a flat line on the baseline says nothing.
 - No dark mode: the app is light-only, so there is no second set of steps to validate.
 
+### The athlete's calendar link (`supabase/functions/calendar-feed`, `panels/calendar-link.js`)
+
+Added 2026-11-08 at the coach's request: an athlete can subscribe Google Calendar / the iPhone calendar to their plan, so changes appear without opening the portal.
+
+- **One function, two jobs.** `GET ?a=<athleteId>&t=<token>` returns the `.ics` feed and needs **no login** (calendar apps cannot send one), so the function must be deployed with **"Verify JWT" off**. `POST` with the athlete's session returns their personal link; the token is never built in the browser.
+- **The token is `HMAC-SHA256(CAL_SECRET, athleteId)`**, so nothing is stored — the owner cannot run migrations. Changing the `CAL_SECRET` Supabase secret invalidates every link at once; there is no per-athlete revoke.
+- **Events are all-day**: the plan only knows rīts/pusdiena/vakars, never a clock time, and inventing times would mislead. Trainings, races and rest days only; shifts/restrictions are the athlete's own business. Window: 14 days back to 120 days ahead. Each event has a stable UID (`plan-<id>`), so edits replace the old event.
+- **Refresh is the calendar app's choice, not ours** — Google takes hours to a day, iPhone is quicker. The e-mail notifications remain the way to reach someone about an urgent change.
+- **The ICS builder is pure** (between the `ICS BUILDER` markers in `index.ts`) so it can be checked in Node without Deno: byte-correct 75-octet line folding (Latvian letters and emoji are multi-byte), escaping, all-day end dates across month/year ends.
+- Like the other functions it is pasted into the Supabase dashboard by hand (no CI).
+
 ### Splitting `app.js` into smaller files (in progress)
 
 The owner agrees the single ~6100-line `app.js` is itself a source of the recurring damage and wants it split into smaller, focused files (still plain `<script>` tags, no bundler/build step needed) — but has delegated the *how* entirely to Claude, since they can't evaluate JS structure themselves.

@@ -150,6 +150,8 @@ function renderProfile() {
       });
     }
   });
+  // Only the athlete looking at their own profile gets the calendar link.
+  if (typeof renderCalendarLink === "function") renderCalendarLink(profile.role === "athlete" && canEdit);
 }
 
 // #endregion
