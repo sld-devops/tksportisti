@@ -2834,6 +2834,34 @@ function growAllCommentBoxes() {
   document.querySelectorAll(COMMENT_BOX_SELECTOR).forEach(growCommentBox);
 }
 
+// A box is sized for the width it has WHEN MEASURED, and a placeholder wraps to
+// two lines in a narrow day column ("Kā pagāja atpūtas diena?") but one line in
+// a wider one. So the measurement goes stale whenever the width changes after
+// the calendar was drawn: the web font finishing loading (Inter is wider than
+// the fallback it replaces), or the sidebar being collapsed/opened. A stale
+// measurement left the placeholder clipped at one line with scroll arrows.
+// Measure again on both. Only a WIDTH change counts, because growing the boxes
+// changes the height and must not trigger itself.
+document.fonts?.ready.then(growAllCommentBoxes);
+if (window.ResizeObserver) {
+  const lastWidth = new WeakMap();
+  let growFrame = 0;
+  const widthWatcher = new ResizeObserver((entries) => {
+    let changed = false;
+    for (const entry of entries) {
+      const w = Math.round(entry.contentRect.width);
+      if (lastWidth.get(entry.target) !== w) {
+        lastWidth.set(entry.target, w);
+        changed = true;
+      }
+    }
+    if (!changed) return;
+    cancelAnimationFrame(growFrame);
+    growFrame = requestAnimationFrame(growAllCommentBoxes);
+  });
+  [calendarGrid, document.getElementById("weekComments")].forEach((el) => el && widthWatcher.observe(el));
+}
+
 // Grow while typing too, so a coach writing a long comment sees all of it.
 //
 // This is "event delegation": instead of attaching a listener to every
