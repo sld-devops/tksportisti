@@ -361,13 +361,11 @@ function renderRestrictionCards() {
       <h3 class="restriction-form-title">${editing ? "Rediģēt ierobežojumu" : "Jauns ierobežojums"}</h3>
       <div class="mini-calendar" id="miniCalendar"></div>
       <div class="selected-dates-list" id="selectedDatesList"></div>
-      <div class="shift-presets" id="shiftPresets">
-        <span class="shift-presets-label">Darba maiņa</span>
-        ${SHIFT_PRESETS.map(name => `<button class="shift-preset-btn" type="button" data-shift-preset="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join("")}
-        <span class="shift-presets-hint">Maiņa tikai parāda dienu trenerim; treniņu joprojām var ielikt jebkurā dienas daļā.</span>
-      </div>
       <div class="tod-radio-group">${todRadiosHtml}</div>
       <label>Iemesls <textarea id="restrictionReasonInput" class="restriction-input" rows="2">${editing ? escapeHtml(editing.reason || "") : ""}</textarea></label>
+      <div class="shift-presets" id="shiftPresets">
+        ${SHIFT_PRESETS.map(name => `<button class="shift-preset-btn" type="button" data-shift-preset="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join("")}
+      </div>
       <div class="restriction-form-actions">
         ${editing ? `<button class="cancel-action panel-add-btn" id="cancelRestrictionEditBtn" type="button">Atcelt</button>` : ""}
         <button class="secondary-action panel-add-btn" id="saveRestrictionBtn" type="button" disabled>${editing ? "Saglabāt" : "Pievienot"}</button>

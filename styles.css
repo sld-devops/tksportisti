@@ -7013,22 +7013,13 @@ body.is-dragging .session-card.is-draggable {
   }
 }
 
-/* Quick work-shift choices above the restriction form's reason box. Compact
-   chips so all four fit on a ~300px sidebar row or two; the label says what
-   they are. */
+/* Quick work-shift choices under the restriction form's reason box: tapping one
+   writes its name into the box. Compact chips so all four fit a ~300px column. */
 .shift-presets {
-  align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin: 0 0 10px;
-}
-
-.shift-presets-label {
-  color: var(--muted);
-  font-size: 0.78rem;
-  font-weight: 700;
-  width: 100%;
+  margin: 8px 0 10px;
 }
 
 .shift-preset-btn {
@@ -7044,11 +7035,4 @@ body.is-dragging .session-card.is-draggable {
 
 .shift-preset-btn:hover {
   background: var(--surface-hover);
-}
-
-.shift-presets-hint {
-  color: var(--muted);
-  font-size: 0.75rem;
-  line-height: 1.35;
-  width: 100%;
 }
