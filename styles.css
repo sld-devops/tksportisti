@@ -7003,3 +7003,12 @@ body.is-dragging .session-card.is-draggable {
 .day-fold-bar[hidden] {
   display: none;
 }
+
+/* On a touch screen the "Neizpildīts treniņš" checkbox sat 8px under the big
+   IERAKSTĪT IZPILDI button, close enough for a thumb to hit the wrong one. Only
+   the gap grows; nothing moves to a different place, so it costs no extra tap. */
+@media (pointer: coarse) {
+  .not-completed-row {
+    margin-top: 20px;
+  }
+}
