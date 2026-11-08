@@ -6943,3 +6943,50 @@ body.is-dragging .session-card.is-draggable {
     min-height: 40px;
   }
 }
+
+/* Athlete's phone layout: a day with nothing left to do folds to one line.
+   The heading is the toggle, so it must look tappable; the summary says what is
+   inside. The "Pierakstīt izpildīto" button stays visible when folded so that
+   writing down an unplanned run never needs the day opened first. */
+.day-column.is-collapsible > .day-name {
+  cursor: pointer;
+}
+
+.day-column.is-collapsible > .day-name .day-name-row::after {
+  color: var(--muted);
+  content: "▾";
+  flex: none;
+  font-size: 0.8rem;
+  margin-left: auto;
+  order: 3;
+  transition: transform 0.2s;
+}
+
+.day-column.is-collapsible.is-collapsed > .day-name .day-name-row::after {
+  transform: rotate(-90deg);
+}
+
+.day-column .day-summary {
+  color: var(--muted);
+  flex: 1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 0;
+  text-align: right;
+}
+
+.day-column.is-collapsible:not(.is-collapsed) .day-summary {
+  display: none;
+}
+
+.day-column.is-collapsed > .day-name {
+  margin-bottom: 0;
+}
+
+.day-column.is-collapsed > :not(.day-name):not(.self-log-add-btn) {
+  display: none;
+}
+
+.day-column.is-collapsed > .self-log-add-btn {
+  margin-top: 8px;
+}
