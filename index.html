@@ -405,6 +405,15 @@
                           <input id="includeKoptreniņš" type="checkbox" />
                           <span>Koptreniņš</span>
                         </label>
+                        <div id="stridesRow" hidden>
+                          <label class="checkbox-row">
+                            <input id="includeStrides" type="checkbox" />
+                            <span>Kāpinājumi</span>
+                          </label>
+                          <label id="stridesDetailRow" hidden>Skaits un garums
+                            <input id="stridesDetail" type="text" placeholder="piem. 6x100m" />
+                          </label>
+                        </div>
                       </div>
                       <label id="freeTextRow" hidden>
                         Pamatdaļas uzdevums
@@ -680,6 +689,15 @@
             <label id="epMainDurationLabel">Garums/ilgums <input id="epMainDuration" type="text" /></label>
             <label id="epMainPulseLabel">Pulss <input id="epMainPulse" type="text" /></label>
             <label id="epMainPaceLabel">Temps <input id="epTempoPace" type="text" /></label>
+          </div>
+          <div id="epStridesRow" hidden>
+            <label class="checkbox-row">
+              <input id="epIncludeStrides" type="checkbox" />
+              <span>Kāpinājumi</span>
+            </label>
+            <label id="epStridesDetailRow" hidden>Skaits un garums
+              <input id="epStridesDetail" type="text" placeholder="piem. 6x100m" />
+            </label>
           </div>
         </div>
 
