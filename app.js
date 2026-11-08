@@ -186,6 +186,8 @@ const intervalLength = document.getElementById("intervalLength");
 const intervalPace = document.getElementById("intervalPace");
 const mainAdditional = document.getElementById("mainAdditional");
 const mainDrills = document.getElementById("mainDrills");
+const includeStrides = document.getElementById("includeStrides");
+const stridesDetail = document.getElementById("stridesDetail");
 const mainDuration = document.getElementById("mainDuration");
 const mainExtraSection = document.getElementById("mainExtraSection");
 const mainFields = document.getElementById("mainFields");
@@ -339,6 +341,28 @@ function getDrillsPart() {
   return includeDrills.checked ? "Drill" : "";
 }
 
+// "Kāpinājumi beigās" — strides after an easy or medium run. A line of its own
+// in the details text, written either bare or with a small detail after a
+// colon ("Kāpinājumi beigās: 6x100m"). Offered for the easy and medium run
+// types only. Everything that reads or writes this line goes through these
+// four helpers, so the exact wording lives in one place.
+const STRIDES_LABEL = "Kāpinājumi beigās";
+function supportsStrides(type) {
+  return type === "Atjaunojošais/lēnais skrējiens" || type === "Vidējas intensitātes skrējiens";
+}
+function isStridesLine(line) {
+  return typeof line === "string" && (line === STRIDES_LABEL || line.startsWith(STRIDES_LABEL + ":"));
+}
+function buildStridesLine(checked, detail) {
+  if (!checked) return "";
+  const d = (detail || "").trim();
+  return d ? `${STRIDES_LABEL}: ${d}` : STRIDES_LABEL;
+}
+function stridesDetailOf(line) {
+  const i = line.indexOf(":");
+  return i === -1 ? "" : line.slice(i + 1).trim();
+}
+
 // Collects the "Izveidot jaunu treniņu" builder's input boxes into one
 // "details" text (see the explanation above). Returns an object
 // { title, details, ... } - `{ a, b }` here is an "object literal", roughly
@@ -403,6 +427,11 @@ function getGeneratedTraining() {
       main = formatPart(mainLabel, mainDuration.value, mainPulse.value, tempoPace.value);
     }
     if (main) lines.push(main);
+  }
+
+  if (supportsStrides(type)) {
+    const strides = buildStridesLine(includeStrides.checked, stridesDetail.value);
+    if (strides) lines.push(strides);
   }
 
   const footwearParts = [];
@@ -502,6 +531,11 @@ function getEditPlanTraining() {
       main = epFormatPart(mainLabel, "epMainDuration", "epMainPulse", "epTempoPace");
     }
     if (main) lines.push(main);
+  }
+
+  if (supportsStrides(type)) {
+    const strides = buildStridesLine(getBool("epIncludeStrides"), getVal("epStridesDetail"));
+    if (strides) lines.push(strides);
   }
 
   const footwearParts = [];
@@ -1537,6 +1571,11 @@ function renderCustomBuilder() {
   const koptreniņšRow = document.getElementById("koptreniņšRow");
   if (koptreniņšRow) koptreniņšRow.hidden = !isSimple;
 
+  const stridesAllowed = supportsStrides(type);
+  document.getElementById("stridesRow").hidden = !stridesAllowed;
+  if (!stridesAllowed) { includeStrides.checked = false; stridesDetail.value = ""; }
+  document.getElementById("stridesDetailRow").hidden = !includeStrides.checked;
+
   raceNutritionRow.hidden = false;
   const isTempo = type === "Tempa skrējiens";
   spikesRow.hidden = !isInterval;
@@ -1622,6 +1661,14 @@ function renderEditPlanBuilder() {
 
   const epKoptreniņšRow = document.getElementById("epKoptreniņšRow");
   if (epKoptreniņšRow) epKoptreniņšRow.hidden = !isSimple;
+
+  const epStridesAllowed = supportsStrides(type);
+  document.getElementById("epStridesRow").hidden = !epStridesAllowed;
+  if (!epStridesAllowed) {
+    document.getElementById("epIncludeStrides").checked = false;
+    document.getElementById("epStridesDetail").value = "";
+  }
+  document.getElementById("epStridesDetailRow").hidden = !document.getElementById("epIncludeStrides").checked;
 
   const epIsTempo = type === "Tempa skrējiens";
   document.getElementById("epSpikesRow").hidden = !isInterval;
@@ -1742,6 +1789,8 @@ function parsePlanToForm(plan) {
   document.getElementById("epIncludeDrills").checked = false;
   document.getElementById("epMainAdditional").value = "";
   document.getElementById("epMainDrills").checked = false;
+  document.getElementById("epIncludeStrides").checked = false;
+  document.getElementById("epStridesDetail").value = "";
   document.getElementById("epCooldownDuration").value = "";
   document.getElementById("epCooldownPulse").value = "";
   document.getElementById("epIntervalLength").value = "";
@@ -1784,6 +1833,9 @@ function parsePlanToForm(plan) {
       } else {
         document.getElementById("epIncludeDrills").checked = true;
       }
+    } else if (isStridesLine(line)) {
+      document.getElementById("epIncludeStrides").checked = true;
+      document.getElementById("epStridesDetail").value = stridesDetailOf(line);
     } else if (isRaceNutritionLine(line)) {
       document.getElementById("epRaceNutrition").checked = true;
     } else if (isFootwearDetailLine(line)) {
@@ -1856,6 +1908,8 @@ function clearCustomBuilderFields() {
   setChecked("includeCooldown", true);
   setChecked("includeDrills", false);
   setChecked("mainDrills", false);
+  setChecked("includeStrides", false);
+  setVal("stridesDetail", "");
   setChecked("includeKoptreniņš", false);
   setChecked("raceNutrition", false);
   setChecked("spikes", false);
@@ -1941,6 +1995,9 @@ function loadTemplateToForm(template) {
       } else {
         hasDrills = true;
       }
+    } else if (isStridesLine(line)) {
+      setChecked("includeStrides", true);
+      setVal("stridesDetail", stridesDetailOf(line));
     } else if (isRaceNutritionLine(line)) {
       setChecked("raceNutrition", true);
     } else if (isFootwearDetailLine(line)) {
@@ -4087,6 +4144,8 @@ document.getElementById("epVarAddSegment")?.addEventListener("click", () => {
   input?.addEventListener("input", renderSourcePicker);
   input?.addEventListener("change", renderSourcePicker);
 });
+includeStrides.addEventListener("change", () => { renderCustomBuilder(); renderCustomPreview(); });
+stridesDetail.addEventListener("input", () => renderCustomPreview());
 customType.addEventListener("change", () => {
   const t = customType.value;
   includeDrills.checked = t === SAME_INTERVAL_TYPE || t === "Intervāli" || t === VAR_INTERVAL_TYPE || t === "Tempa skrējiens";
@@ -4539,6 +4598,8 @@ document.getElementById("epVarSegmentList")?.addEventListener("input", () => {
 });
 document.getElementById("epIncludeWarmup")?.addEventListener("change", () => renderEditPlanPreview());
 document.getElementById("epIncludeCooldown")?.addEventListener("change", () => renderEditPlanPreview());
+document.getElementById("epIncludeStrides")?.addEventListener("change", () => { renderEditPlanBuilder(); renderEditPlanPreview(); });
+document.getElementById("epStridesDetail")?.addEventListener("input", () => renderEditPlanPreview());
 
 async function insertTrainingToDay(dateStr, training, tod = "") {
   try {
@@ -5145,7 +5206,7 @@ function openPlanLogDialog(planId) {
     // anything unusual goes in the free-text comment below instead. No row
     // is built for these lines at all.
     if (line.startsWith("Iesildīšanās:") || line.startsWith("Atsildīšanās:") || line === "Drill"
-      || isRaceNutritionLine(line) || isFootwearDetailLine(line)) return;
+      || isStridesLine(line) || isRaceNutritionLine(line) || isFootwearDetailLine(line)) return;
     if (isVarIntervalLine(line)) {
       const result = parseSegmentsFromVarLine(line);
       // No section-wide `.log-target` here (unlike the other branches below) -
@@ -5299,7 +5360,7 @@ function openLogDialog(dateStr) {
       // Same as openPlanLogDialog: no warmup/cooldown/Drill/footwear/race-nutrition
       // execution row at all.
       if (line.startsWith("Iesildīšanās:") || line.startsWith("Atsildīšanās:") || line === "Drill"
-        || isRaceNutritionLine(line) || isFootwearDetailLine(line)) return;
+        || isStridesLine(line) || isRaceNutritionLine(line) || isFootwearDetailLine(line)) return;
       if (isVarIntervalLine(line)) {
         const result = parseSegmentsFromVarLine(line);
         // No section-wide `.log-target` here - see openPlanLogDialog.
