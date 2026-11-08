@@ -7036,3 +7036,16 @@ body.is-dragging .session-card.is-draggable {
 .shift-preset-btn:hover {
   background: var(--surface-hover);
 }
+
+/* A work shift is information the coach must not miss when planning, so its
+   note is larger and bolder than an ordinary restriction note (same colours). */
+.restriction-note-line.is-shift {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.month-restriction-text.is-shift {
+  font-size: 0.72rem;
+  font-weight: 700;
+}

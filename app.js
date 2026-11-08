@@ -2556,7 +2556,7 @@ function renderCalendar() {
       // the restriction shows at all.
       const restrictionAlreadyShown = !dayPlans.length && !dayRaces.length && fullyRestricted;
       const restrictionNoteHtml = dayRestrictionsList.length && !restrictionAlreadyShown
-        ? `<div class="day-restriction-text">${dayRestrictionsList.map(r => `<div class="restriction-note-line"><span>${isShiftRestriction(r) ? "💼" : "🚫"}</span>${r.time_of_day ? `<span class="tod-badge restriction-tod-badge tod-${r.time_of_day}">${todLabel(r.time_of_day)}</span>` : ""}<span>${escapeHtml(r.reason)}</span></div>`).join("")}</div>`
+        ? `<div class="day-restriction-text">${dayRestrictionsList.map(r => `<div class="restriction-note-line${isShiftRestriction(r) ? " is-shift" : ""}"><span>${isShiftRestriction(r) ? "💼" : "🚫"}</span>${r.time_of_day ? `<span class="tod-badge restriction-tod-badge tod-${r.time_of_day}">${todLabel(r.time_of_day)}</span>` : ""}<span>${escapeHtml(r.reason)}</span></div>`).join("")}</div>`
         : "";
       // The athlete's own record of an unplanned training (panels/self-log.js).
       // While one is being edited its card is hidden, because the inline form
@@ -3143,7 +3143,7 @@ function renderMonthViewInline() {
       cells.push(`
         <div class="month-day-cell ${isOtherMonth ? "other-month" : ""}${isToday ? " today" : ""}${fullyRestricted ? " restricted-day" : ""}${cellBlockType ? " week-block-" + cellBlockType : ""}" data-date="${dateStr}">
           <div class="month-day-num">${d.getDate()}.</div>
-          ${dayRestrictionsList.length ? `<div class="month-restriction-text" role="button" tabindex="0">${dayRestrictionsList.every(isShiftRestriction) ? "💼" : "🚫"} ${escapeHtml(restrictionText)}</div>` : ""}
+          ${dayRestrictionsList.length ? `<div class="month-restriction-text${dayRestrictionsList.every(isShiftRestriction) ? " is-shift" : ""}" role="button" tabindex="0">${dayRestrictionsList.every(isShiftRestriction) ? "💼" : "🚫"} ${escapeHtml(restrictionText)}</div>` : ""}
           ${dayHealth ? `<div class="month-health-text" role="button" tabindex="0">⚕ ${escapeHtml(dayHealth.description)}</div>` : ""}
           ${isRestDay && !dayPlans.length && !dayRaces.length ? `<div class="day-rest-text">🌴 Brīvdiena</div>` : ""}
           ${racesHtml}
