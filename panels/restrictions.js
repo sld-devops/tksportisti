@@ -10,10 +10,22 @@ let restrictionEditingIds = [];
 let restrictionCalYear = new Date().getFullYear();
 let restrictionCalMonth = new Date().getMonth();
 
+// Work shifts the athlete can drop onto a day with one tap (the coach's list).
+// A shift is stored as an ordinary `restrictions` row whose reason is the shift
+// name (no new table), but it is INFORMATION only: it never blocks a day or a
+// day-part and never counts towards the week's "covered" cross, so the coach can
+// still plan a training in any part of that day. isShiftRestriction() is the one
+// place that tells the two apart; isTimeSlotRestricted() (below) and
+// getWeekStatuses() in db.js both skip shift rows through it.
+const SHIFT_PRESETS = ["12h dienas maiņa", "12h nakts maiņa", "24h maiņa", "Nakts bankets"];
+function isShiftRestriction(r) {
+  return !!r && SHIFT_PRESETS.includes((r.reason || "").trim());
+}
+
 // #region Restriction-checking helper functions (also used by app.js's calendar)
 function isTimeSlotRestricted(dateStr, tod, list = restrictions) {
   const dayRestrictions = list.filter(r =>
-    dateStr >= r.start_date && dateStr <= (r.end_date || r.start_date)
+    !isShiftRestriction(r) && dateStr >= r.start_date && dateStr <= (r.end_date || r.start_date)
   );
   if (dayRestrictions.length === 0) return false;
   for (const r of dayRestrictions) {
@@ -178,19 +190,17 @@ function updateSaveButtonState() {
 // #endregion
 
 // #region Saving and rendering the cards
-// Work shifts the athlete can drop onto a day with one tap (the coach's list).
-// They are ordinary restrictions whose reason is the shift name, so the coach
-// sees them in the calendar and the week's cross counts them with no new table.
-const SHIFT_PRESETS = ["12h dienas maiņa", "12h nakts maiņa", "24h maiņa", "Nakts bankets"];
-
 async function saveRestrictionForm() {
   const reason = document.getElementById("restrictionReasonInput")?.value.trim();
   if (!reason) { alert("Lūdzu, uzrakstiet iemeslu!"); return; }
   if (restrictionSelectedDates.size === 0) { alert("Lūdzu, izvēlieties vismaz vienu datumu!"); return; }
 
   const todBoxes = [...document.querySelectorAll('input[name="restrictionTod"]:checked')];
-  if (todBoxes.length === 0) { alert("Lūdzu, izvēlieties vismaz vienu dienas laiku!"); return; }
-  const tods = todBoxes.map(cb => cb.value || null);
+  // A work shift blocks nothing, so it needs no day-part; it is stored as one
+  // whole-day row (time_of_day null) that isTimeSlotRestricted() ignores.
+  const isShift = SHIFT_PRESETS.includes(reason);
+  if (todBoxes.length === 0 && !isShift) { alert("Lūdzu, izvēlieties vismaz vienu dienas laiku!"); return; }
+  const tods = todBoxes.length ? todBoxes.map(cb => cb.value || null) : [null];
   const athleteId = getSelectedAthleteId();
 
   // The selected dates are individual points on the calendar (e.g. Aug 3,
@@ -354,6 +364,7 @@ function renderRestrictionCards() {
       <div class="shift-presets" id="shiftPresets">
         <span class="shift-presets-label">Darba maiņa</span>
         ${SHIFT_PRESETS.map(name => `<button class="shift-preset-btn" type="button" data-shift-preset="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join("")}
+        <span class="shift-presets-hint">Maiņa tikai parāda dienu trenerim; treniņu joprojām var ielikt jebkurā dienas daļā.</span>
       </div>
       <div class="tod-radio-group">${todRadiosHtml}</div>
       <label>Iemesls <textarea id="restrictionReasonInput" class="restriction-input" rows="2">${editing ? escapeHtml(editing.reason || "") : ""}</textarea></label>
@@ -410,17 +421,14 @@ function renderRestrictionCards() {
         }
       });
     });
-    // A shift is just a restriction with a ready-made reason, so choosing one
-    // fills the reason AND ticks "Visa diena" - one tap instead of typing the
-    // reason and then finding the day-part. The date still comes from the
-    // calendar above. Nothing is saved until "Pievienot".
+    // A shift fills the reason and ticks NOTHING: it blocks no part of the day
+    // (see isShiftRestriction), so no day-part has to be chosen. The date comes
+    // from the calendar above; nothing is saved until "Pievienot".
     document.querySelectorAll("[data-shift-preset]").forEach(btn => {
       btn.addEventListener("click", () => {
         const reasonBox = document.getElementById("restrictionReasonInput");
         if (reasonBox) reasonBox.value = btn.dataset.shiftPreset;
-        document.querySelectorAll('input[name="restrictionTod"]').forEach(cb => {
-          cb.checked = cb.value === "";
-        });
+        document.querySelectorAll('input[name="restrictionTod"]').forEach(cb => { cb.checked = false; });
       });
     });
     document.getElementById("saveRestrictionBtn")?.addEventListener("click", saveRestrictionForm);

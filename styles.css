@@ -7045,3 +7045,10 @@ body.is-dragging .session-card.is-draggable {
 .shift-preset-btn:hover {
   background: var(--surface-hover);
 }
+
+.shift-presets-hint {
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.35;
+  width: 100%;
+}

@@ -2516,7 +2516,9 @@ function dayCollapseState(d) {
   d.dayRaces.forEach((r) => parts.push("🏁 " + escapeHtml(r.name || "")));
   if (d.daySelfLogs.length) parts.push("📝 Savs treniņš ✓");
   if (!d.dayPlans.length && !d.dayRaces.length && !d.daySelfLogs.length) {
+    const first = d.dayRestrictionsList && d.dayRestrictionsList[0];
     if (d.fullyRestricted) parts.push("🚫 " + escapeHtml(d.dayRestrictionReason || ""));
+    else if (first) parts.push((isShiftRestriction(first) ? "💼 " : "🚫 ") + escapeHtml(first.reason || ""));
     else if (d.dayNote?.is_rest_day) parts.push("🌴 Brīvdiena");
     else parts.push("Nav plāna");
   }
@@ -2554,7 +2556,7 @@ function renderCalendar() {
       // the restriction shows at all.
       const restrictionAlreadyShown = !dayPlans.length && !dayRaces.length && fullyRestricted;
       const restrictionNoteHtml = dayRestrictionsList.length && !restrictionAlreadyShown
-        ? `<div class="day-restriction-text">${dayRestrictionsList.map(r => `<div class="restriction-note-line"><span>🚫</span>${r.time_of_day ? `<span class="tod-badge restriction-tod-badge tod-${r.time_of_day}">${todLabel(r.time_of_day)}</span>` : ""}<span>${escapeHtml(r.reason)}</span></div>`).join("")}</div>`
+        ? `<div class="day-restriction-text">${dayRestrictionsList.map(r => `<div class="restriction-note-line"><span>${isShiftRestriction(r) ? "💼" : "🚫"}</span>${r.time_of_day ? `<span class="tod-badge restriction-tod-badge tod-${r.time_of_day}">${todLabel(r.time_of_day)}</span>` : ""}<span>${escapeHtml(r.reason)}</span></div>`).join("")}</div>`
         : "";
       // The athlete's own record of an unplanned training (panels/self-log.js).
       // While one is being edited its card is hidden, because the inline form
@@ -2616,7 +2618,7 @@ function renderCalendar() {
       // stays open, so logging a whole week costs no extra taps.
       const collapse = dayCollapseState({
         dateStr, todayStr, dayPlans, dayLog, dayRaces, dayNote, fullyRestricted,
-        dayRestrictionReason, daySelfLogs, selfLogFormOpen,
+        dayRestrictionReason, dayRestrictionsList, daySelfLogs, selfLogFormOpen,
       });
       const collapseClass = collapse.collapsible ? ` is-collapsible${collapse.collapsed ? " is-collapsed" : ""}` : "";
       const collapseAttrs = collapse.collapsible
@@ -3141,7 +3143,7 @@ function renderMonthViewInline() {
       cells.push(`
         <div class="month-day-cell ${isOtherMonth ? "other-month" : ""}${isToday ? " today" : ""}${fullyRestricted ? " restricted-day" : ""}${cellBlockType ? " week-block-" + cellBlockType : ""}" data-date="${dateStr}">
           <div class="month-day-num">${d.getDate()}.</div>
-          ${dayRestrictionsList.length ? `<div class="month-restriction-text" role="button" tabindex="0">🚫 ${escapeHtml(restrictionText)}</div>` : ""}
+          ${dayRestrictionsList.length ? `<div class="month-restriction-text" role="button" tabindex="0">${dayRestrictionsList.every(isShiftRestriction) ? "💼" : "🚫"} ${escapeHtml(restrictionText)}</div>` : ""}
           ${dayHealth ? `<div class="month-health-text" role="button" tabindex="0">⚕ ${escapeHtml(dayHealth.description)}</div>` : ""}
           ${isRestDay && !dayPlans.length && !dayRaces.length ? `<div class="day-rest-text">🌴 Brīvdiena</div>` : ""}
           ${racesHtml}
