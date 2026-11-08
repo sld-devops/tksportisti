@@ -2481,6 +2481,48 @@ function renderLogCard(log, dayCommentTaken) {
 // that after any change you have to remember to call the render*()
 // function again that draws the affected part of the screen (see
 // CLAUDE.md "Data flow pattern").
+// Days the athlete opened or closed by hand, keyed by date. A manual choice
+// wins over the default below, and survives the re-render that follows saving.
+const dayOpenOverride = new Map();
+
+// Decides whether a day in the athlete's phone layout is shown folded to one
+// line. The rule is "fold what has nothing left to do, keep open what does", so
+// nobody has to tap a day open just to write down a training:
+//   open  - today; a past day with a planned training that has no execution
+//           yet; any upcoming planned training (the athlete reads those); a
+//           race still waiting for its result; a day whose own-record form is open
+//   fold  - done days, rest days, restrictions, empty days, finished races
+// A folded day still shows its "Pierakstīt izpildīto" button (CSS), so writing
+// down an unplanned run is not one tap further away either.
+function dayCollapseState(d) {
+  const none = { collapsible: false, collapsed: false, summaryHtml: "" };
+  if (activeRole !== "athlete" || calendarMode !== "mobile") return none;
+
+  const isToday = d.dateStr === d.todayStr;
+  const isFuture = d.dateStr > d.todayStr;
+  const hasLog = (p) => d.dayLog.some((l) => l.plan_id === p.id);
+  const planNeedsLog = d.dayPlans.some((p) => p.completed !== false && !hasLog(p));
+  const upcomingPlan = isFuture && d.dayPlans.length > 0;
+  const raceOpen = d.dayRaces.some((r) => d.dateStr >= d.todayStr || !r.result_time);
+  const needsAction = isToday || planNeedsLog || upcomingPlan || raceOpen || d.selfLogFormOpen;
+
+  const override = dayOpenOverride.get(d.dateStr);
+  const collapsed = override === undefined ? !needsAction : !override;
+
+  const parts = [];
+  d.dayPlans.forEach((p) => {
+    parts.push(escapeHtml(displayTitle(p.title)) + (hasLog(p) ? " ✓" : ""));
+  });
+  d.dayRaces.forEach((r) => parts.push("🏁 " + escapeHtml(r.name || "")));
+  if (d.daySelfLogs.length) parts.push("📝 Savs treniņš ✓");
+  if (!d.dayPlans.length && !d.dayRaces.length && !d.daySelfLogs.length) {
+    if (d.fullyRestricted) parts.push("🚫 " + escapeHtml(d.dayRestrictionReason || ""));
+    else if (d.dayNote?.is_rest_day) parts.push("🌴 Brīvdiena");
+    else parts.push("Nav plāna");
+  }
+  return { collapsible: true, collapsed, summaryHtml: parts.join(" · ") };
+}
+
 function renderCalendar() {
   const athleteId = getSelectedAthleteId();
   const weekStart = currentWeekStart;
@@ -2569,11 +2611,24 @@ function renderCalendar() {
           </div>`
         : "";
 
+      // Athlete's phone layout only: a day with nothing left to do folds into one
+      // line (see dayCollapseState). Everything that still needs the athlete
+      // stays open, so logging a whole week costs no extra taps.
+      const collapse = dayCollapseState({
+        dateStr, todayStr, dayPlans, dayLog, dayRaces, dayNote, fullyRestricted,
+        dayRestrictionReason, daySelfLogs, selfLogFormOpen,
+      });
+      const collapseClass = collapse.collapsible ? ` is-collapsible${collapse.collapsed ? " is-collapsed" : ""}` : "";
+      const collapseAttrs = collapse.collapsible
+        ? ` role="button" tabindex="0" aria-expanded="${collapse.collapsed ? "false" : "true"}" data-day-toggle="${dateStr}"`
+        : "";
+
       return `
-        <section class="day-column${restrictedClass}${todayClass}">
-          <div class="day-name">
+        <section class="day-column${restrictedClass}${todayClass}${collapseClass}">
+          <div class="day-name"${collapseAttrs}>
             <div class="day-name-row">
               <span>${dayName}</span>
+              ${collapse.collapsible ? `<span class="day-summary">${collapse.summaryHtml}</span>` : ""}
             </div>
             <span class="day-date">${date.getDate()}.${date.getMonth() + 1}.</span>
           </div>
@@ -2635,9 +2690,58 @@ function renderCalendar() {
     });
   });
 
+  renderDayFoldBar();
   renderWeeklySummary();
   growAllCommentBoxes();
 }
+
+// One button above the days: "open them all" while any day is folded, and "fold
+// the finished ones again" once everything is open. Only shown where days can
+// fold at all (the athlete's phone layout).
+function renderDayFoldBar() {
+  const bar = document.getElementById("dayFoldBar");
+  const btn = document.getElementById("toggleAllDaysBtn");
+  if (!bar || !btn) return;
+  const cols = calendarGrid.querySelectorAll(".day-column.is-collapsible");
+  bar.hidden = cols.length === 0;
+  if (!cols.length) return;
+  const anyFolded = calendarGrid.querySelector(".day-column.is-collapsed") !== null;
+  btn.textContent = anyFolded ? "Atvērt visas dienas" : "Sakļaut izpildītās dienas";
+}
+
+document.getElementById("toggleAllDaysBtn").addEventListener("click", () => {
+  const anyFolded = calendarGrid.querySelector(".day-column.is-collapsed") !== null;
+  for (let i = 0; i < 7; i++) {
+    const dateStr = formatDateISO(addDays(currentWeekStart, i));
+    // Opening writes an explicit "open"; folding goes back to the automatic rule
+    // (open only what still needs doing) by dropping the manual choice.
+    if (anyFolded) dayOpenOverride.set(dateStr, true);
+    else dayOpenOverride.delete(dateStr);
+  }
+  renderCalendar();
+});
+
+// Tapping the day heading folds or unfolds a day (athlete's phone layout). A
+// separate listener on purpose: the big calendarGrid click handler below is
+// shared by plans, races and logs, and this has nothing to do with any of them.
+function toggleDayFold(heading) {
+  const dateStr = heading.dataset.dayToggle;
+  if (!dateStr) return;
+  const wasCollapsed = heading.closest(".day-column").classList.contains("is-collapsed");
+  dayOpenOverride.set(dateStr, wasCollapsed);
+  renderCalendar();
+}
+calendarGrid.addEventListener("click", (e) => {
+  const heading = e.target.closest("[data-day-toggle]");
+  if (heading) toggleDayFold(heading);
+});
+calendarGrid.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const heading = e.target.closest("[data-day-toggle]");
+  if (!heading || e.target !== heading) return;
+  e.preventDefault();
+  toggleDayFold(heading);
+});
 
 // A coach's comment must always be readable in full. A textarea does not size
 // itself to its content, so a long comment used to sit hidden inside a two-row

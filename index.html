@@ -574,6 +574,11 @@
           </div>
 
           <div id="weekView">
+            <!-- Athlete's phone layout only (renderCalendar shows it): one tap
+                 to open every folded day so the whole week can be read at once. -->
+            <div class="day-fold-bar" id="dayFoldBar" hidden>
+              <button class="secondary-action" id="toggleAllDaysBtn" type="button"></button>
+            </div>
             <div class="calendar-grid" id="calendarGrid"></div>
           </div>
 

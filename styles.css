@@ -6943,3 +6943,72 @@ body.is-dragging .session-card.is-draggable {
     min-height: 40px;
   }
 }
+
+/* Athlete's phone layout: a day with nothing left to do folds to one line.
+   The heading is the toggle, so it must look tappable; the summary says what is
+   inside. The "Pierakstīt izpildīto" button stays visible when folded so that
+   writing down an unplanned run never needs the day opened first. */
+.day-column.is-collapsible > .day-name {
+  cursor: pointer;
+}
+
+.day-column.is-collapsible > .day-name .day-name-row::after {
+  color: var(--muted);
+  content: "▾";
+  flex: none;
+  font-size: 0.8rem;
+  margin-left: auto;
+  order: 3;
+  transition: transform 0.2s;
+}
+
+.day-column.is-collapsible.is-collapsed > .day-name .day-name-row::after {
+  transform: rotate(-90deg);
+}
+
+.day-column .day-summary {
+  color: var(--muted);
+  flex: 1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 0;
+  text-align: right;
+}
+
+.day-column.is-collapsible:not(.is-collapsed) .day-summary {
+  display: none;
+}
+
+.day-column.is-collapsed > .day-name {
+  margin-bottom: 0;
+}
+
+.day-column.is-collapsed > :not(.day-name):not(.self-log-add-btn) {
+  display: none;
+}
+
+.day-column.is-collapsed > .self-log-add-btn {
+  margin-top: 8px;
+}
+
+/* The "open all days" button above the athlete's phone week. Same compact
+   secondary button as the rest of the app, aligned right so it sits where the
+   eye already is. */
+.day-fold-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 16px 8px;
+}
+
+.day-fold-bar[hidden] {
+  display: none;
+}
+
+/* On a touch screen the "Neizpildīts treniņš" checkbox sat 8px under the big
+   IERAKSTĪT IZPILDI button, close enough for a thumb to hit the wrong one. Only
+   the gap grows; nothing moves to a different place, so it costs no extra tap. */
+@media (pointer: coarse) {
+  .not-completed-row {
+    margin-top: 20px;
+  }
+}
