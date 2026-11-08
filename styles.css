@@ -6990,3 +6990,16 @@ body.is-dragging .session-card.is-draggable {
 .day-column.is-collapsed > .self-log-add-btn {
   margin-top: 8px;
 }
+
+/* The "open all days" button above the athlete's phone week. Same compact
+   secondary button as the rest of the app, aligned right so it sits where the
+   eye already is. */
+.day-fold-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 16px 8px;
+}
+
+.day-fold-bar[hidden] {
+  display: none;
+}

@@ -2690,9 +2690,36 @@ function renderCalendar() {
     });
   });
 
+  renderDayFoldBar();
   renderWeeklySummary();
   growAllCommentBoxes();
 }
+
+// One button above the days: "open them all" while any day is folded, and "fold
+// the finished ones again" once everything is open. Only shown where days can
+// fold at all (the athlete's phone layout).
+function renderDayFoldBar() {
+  const bar = document.getElementById("dayFoldBar");
+  const btn = document.getElementById("toggleAllDaysBtn");
+  if (!bar || !btn) return;
+  const cols = calendarGrid.querySelectorAll(".day-column.is-collapsible");
+  bar.hidden = cols.length === 0;
+  if (!cols.length) return;
+  const anyFolded = calendarGrid.querySelector(".day-column.is-collapsed") !== null;
+  btn.textContent = anyFolded ? "Atvērt visas dienas" : "Sakļaut izpildītās dienas";
+}
+
+document.getElementById("toggleAllDaysBtn").addEventListener("click", () => {
+  const anyFolded = calendarGrid.querySelector(".day-column.is-collapsed") !== null;
+  for (let i = 0; i < 7; i++) {
+    const dateStr = formatDateISO(addDays(currentWeekStart, i));
+    // Opening writes an explicit "open"; folding goes back to the automatic rule
+    // (open only what still needs doing) by dropping the manual choice.
+    if (anyFolded) dayOpenOverride.set(dateStr, true);
+    else dayOpenOverride.delete(dateStr);
+  }
+  renderCalendar();
+});
 
 // Tapping the day heading folds or unfolds a day (athlete's phone layout). A
 // separate listener on purpose: the big calendarGrid click handler below is
