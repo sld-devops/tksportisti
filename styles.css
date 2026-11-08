@@ -7012,3 +7012,36 @@ body.is-dragging .session-card.is-draggable {
     margin-top: 20px;
   }
 }
+
+/* Quick work-shift choices above the restriction form's reason box. Compact
+   chips so all four fit on a ~300px sidebar row or two; the label says what
+   they are. */
+.shift-presets {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+
+.shift-presets-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  width: 100%;
+}
+
+.shift-preset-btn {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 10px;
+}
+
+.shift-preset-btn:hover {
+  background: var(--surface-hover);
+}

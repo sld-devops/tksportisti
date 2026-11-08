@@ -178,6 +178,11 @@ function updateSaveButtonState() {
 // #endregion
 
 // #region Saving and rendering the cards
+// Work shifts the athlete can drop onto a day with one tap (the coach's list).
+// They are ordinary restrictions whose reason is the shift name, so the coach
+// sees them in the calendar and the week's cross counts them with no new table.
+const SHIFT_PRESETS = ["12h dienas maiņa", "12h nakts maiņa", "24h maiņa", "Nakts bankets"];
+
 async function saveRestrictionForm() {
   const reason = document.getElementById("restrictionReasonInput")?.value.trim();
   if (!reason) { alert("Lūdzu, uzrakstiet iemeslu!"); return; }
@@ -346,6 +351,10 @@ function renderRestrictionCards() {
       <h3 class="restriction-form-title">${editing ? "Rediģēt ierobežojumu" : "Jauns ierobežojums"}</h3>
       <div class="mini-calendar" id="miniCalendar"></div>
       <div class="selected-dates-list" id="selectedDatesList"></div>
+      <div class="shift-presets" id="shiftPresets">
+        <span class="shift-presets-label">Darba maiņa</span>
+        ${SHIFT_PRESETS.map(name => `<button class="shift-preset-btn" type="button" data-shift-preset="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join("")}
+      </div>
       <div class="tod-radio-group">${todRadiosHtml}</div>
       <label>Iemesls <textarea id="restrictionReasonInput" class="restriction-input" rows="2">${editing ? escapeHtml(editing.reason || "") : ""}</textarea></label>
       <div class="restriction-form-actions">
@@ -399,6 +408,19 @@ function renderRestrictionCards() {
         } else if (cb.value !== "" && cb.checked) {
           boxes.forEach(other => { if (other.value === "") other.checked = false; });
         }
+      });
+    });
+    // A shift is just a restriction with a ready-made reason, so choosing one
+    // fills the reason AND ticks "Visa diena" - one tap instead of typing the
+    // reason and then finding the day-part. The date still comes from the
+    // calendar above. Nothing is saved until "Pievienot".
+    document.querySelectorAll("[data-shift-preset]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const reasonBox = document.getElementById("restrictionReasonInput");
+        if (reasonBox) reasonBox.value = btn.dataset.shiftPreset;
+        document.querySelectorAll('input[name="restrictionTod"]').forEach(cb => {
+          cb.checked = cb.value === "";
+        });
       });
     });
     document.getElementById("saveRestrictionBtn")?.addEventListener("click", saveRestrictionForm);
