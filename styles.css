@@ -6912,3 +6912,34 @@ body.is-dragging .session-card.is-draggable {
     background: transparent;
   }
 }
+
+/* Phone-sized thumb targets (2026-11-08). Gated on a touch pointer, not on
+   width, so a phone pinned to the desktop layout gets them too and a desktop
+   mouse keeps the compact sizes. The pencil and the cross sit side by side and
+   the cross deletes a training, so each gets ~44x40 and the pair a wider gap:
+   a near miss lands on nothing instead of on the wrong button. */
+@media (pointer: coarse) {
+  .card-actions .icon-action-btn,
+  .log-actions .icon-action-btn,
+  .race-actions .icon-action-btn {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    min-height: 40px;
+    min-width: 44px;
+  }
+
+  .card-actions,
+  .log-actions,
+  .race-actions {
+    gap: 12px;
+  }
+
+  .week-nav-row button {
+    min-height: 44px;
+  }
+
+  .app-header .secondary-action {
+    min-height: 40px;
+  }
+}
