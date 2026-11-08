@@ -145,8 +145,16 @@ async function getCalendarLink(athleteId) {
       body: JSON.stringify({ athleteId }),
     },
   );
-  const result = await res.json().catch(() => ({}));
-  if (!res.ok || !result.url) throw new Error(result.error || "Saite nav pieejama");
+  // Read the body as text first, so that whatever the server really answered
+  // (a gateway message, our own error, or something unexpected) is kept and
+  // can be shown - "not available" alone said nothing about why.
+  const text = await res.text();
+  let result = {};
+  try { result = JSON.parse(text); } catch (e) { /* not JSON - the text below still shows it */ }
+  if (!res.ok || !result.url) {
+    const why = result.error || result.message || text.slice(0, 160) || "tukša atbilde";
+    throw new Error(`${res.status}: ${why}`);
+  }
   return result.url;
 }
 

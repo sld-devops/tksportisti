@@ -31,7 +31,9 @@ async function toggleCalendarLink() {
       calendarLinkUrl = await getCalendarLink(currentUser.id);
     } catch (e) {
       console.warn("Kalendāra saite nav pieejama:", e);
-      calendarLinkError.textContent = "Kalendāra saite pagaidām nav pieejama. Pamēģini vēlāk vai pasaki trenerim.";
+      // The reason (status + what the server said) is shown in small text so it
+      // can be read out or copied to whoever looks after the setup.
+      calendarLinkError.textContent = "Kalendāra saite pagaidām nav pieejama. Pamēģini vēlāk vai pasaki trenerim. (" + (e && e.message ? e.message : e) + ")";
       calendarLinkError.hidden = false;
       calendarLinkReady.hidden = true;
       calendarLinkBtn.disabled = false;
