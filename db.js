@@ -126,6 +126,30 @@ async function sendNotificationEmail({ target, athleteId, subject, message }) {
   }
 }
 
+// The athlete's personal calendar-subscription link (supabase/functions/
+// calendar-feed). The secret token is built on the server from a secret that
+// never reaches the browser, so this just asks for the finished link. Throws
+// on any failure so the caller can say the link is not available yet (the
+// function may not be deployed).
+async function getCalendarLink(athleteId) {
+  const { data: session } = await supabase.auth.getSession();
+  if (!session?.session?.access_token) throw new Error("Nav sesijas");
+  const res = await fetch(
+    "https://yqaabswcvwkiimpoxsfj.supabase.co/functions/v1/calendar-feed",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.session.access_token}`,
+      },
+      body: JSON.stringify({ athleteId }),
+    },
+  );
+  const result = await res.json().catch(() => ({}));
+  if (!res.ok || !result.url) throw new Error(result.error || "Saite nav pieejama");
+  return result.url;
+}
+
 // Every notification email goes out NOTIFY_DELAY_MS after the action, not
 // instantly, so a coach (or athlete) who immediately reconsiders and undoes
 // the action never actually sends one. `key` names the thing the message is

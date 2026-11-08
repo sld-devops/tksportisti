@@ -144,6 +144,26 @@
           <section class="panel" id="profileCoachSection">
             <div class="panel-body">
               <div class="profile-card" id="profileCard"></div>
+              <!-- Athlete only (panels/calendar-link.js shows it): a personal
+                   calendar-subscription link for Google / iPhone calendars. -->
+              <div class="calendar-link" id="calendarLinkBox" hidden>
+                <button class="secondary-action panel-add-btn" id="calendarLinkBtn" type="button">Pievienot savam kalendāram</button>
+                <div class="calendar-link-panel" id="calendarLinkPanel" hidden>
+                  <p class="calendar-link-error" id="calendarLinkError" hidden></p>
+                  <div id="calendarLinkReady" hidden>
+                    <input id="calendarLinkInput" type="text" readonly aria-label="Kalendāra saite" />
+                    <div class="calendar-link-actions">
+                      <button class="secondary-action panel-add-btn" id="calendarLinkCopy" type="button">Kopēt saiti</button>
+                      <a class="secondary-action panel-add-btn" id="calendarLinkIphone" href="#">Atvērt iPhone kalendārā</a>
+                    </div>
+                    <ul class="calendar-link-help">
+                      <li><strong>iPhone:</strong> nospied "Atvērt iPhone kalendārā".</li>
+                      <li><strong>Android / Google:</strong> kopē saiti, datorā atver calendar.google.com, Citi kalendāri (+), No URL, ielīmē saiti. Tālrunī tas parādīsies pats.</li>
+                      <li>Kalendārs atjaunojas pats (Google pēc dažām stundām). Saiti nevienam nerādi: kam tā ir, redz tavus treniņus.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -1067,6 +1087,7 @@
     <script src="panels/restrictions.js?v=6" defer></script>
     <script src="panels/races.js?v=3" defer></script>
     <script src="panels/profile.js?v=10" defer></script>
+    <script src="panels/calendar-link.js?v=1" defer></script>
     <script src="panels/stats.js?v=12" defer></script>
     <script src="panels/interval-history.js?v=10" defer></script>
     <script src="panels/diary.js?v=2" defer></script>
