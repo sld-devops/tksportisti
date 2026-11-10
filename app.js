@@ -3627,16 +3627,16 @@ document.getElementById("copyWeekConfirmBtn")?.addEventListener("click", async (
 // Coach's YouTube tutorials. To add one, add a line: { title: "<title as on YouTube>", url: "<link>" }.
 const VIDEO_TUTORIALS = [
   { title: "Pliometrija - pēdu darbā, aktivizācija pēc lēnajiem treniņiem", url: "https://www.youtube.com/watch?v=ttArcoo6MCI" },
-  { title: "SK Mitauer - Iesildīties - mobilitāte (Toms Komass)", url: "https://www.youtube.com/watch?v=qdW_EV7-sM0" },
-  { title: "SK Mitauer - Iesildīšanās pirms/pēc skrējiena (Toms Komass)", url: "https://www.youtube.com/watch?v=r9B3HAqwWRo" },
-  { title: "SK Mitauer - Drills (Normal+Slowmotion) (Toms Komass)", url: "https://www.youtube.com/watch?v=k1lxf_IREV8" },
-  { title: "SK Mitauer - Drills. Kompleks ko es veicu pirms specifiskajām treniņu sesijām (Toms Komass)", url: "https://www.youtube.com/watch?v=YNdwfIdTSrc" },
-  { title: "SK Mitauer - SFS vingrinājumi - kājas", url: "https://www.youtube.com/watch?v=tkRCu0LNXnU" },
-  { title: "SK Mitauer - Kājas - vingrinājumi (Toms Komass)", url: "https://www.youtube.com/watch?v=QmkWTtoUf5M" },
-  { title: "SK Mitauer - Svari - pamatvingrinājumi (Toms Komass)", url: "https://www.youtube.com/watch?v=mDAJD6nho3o" },
-  { title: "SK Mitauer - Stabilizējošie (guļošie) + Planka (Toms Komass)", url: "https://www.youtube.com/watch?v=_ZD0oGsUgzk" },
-  { title: "SK Mitauer - Gumija - vingrosim (Toms Komass)", url: "https://www.youtube.com/watch?v=xYG3GHrTvUw" },
-  { title: "SK Mitauer - Staipīšanās pēc nodarbības (Toms Komass)", url: "https://www.youtube.com/watch?v=nd5inCvJkoU" },
+  { title: "Iesildīties - mobilitāte", url: "https://www.youtube.com/watch?v=qdW_EV7-sM0" },
+  { title: "Iesildīšanās pirms/pēc skrējiena", url: "https://www.youtube.com/watch?v=r9B3HAqwWRo" },
+  { title: "Drills (Normal+Slowmotion)", url: "https://www.youtube.com/watch?v=k1lxf_IREV8" },
+  { title: "Drills. Kompleks ko es veicu pirms specifiskajām treniņu sesijām", url: "https://www.youtube.com/watch?v=YNdwfIdTSrc" },
+  { title: "SFS vingrinājumi - kājas", url: "https://www.youtube.com/watch?v=tkRCu0LNXnU" },
+  { title: "Kājas - vingrinājumi", url: "https://www.youtube.com/watch?v=QmkWTtoUf5M" },
+  { title: "Svari - pamatvingrinājumi", url: "https://www.youtube.com/watch?v=mDAJD6nho3o" },
+  { title: "Stabilizējošie (guļošie) + Planka", url: "https://www.youtube.com/watch?v=_ZD0oGsUgzk" },
+  { title: "Vingrojumi ar elastīgo gumiju", url: "https://www.youtube.com/watch?v=xYG3GHrTvUw" },
+  { title: "Staipīšanās pēc nodarbības", url: "https://www.youtube.com/watch?v=nd5inCvJkoU" },
 ];
 
 (function setupVideoMenu() {
