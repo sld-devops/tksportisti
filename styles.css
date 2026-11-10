@@ -4745,6 +4745,16 @@ textarea:disabled {
     margin-left: 0;
   }
 
+  /* The video menu sits flush left like the library button, and the two share a
+     row when there is room instead of being indented on a row of their own. */
+  .video-menu {
+    margin-left: 0;
+  }
+
+  .header-left {
+    column-gap: 8px;
+  }
+
   .header-right {
     flex-wrap: wrap;
     width: 100%;
@@ -6969,6 +6979,16 @@ body.is-dragging .session-card.is-draggable {
     justify-content: center;
     min-height: 40px;
     min-width: 44px;
+  }
+
+  /* The same pencil / cross in the sidebar panels (restrictions, diary, ...) were
+     ~30x18 on a phone, under the 24px minimum. */
+  .icon-action-btn {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    min-height: 36px;
+    min-width: 40px;
   }
 
   .card-actions,
