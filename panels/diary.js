@@ -40,6 +40,43 @@ function growDiaryTextarea(el) {
   }
 }
 
+// A long entry shows its first 5 lines; a small arrow under it opens the rest.
+// The arrow only appears when the text really is longer than 5 lines - that can
+// only be measured once the panel has a size, so a ResizeObserver does it (it
+// also fires when the closed panel is opened, and when the width changes).
+const diaryExpandedIds = new Set();
+let diaryOverflowObserver = null;
+
+function diaryContentHtml(e) {
+  const open = diaryExpandedIds.has(e.id);
+  return `<p class="${open ? "is-expanded" : ""}">${escapeHtml(e.content)}</p>
+    <button class="diary-more-btn" type="button" data-toggle-diary="${e.id}" aria-expanded="${open}" hidden>
+      <span class="diary-more-arrow" aria-hidden="true">▶</span><span class="diary-more-label">${open ? "Rādīt mazāk" : "Rādīt visu"}</span>
+    </button>`;
+}
+
+// Shows the arrow on exactly those entries whose text is longer than 5 lines.
+function measureDiaryOverflow(body) {
+  body.querySelectorAll(".diary-entry-content").forEach((box) => {
+    const p = box.querySelector("p");
+    const btn = box.querySelector(".diary-more-btn");
+    if (!p || !btn || p.classList.contains("is-expanded")) return;
+    btn.hidden = !(p.scrollHeight > p.clientHeight + 1);
+  });
+}
+
+function watchDiaryOverflow(body) {
+  if (diaryOverflowObserver) diaryOverflowObserver.disconnect();
+  if (typeof ResizeObserver === "undefined") {
+    // No observer: show the arrow on every entry rather than hide the text.
+    body.querySelectorAll(".diary-more-btn").forEach((b) => { b.hidden = false; });
+    return;
+  }
+  diaryOverflowObserver = new ResizeObserver(() => measureDiaryOverflow(body));
+  body.querySelectorAll(".diary-entry-content p").forEach((p) => diaryOverflowObserver.observe(p));
+  requestAnimationFrame(() => measureDiaryOverflow(body));
+}
+
 function renderDiary() {
   const body = document.getElementById("diaryBody");
   if (!body) return;
@@ -72,11 +109,12 @@ function renderDiary() {
               <span class="diary-entry-date">${formatDateLV(e.date)}</span>
             </div>
             <div class="diary-entry-content">
-              <p>${escapeHtml(e.content)}</p>
+              ${diaryContentHtml(e)}
             </div>
           </div>
         `).join("")
       : "";
+    watchDiaryOverflow(body);
     return;
   }
 
@@ -91,7 +129,7 @@ function renderDiary() {
             <span class="diary-entry-date">${formatDateLV(e.date)}</span>
           </div>
           <div class="diary-entry-content">
-            <p>${escapeHtml(e.content)}</p>
+            ${diaryContentHtml(e)}
           </div>
         </div>
       `).join("")
@@ -113,6 +151,7 @@ function renderDiary() {
   `;
 
   body.querySelector("#newDiaryContent")?.addEventListener("input", (e) => growDiaryTextarea(e.target));
+  watchDiaryOverflow(body);
 
   body.querySelector("#addDiaryBtn")?.addEventListener("click", async () => {
     const date = document.getElementById("newDiaryDate")?.value;
@@ -139,6 +178,19 @@ function renderDiary() {
 // (e.g. an icon), since a click on the icon's "target" would be the icon, not
 // the button itself.
 document.getElementById("diaryBody")?.addEventListener("click", async (e) => {
+  const moreBtn = e.target.closest(".diary-more-btn");
+  if (moreBtn) {
+    const id = moreBtn.dataset.toggleDiary;
+    const open = !diaryExpandedIds.has(id);
+    if (open) diaryExpandedIds.add(id); else diaryExpandedIds.delete(id);
+    const p = moreBtn.parentElement.querySelector("p");
+    p.classList.toggle("is-expanded", open);
+    moreBtn.setAttribute("aria-expanded", String(open));
+    moreBtn.querySelector(".diary-more-label").textContent = open ? "Rādīt mazāk" : "Rādīt visu";
+    if (!open) measureDiaryOverflow(document.getElementById("diaryBody"));
+    return;
+  }
+
   const editBtn = e.target.closest(".diary-edit-btn");
   if (editBtn) {
     e.preventDefault();
