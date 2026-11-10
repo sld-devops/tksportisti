@@ -17,9 +17,12 @@ let restrictionCalMonth = new Date().getMonth();
 // still plan a training in any part of that day. isShiftRestriction() is the one
 // place that tells the two apart; isTimeSlotRestricted() (below) and
 // getWeekStatuses() in db.js both skip shift rows through it.
-const SHIFT_PRESETS = ["12h dienas maiņa", "12h nakts maiņa", "24h maiņa", "Nakts bankets"];
+const SHIFT_PRESETS = ["12h dienas maiņa", "12h nakts maiņa", "24h maiņa", "Stundas līdz naktij"];
+// Old name of the last preset: entries saved under it must still count as shifts.
+const SHIFT_LEGACY_NAMES = ["Nakts bankets"];
 function isShiftRestriction(r) {
-  return !!r && SHIFT_PRESETS.includes((r.reason || "").trim());
+  const reason = (r?.reason || "").trim();
+  return !!r && (SHIFT_PRESETS.includes(reason) || SHIFT_LEGACY_NAMES.includes(reason));
 }
 
 // #region Restriction-checking helper functions (also used by app.js's calendar)
@@ -198,7 +201,7 @@ async function saveRestrictionForm() {
   const todBoxes = [...document.querySelectorAll('input[name="restrictionTod"]:checked')];
   // A work shift blocks nothing, so it needs no day-part; it is stored as one
   // whole-day row (time_of_day null) that isTimeSlotRestricted() ignores.
-  const isShift = SHIFT_PRESETS.includes(reason);
+  const isShift = SHIFT_PRESETS.includes(reason) || SHIFT_LEGACY_NAMES.includes(reason);
   if (todBoxes.length === 0 && !isShift) { alert("Lūdzu, izvēlieties vismaz vienu dienas laiku!"); return; }
   const tods = todBoxes.length ? todBoxes.map(cb => cb.value || null) : [null];
   const athleteId = getSelectedAthleteId();
