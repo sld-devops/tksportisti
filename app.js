@@ -3626,17 +3626,17 @@ document.getElementById("copyWeekConfirmBtn")?.addEventListener("click", async (
 
 // Coach's YouTube tutorials. To add one, add a line: { title: "<title as on YouTube>", url: "<link>" }.
 const VIDEO_TUTORIALS = [
-  { title: "Pliometrija - pēdu darbā, aktivizācija pēc lēnajiem treniņiem", url: "https://www.youtube.com/watch?v=ttArcoo6MCI" },
-  { title: "Iesildīties - mobilitāte", url: "https://www.youtube.com/watch?v=qdW_EV7-sM0" },
-  { title: "Iesildīšanās pirms/pēc skrējiena", url: "https://www.youtube.com/watch?v=r9B3HAqwWRo" },
-  { title: "Drills (Normal+Slowmotion)", url: "https://www.youtube.com/watch?v=k1lxf_IREV8" },
-  { title: "Drills. Kompleks ko es veicu pirms specifiskajām treniņu sesijām", url: "https://www.youtube.com/watch?v=YNdwfIdTSrc" },
-  { title: "SFS vingrinājumi - kājas", url: "https://www.youtube.com/watch?v=tkRCu0LNXnU" },
-  { title: "Kājas - vingrinājumi", url: "https://www.youtube.com/watch?v=QmkWTtoUf5M" },
-  { title: "Svari - pamatvingrinājumi", url: "https://www.youtube.com/watch?v=mDAJD6nho3o" },
-  { title: "Stabilizējošie (guļošie) + Planka", url: "https://www.youtube.com/watch?v=_ZD0oGsUgzk" },
-  { title: "Vingrojumi ar elastīgo gumiju", url: "https://www.youtube.com/watch?v=xYG3GHrTvUw" },
-  { title: "Staipīšanās pēc nodarbības", url: "https://www.youtube.com/watch?v=nd5inCvJkoU" },
+  { title: "Iesildīšanās – mobilitāte", url: "https://www.youtube.com/watch?v=qdW_EV7-sM0" },
+  { title: "Iesildīšanās – pirms un pēc skrējiena", url: "https://www.youtube.com/watch?v=r9B3HAqwWRo" },
+  { title: "Drills – normāli un palēninājumā", url: "https://www.youtube.com/watch?v=k1lxf_IREV8" },
+  { title: "Drills – komplekss pirms specifiskajiem treniņiem", url: "https://www.youtube.com/watch?v=YNdwfIdTSrc" },
+  { title: "Pliometrija – pēdu darbs pēc lēnajiem treniņiem", url: "https://www.youtube.com/watch?v=ttArcoo6MCI" },
+  { title: "SFS – kājas", url: "https://www.youtube.com/watch?v=tkRCu0LNXnU" },
+  { title: "VFS – kājas", url: "https://www.youtube.com/watch?v=QmkWTtoUf5M" },
+  { title: "VFS – svari, pamatvingrinājumi", url: "https://www.youtube.com/watch?v=mDAJD6nho3o" },
+  { title: "VFS – stabilizējošie (guļus) un planka", url: "https://www.youtube.com/watch?v=_ZD0oGsUgzk" },
+  { title: "VFS – elastīgā gumija", url: "https://www.youtube.com/watch?v=xYG3GHrTvUw" },
+  { title: "Staipīšanās – pēc treniņa", url: "https://www.youtube.com/watch?v=nd5inCvJkoU" },
 ];
 
 (function setupVideoMenu() {
