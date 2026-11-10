@@ -36,6 +36,50 @@ loadSeenHealthIds();
 // own profile) the form below it. Since this function re-invokes itself after
 // every action (startHealthEdit, cancelHealthEdit, saveHealthEntry), the form
 // always shows the correct state (empty / filled in for editing).
+// A long entry shows its first 5 lines; a small arrow under it opens the rest.
+// The arrow appears only when the text really is longer than 5 lines, which can
+// only be measured once the panel has a size - hence the ResizeObserver (it also
+// fires when the closed panel is opened).
+const healthExpandedIds = new Set();
+let healthOverflowObserver = null;
+
+function measureHealthOverflow(body) {
+  body.querySelectorAll(".health-entry").forEach((entry) => {
+    const text = entry.querySelector(".health-entry-text");
+    const btn = entry.querySelector(".health-more-btn");
+    if (!text || !btn || text.classList.contains("is-expanded")) return;
+    btn.hidden = !(text.scrollHeight > text.clientHeight + 1);
+  });
+}
+
+function watchHealthOverflow(body) {
+  if (healthOverflowObserver) healthOverflowObserver.disconnect();
+  if (typeof ResizeObserver === "undefined") {
+    // No observer: show the arrow on every entry rather than hide the text.
+    body.querySelectorAll(".health-more-btn").forEach((b) => { b.hidden = false; });
+    return;
+  }
+  healthOverflowObserver = new ResizeObserver(() => measureHealthOverflow(body));
+  body.querySelectorAll(".health-entry-text").forEach((t) => healthOverflowObserver.observe(t));
+  requestAnimationFrame(() => measureHealthOverflow(body));
+}
+
+function wireHealthMoreButtons(body) {
+  body.querySelectorAll(".health-more-btn").forEach((btn) => {
+    btn.addEventListener("click", (ev) => {
+      // The row itself is clickable (athlete: opens the edit form) - the arrow must not.
+      ev.stopPropagation();
+      const id = btn.dataset.toggleHealth;
+      const open = !healthExpandedIds.has(id);
+      if (open) healthExpandedIds.add(id); else healthExpandedIds.delete(id);
+      btn.closest(".health-entry").querySelector(".health-entry-text").classList.toggle("is-expanded", open);
+      btn.setAttribute("aria-expanded", String(open));
+      btn.querySelector(".health-more-label").textContent = open ? "Rādīt mazāk" : "Rādīt visu";
+      if (!open) measureHealthOverflow(body);
+    });
+  });
+}
+
 function renderHealthJournal() {
   const body = document.getElementById("healthJournalBody");
   if (!body) return;
@@ -56,7 +100,10 @@ function renderHealthJournal() {
         <div class="health-entry-header">
           <span class="health-entry-date">${dateLabel}</span>
         </div>
-        <div class="health-entry-text">${escapeHtml(e.description)}</div>
+        <div class="health-entry-text${healthExpandedIds.has(e.id) ? " is-expanded" : ""}">${escapeHtml(e.description)}</div>
+        <button class="health-more-btn" type="button" data-toggle-health="${e.id}" aria-expanded="${healthExpandedIds.has(e.id)}" hidden>
+          <span class="health-more-arrow" aria-hidden="true">▶</span><span class="health-more-label">${healthExpandedIds.has(e.id) ? "Rādīt mazāk" : "Rādīt visu"}</span>
+        </button>
       </div>`;
     });
     html += `</div>`;
@@ -83,6 +130,8 @@ function renderHealthJournal() {
   }
 
   body.innerHTML = html;
+  wireHealthMoreButtons(body);
+  watchHealthOverflow(body);
 
   if (isAthleteOwner) {
     body.querySelectorAll("[data-health-id]").forEach(el => {

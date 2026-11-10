@@ -5375,6 +5375,41 @@ textarea:disabled {
   line-height: 1.35;
   white-space: pre-wrap;
 }
+/* First 5 lines only; the arrow under it (see panels/health-journal.js) opens the rest. */
+.health-entry-text:not(.is-expanded) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  overflow: hidden;
+}
+.health-more-btn {
+  align-items: center;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 600;
+  gap: 5px;
+  margin-top: 4px;
+  min-height: 24px;
+  padding: 2px 4px;
+}
+.health-more-btn[hidden] {
+  display: none;
+}
+.health-more-btn:hover {
+  color: var(--accent);
+}
+.health-more-arrow {
+  font-size: 0.65rem;
+  transition: transform 0.2s ease;
+}
+.health-more-btn[aria-expanded="true"] .health-more-arrow {
+  transform: rotate(90deg);
+}
 .health-form {
   margin-top: 12px;
   padding-top: 12px;
