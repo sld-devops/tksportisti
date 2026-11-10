@@ -7179,6 +7179,40 @@ body.is-dragging .session-card.is-draggable {
   margin-top: 6px;
 }
 
+/* ---- Small "what just happened" motions (2026-11-10) ---- */
+
+/* The video list drops in under its button instead of popping up. */
+.video-menu-list:not([hidden]) {
+  animation: video-menu-in 0.15s ease-out;
+}
+@keyframes video-menu-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* A week that has just become fully covered: the cross is drawn in, stroke by
+   stroke. clip-path, not transform, so the bars keep their rotation. */
+.week-slot.week-slot-just-done::before,
+.week-slot.week-slot-just-done::after {
+  animation: week-cross-draw 0.35s ease-out both;
+}
+.week-slot.week-slot-just-done::after {
+  animation-delay: 0.15s;
+}
+@keyframes week-cross-draw {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+/* A training that has just been added to the week: a ring that fades out. */
+.session-card.plan-just-added {
+  animation: plan-added 1.2s ease-out;
+}
+@keyframes plan-added {
+  0% { box-shadow: 0 0 0 3px var(--accent), 0 3px 8px rgba(21, 23, 26, 0.18); }
+  100% { box-shadow: 0 0 0 0 rgba(201, 31, 47, 0), 0 3px 8px rgba(21, 23, 26, 0.18); }
+}
+
 /* People who ask their device for less motion: nothing slides, lifts, fades in or
    rotates, but every state change still happens (panels open and close, the arrow
    points the other way) and the loading spinner keeps turning, because that is
@@ -7193,7 +7227,11 @@ body.is-dragging .session-card.is-draggable {
 
   #appView,
   dialog,
-  dialog::backdrop {
+  dialog::backdrop,
+  .video-menu-list,
+  .week-slot::before,
+  .week-slot::after,
+  .session-card.plan-just-added {
     animation: none !important;
   }
 

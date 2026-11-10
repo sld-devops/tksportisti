@@ -1118,6 +1118,13 @@ window.initApp = initApp;
 // renderTemplates and renderFrequentTable draw the templates and "Biežāk
 // lietotie" lists that the coach can click to load into the training
 // builder.
+// Remembers which week boxes were already finished at the last draw, so the cross
+// is "drawn in" only when a box goes from unfinished to finished while the coach
+// is looking, never on the first load (no earlier value = nothing to animate).
+const lastWeekDone = {};
+const nextWeekDone = {};
+let weekDoneCommitQueued = false;
+
 function renderAthleteDropdown() {
   const trigger = document.getElementById("dropdownTrigger");
   const list = document.getElementById("dropdownList");
@@ -1166,6 +1173,16 @@ function renderAthleteDropdown() {
         const blockType = blockTypes[i];
         const classes = ["week-slot"];
         if (full) classes.push("week-slot-done");
+        const doneKey = `${athleteId}:${i}`;
+        if (full && lastWeekDone[doneKey] === false) classes.push("week-slot-just-done");
+        nextWeekDone[doneKey] = !!full;
+        if (!weekDoneCommitQueued) {
+          weekDoneCommitQueued = true;
+          setTimeout(() => {
+            Object.assign(lastWeekDone, nextWeekDone);
+            weekDoneCommitQueued = false;
+          }, 0);
+        }
         if (blockType) classes.push(`week-slot-type-${blockType}`);
         // The red "nothing planned yet" frame is only for a week the coach has
         // not marked in any way — a typed week shows its own colour instead.
@@ -2456,6 +2473,26 @@ function renderLogEntryLines(data, paceBoundsMap, plannedIntervalCount, planDeta
   }).join("");
 }
 
+// A training that appears in the week being looked at (added, copied, dropped in)
+// gets a short highlight so the coach sees where it landed. Ids are remembered per
+// athlete+week, so opening another week or athlete never lights everything up.
+let lastPlanScope = "";
+let lastPlanIds = new Set();
+const newPlanUntil = {};
+function markNewPlans(scope) {
+  const now = Date.now();
+  if (scope === lastPlanScope) {
+    plans.forEach((p) => {
+      if (!lastPlanIds.has(p.id)) newPlanUntil[p.id] = now + 1500;
+    });
+  }
+  lastPlanScope = scope;
+  lastPlanIds = new Set(plans.map((p) => p.id));
+}
+function newPlanClass(planId) {
+  return newPlanUntil[planId] > Date.now() ? " plan-just-added" : "";
+}
+
 function renderPlanCard(plan) {
   const isCoach = activeRole === "coach";
   const coachDisabled = !isCoach ? "disabled" : "";
@@ -2478,7 +2515,7 @@ function renderPlanCard(plan) {
       : "";
 
     return `
-      <article class="session-card is-draggable${notCompleted ? " not-completed" : ""}" data-plan-id="${plan.id}">
+      <article class="session-card is-draggable${notCompleted ? " not-completed" : ""}${newPlanClass(plan.id)}" data-plan-id="${plan.id}">
         ${todBadge}
         <h3>${displayTitle(plan.title)}</h3>
         ${movedBadge}
@@ -2499,7 +2536,7 @@ function renderPlanCard(plan) {
     : `<button class="add-day-button log-plan-button" data-log-plan="${plan.id}" type="button">IERAKSTĪT IZPILDI</button>`;
 
   return `
-    <article class="session-card${notCompleted ? " not-completed" : ""}" data-plan-id="${plan.id}">
+    <article class="session-card${notCompleted ? " not-completed" : ""}${newPlanClass(plan.id)}" data-plan-id="${plan.id}">
       ${todBadge}
       <h3>${displayTitle(plan.title)}</h3>
       ${movedBadge}
@@ -2593,6 +2630,7 @@ function renderCalendar() {
   const weekStart = currentWeekStart;
 
   calendarGrid.classList.toggle("calendar-mobile", calendarMode === "mobile");
+  markNewPlans(`${athleteId}|${formatDateISO(weekStart)}`);
 
   calendarGrid.innerHTML = days
     .map((dayName, i) => {
