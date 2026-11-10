@@ -3709,6 +3709,10 @@ const VIDEO_TUTORIALS = [
   });
 })();
 
+document.getElementById("guideBtn")?.addEventListener("click", () => {
+  window.open("pamaciba.html", "_blank", "noopener");
+});
+
 document.getElementById("exerciseLibraryBtn")?.addEventListener("click", () => {
   window.open("https://drive.google.com/drive/folders/1OcKdRXjzMxTxAfFYTJLDGfwoCYW8w9R2?usp=drive_link", "_blank");
 });
