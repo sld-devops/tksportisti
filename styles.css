@@ -2014,8 +2014,17 @@ select:focus,
 textarea:focus,
 button:focus-visible {
   border-color: var(--accent);
-  outline: none;
+  /* A real outline: the faint glow alone was nearly invisible when tabbing. */
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   box-shadow: 0 0 0 3px rgba(201, 31, 47, 0.12);
+}
+
+a:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .template-list,
@@ -7168,4 +7177,29 @@ body.is-dragging .session-card.is-draggable {
 
 .calendar-link > .panel-add-btn + .panel-add-btn {
   margin-top: 6px;
+}
+
+/* People who ask their device for less motion: nothing slides, lifts, fades in or
+   rotates, but every state change still happens (panels open and close, the arrow
+   points the other way) and the loading spinner keeps turning, because that is
+   feedback, not decoration. Colour changes are left alone. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-property: color, background-color, border-color, box-shadow, outline-color !important;
+  }
+
+  #appView,
+  dialog,
+  dialog::backdrop {
+    animation: none !important;
+  }
+
+  button:hover,
+  .secondary-action:hover,
+  .primary-action:hover {
+    transform: none !important;
+  }
 }
