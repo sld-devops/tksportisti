@@ -3270,7 +3270,45 @@ function renderViewTabs() {
 function renderLayoutTabs() {
   const tabs = document.getElementById("layoutModeTabs");
   if (tabs) tabs.hidden = viewMode === "month";
-  document.querySelectorAll("[data-layout]").forEach((btn) => {
+  // Coach's YouTube tutorials. To add one, add a line: { title: "<title as on YouTube>", url: "<link>" }.
+const VIDEO_TUTORIALS = [
+  { title: "Pliometrija - pēdu darbā, aktivizācija pēc lēnajiem treniņiem", url: "https://www.youtube.com/watch?v=ttArcoo6MCI" },
+  { title: "SK Mitauer - Iesildīties - mobilitāte (Toms Komass)", url: "https://www.youtube.com/watch?v=qdW_EV7-sM0" },
+  { title: "SK Mitauer - Iesildīšanās pirms/pēc skrējiena (Toms Komass)", url: "https://www.youtube.com/watch?v=r9B3HAqwWRo" },
+  { title: "SK Mitauer - Drills (Normal+Slowmotion) (Toms Komass)", url: "https://www.youtube.com/watch?v=k1lxf_IREV8" },
+  { title: "SK Mitauer - Drills. Kompleks ko es veicu pirms specifiskajām treniņu sesijām (Toms Komass)", url: "https://www.youtube.com/watch?v=YNdwfIdTSrc" },
+  { title: "SK Mitauer - SFS vingrinājumi - kājas", url: "https://www.youtube.com/watch?v=tkRCu0LNXnU" },
+  { title: "SK Mitauer - Kājas - vingrinājumi (Toms Komass)", url: "https://www.youtube.com/watch?v=QmkWTtoUf5M" },
+  { title: "SK Mitauer - Svari - pamatvingrinājumi (Toms Komass)", url: "https://www.youtube.com/watch?v=mDAJD6nho3o" },
+  { title: "SK Mitauer - Stabilizējošie (guļošie) + Planka (Toms Komass)", url: "https://www.youtube.com/watch?v=_ZD0oGsUgzk" },
+  { title: "SK Mitauer - Gumija - vingrosim (Toms Komass)", url: "https://www.youtube.com/watch?v=xYG3GHrTvUw" },
+  { title: "SK Mitauer - Staipīšanās pēc nodarbības (Toms Komass)", url: "https://www.youtube.com/watch?v=nd5inCvJkoU" },
+];
+
+(function setupVideoMenu() {
+  const btn = document.getElementById("videoMenuBtn");
+  const list = document.getElementById("videoMenuList");
+  if (!btn || !list) return;
+  list.innerHTML = VIDEO_TUTORIALS.length
+    ? VIDEO_TUTORIALS.map((v) => `<a href="${v.url}" target="_blank" rel="noopener">${v.title}</a>`).join("")
+    : `<span class="video-menu-empty">Video drīzumā</span>`;
+  const setOpen = (open) => {
+    list.hidden = !open;
+    btn.setAttribute("aria-expanded", String(open));
+  };
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setOpen(list.hidden);
+  });
+  document.addEventListener("click", (e) => {
+    if (!list.hidden && !list.contains(e.target)) setOpen(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setOpen(false);
+  });
+})();
+
+document.querySelectorAll("[data-layout]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.layout === calendarMode);
   });
 }
