@@ -299,13 +299,21 @@ function parseTimeToSec(timeStr) {
   return 0;
 }
 
+// The weekly-figures time boxes are in HOURS. Accepts what an athlete naturally
+// types: 1h30m, 1h30, 2h, 1:30, 0h45m, and minutes on their own - 45min, 45m,
+// 45', 45 minūtes (was read as 45 hours before 2026-11-10). A bare number is
+// hours ("10.5", "10,5"), because that is what the box is labelled with.
 function parseHoursMinutesInput(str) {
-  const v = (str || "").trim().replace(/\s+/g, "");
+  const v = (str || "").trim().toLowerCase().replace(/\s+/g, "").replace(",", ".");
   if (!v) return 0;
-  const m = v.match(/^(\d+)(?:h|:)(\d+)?m?$/i);
-  if (m) {
-    return parseInt(m[1]) + (m[2] ? parseInt(m[2]) / 60 : 0);
-  }
+  const NUM = "(\\d+(?:\\.\\d+)?)";
+  const MIN_WORD = "(?:minūtes|minūte|minutes|minute|mins|min|m|'|′)";
+  let m = v.match(new RegExp(`^${NUM}h(?:${NUM}${MIN_WORD}?)?$`));
+  if (m) return parseFloat(m[1]) + (m[2] ? parseFloat(m[2]) / 60 : 0);
+  m = v.match(/^(\d+):(\d{1,2})$/);
+  if (m) return parseInt(m[1]) + parseInt(m[2]) / 60;
+  m = v.match(new RegExp(`^${NUM}${MIN_WORD}$`));
+  if (m) return parseFloat(m[1]) / 60;
   return parseFloat(v) || 0;
 }
 // #endregion
