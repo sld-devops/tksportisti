@@ -560,7 +560,9 @@ function getEditPlanTraining() {
 
 const VAR_INTERVAL_TYPE = "Intervāli (dažāda garuma/ilguma)";
 const SAME_INTERVAL_TYPE = "Intervāli (vienāda garuma/ilguma)";
-const OTHER_RUN_TYPE = "Cita veida skrējiens";
+const OTHER_RUN_TYPE = "Cita veida treniņš";
+// Old name: trainings and templates saved under it still belong to the same group.
+const OTHER_RUN_LEGACY_TYPE = "Cita veida skrējiens";
 
 function isIntervalType(type) {
   return type === "Intervāli" || type === SAME_INTERVAL_TYPE || type === VAR_INTERVAL_TYPE;
@@ -1229,7 +1231,7 @@ const TEMPLATE_GROUPS = [
   { key: "intervals_same", label: "Intervāli (vienāda garuma/ilguma)", types: [SAME_INTERVAL_TYPE, "Intervāli"] },
   { key: "intervals_var", label: "Intervāli (dažāda garuma/ilguma)", types: [VAR_INTERVAL_TYPE] },
   { key: "tempo", label: "Tempa skrējieni", types: ["Tempa skrējiens"] },
-  { key: "other", label: "Citi skrējieni", types: [OTHER_RUN_TYPE] },
+  { key: "other", label: "Citi skrējieni", types: [OTHER_RUN_TYPE, OTHER_RUN_LEGACY_TYPE] },
   { key: "vfs_sfs", label: "VFS/SFS", types: ["VFS", "SFS"] },
   { key: "velo", label: "Velo", types: ["Velo"] },
 ];
