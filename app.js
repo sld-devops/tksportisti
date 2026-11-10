@@ -899,10 +899,10 @@ function maybeNotifyFullWeeks(statuses) {
       const start = addDays(monday, w * 7);
       const key = `${athleteId}|${formatDateISO(start)}`;
       if (!full) {
-        // Week fell back to not-full while its email was still in the 7s
-        // window (e.g. the coach deleted the plan that had completed it) -
-        // drop the pending email and let it re-notify if it fills again.
-        if (cancelNotificationEmail("week-full:" + key)) {
+        // Week fell back to not-full while its email was still waiting in the
+        // athlete's digest (e.g. the coach deleted the plan that had completed
+        // it) - take it out and let it re-notify if it fills again.
+        if (cancelWeekReadyNotification(athleteId, key)) {
           notifiedFullWeeks.delete(key);
           changed = true;
         }
@@ -914,12 +914,7 @@ function maybeNotifyFullWeeks(statuses) {
       if (seedOnly) return;
       const end = addDays(start, 6);
       const range = `${start.getDate()}.${start.getMonth() + 1}.–${end.getDate()}.${end.getMonth() + 1}.`;
-      queueNotificationEmail("week-full:" + key, {
-        target: "athlete",
-        athleteId,
-        subject: `Nedēļas plāns gatavs (${range})`,
-        message: `Treneris ir pabeidzis Tavu treniņu plānu nedēļai ${range}\n\nAtver lietotni: ${NOTIFY_APP_URL}`,
-      });
+      queueWeekReadyNotification(athleteId, key, range);
     });
   });
   if (changed) persistNotifiedFullWeeks();
@@ -4250,12 +4245,7 @@ calendarGrid.addEventListener("click", async (event) => {
     try {
       await deletePlan(deletePlanBtn.dataset.deletePlan);
       if (isCoach() && deletedPlan?.athlete_id) {
-        queueNotificationEmail("plan-delete:" + deletedPlan.id, {
-          target: "athlete",
-          athleteId: deletedPlan.athlete_id,
-          subject: `Treniņš dzēsts: ${deletedPlan.title} (${formatDateLV(deletedPlan.date)})`,
-          message: `Treneris dzēsa treniņu "${deletedPlan.title}" (${formatDateLV(deletedPlan.date)}).\n\nAtver lietotni: ${NOTIFY_APP_URL}`,
-        });
+        queuePlanDeleteNotification(deletedPlan.id, deletedPlan.athlete_id, deletedPlan.title, deletedPlan.date);
       }
       await loadNonTemplateData();
     } catch (e) {
@@ -4370,37 +4360,114 @@ document.addEventListener("pointermove", (e) => {
 // positional, semicolon-separated string documented at length elsewhere in
 // CLAUDE.md - parsing it wrong has caused real bugs before) - the email
 // just says the training was changed and points the athlete at the app.
-const PLAN_NOTIFY_DEBOUNCE_MS = 7000;
+// Everything the coach changes for ONE athlete while planning is collected into a
+// single email (2026-11-10). It goes out only after PLAN_DIGEST_QUIET_MS without
+// any further change to that athlete's plans, so a coach building a week sends
+// one email when the work has settled instead of one per drag or edit. The wait
+// restarts on every change; a change that is undone drops out of the list (a
+// training dragged back to its old day, a week that stops being full), and when
+// nothing is left the email is cancelled. Closing the page sends whatever is
+// waiting right away (flushPlanDigestsOnLeave) so it is never lost.
+const PLAN_DIGEST_QUIET_MS = 10 * 60 * 1000;
 const NOTIFY_APP_URL = "https://tksportisti.netlify.app";
-const pendingPlanNotifications = new Map(); // planId -> { athleteId, title, changes: string[], labels: string[], timer }
+// athleteId -> { lines: Map(key -> text), weekKeys: Set, moves: Map(planId -> {from, to, title}), timer }
+const pendingPlanDigests = new Map();
 
-// `changeLine` is the body detail line; `subjectLabel` is the short "what
-// changed" phrase that leads the subject (e.g. "Diena pārcelta (3.9. → 5.9.)").
-function queuePlanNotification(planId, athleteId, title, changeLine, subjectLabel) {
-  if (!athleteId) return;
-  let entry = pendingPlanNotifications.get(planId);
+function digestEntry(athleteId) {
+  let entry = pendingPlanDigests.get(athleteId);
   if (!entry) {
-    entry = { athleteId, title, changes: [], labels: [], timer: null };
-    pendingPlanNotifications.set(planId, entry);
+    entry = { lines: new Map(), moves: new Map(), timer: null };
+    pendingPlanDigests.set(athleteId, entry);
   }
-  entry.title = title || entry.title;
-  entry.changes.push(changeLine);
-  if (subjectLabel) entry.labels.push(subjectLabel);
-  clearTimeout(entry.timer);
-  entry.timer = setTimeout(() => {
-    pendingPlanNotifications.delete(planId);
-    const t = entry.title || "treniņš";
-    const subject = entry.labels.length === 1
-      ? `${entry.labels[0]}: ${t}`
-      : `Vairākas izmaiņas: ${t}`;
-    sendNotificationEmail({
-      target: "athlete",
-      athleteId: entry.athleteId,
-      subject,
-      message: `Treneris mainīja treniņu "${t}":\n\n${entry.changes.join("\n")}\n\nAtver lietotni: ${NOTIFY_APP_URL}`,
-    });
-  }, PLAN_NOTIFY_DEBOUNCE_MS);
+  return entry;
 }
+
+// Restarts the quiet period, or drops the digest when it has become empty.
+function touchPlanDigest(athleteId) {
+  const entry = pendingPlanDigests.get(athleteId);
+  if (!entry) return;
+  clearTimeout(entry.timer);
+  if (!entry.lines.size && !entry.moves.size) {
+    pendingPlanDigests.delete(athleteId);
+    return;
+  }
+  entry.timer = setTimeout(() => {
+    pendingPlanDigests.delete(athleteId);
+    sendNotificationEmail(buildPlanDigestPayload(athleteId, entry));
+  }, PLAN_DIGEST_QUIET_MS);
+}
+
+function buildPlanDigestPayload(athleteId, entry) {
+  const weeks = [...entry.lines.entries()].filter(([k]) => k.startsWith("week:")).map(([, t]) => t);
+  const other = [...entry.lines.entries()].filter(([k]) => !k.startsWith("week:")).map(([, t]) => t);
+  entry.moves.forEach((m) => other.push(`Diena pārcelta: ${m.title}, ${formatDateLV(m.from)} → ${formatDateLV(m.to)}`));
+  const subject = weeks.length
+    ? `Nedēļas plāns gatavs (${weeks.join(", ")})`
+    : "Treniņu plāns atjaunināts";
+  const body = [
+    weeks.length ? `Treneris ir pabeidzis Tavu treniņu plānu nedēļai: ${weeks.join(", ")}` : "Treneris atjaunināja Tavu treniņu plānu.",
+    other.length ? "\nIzmaiņas:\n" + other.map((t) => `- ${t}`).join("\n") : "",
+    `\nAtver lietotni: ${NOTIFY_APP_URL}`,
+  ].join("\n");
+  return { target: "athlete", athleteId, subject, message: body };
+}
+
+// A single training edited ("Rediģēt treniņu").
+function queuePlanEditNotification(planId, athleteId, title, dateStr) {
+  if (!athleteId) return;
+  digestEntry(athleteId).lines.set(`plan:${planId}:edit`, `Mainīts uzdevums: ${title} (${formatDateLV(dateStr)})`);
+  touchPlanDigest(athleteId);
+}
+
+// A training dragged to another day. Several drags of one card collapse into
+// first-day → last-day, and dragging it back home removes the line.
+function queuePlanMoveNotification(planId, athleteId, title, fromDate, toDate) {
+  if (!athleteId) return;
+  const entry = digestEntry(athleteId);
+  const origin = entry.moves.get(planId)?.from || fromDate;
+  if (origin === toDate) entry.moves.delete(planId);
+  else entry.moves.set(planId, { from: origin, to: toDate, title });
+  touchPlanDigest(athleteId);
+}
+
+// A training deleted: whatever was waiting about it is replaced by "deleted".
+function queuePlanDeleteNotification(planId, athleteId, title, dateStr) {
+  if (!athleteId) return;
+  const entry = digestEntry(athleteId);
+  entry.lines.delete(`plan:${planId}:edit`);
+  entry.moves.delete(planId);
+  entry.lines.set(`plan:${planId}:delete`, `Dzēsts: ${title} (${formatDateLV(dateStr)})`);
+  touchPlanDigest(athleteId);
+}
+
+// A week became fully planned ("Nedēļas plāns gatavs"). `weekKey` is
+// "<athleteId>|<monday>"; `range` is the text shown in the email.
+function queueWeekReadyNotification(athleteId, weekKey, range) {
+  digestEntry(athleteId).lines.set(`week:${weekKey}`, range);
+  touchPlanDigest(athleteId);
+}
+
+// The week stopped being full while its email was still waiting. Returns true
+// if there was something to take back.
+function cancelWeekReadyNotification(athleteId, weekKey) {
+  const entry = pendingPlanDigests.get(athleteId);
+  if (!entry || !entry.lines.delete(`week:${weekKey}`)) return false;
+  touchPlanDigest(athleteId);
+  return true;
+}
+
+// The page is closing: send every waiting digest now.
+function flushPlanDigestsOnLeave() {
+  pendingPlanDigests.forEach((entry, athleteId) => {
+    clearTimeout(entry.timer);
+    sendNotificationEmailOnLeave(buildPlanDigestPayload(athleteId, entry));
+  });
+  pendingPlanDigests.clear();
+}
+window.addEventListener("pagehide", () => {
+  flushPlanDigestsOnLeave();
+  flushPendingNotificationEmails();
+});
 // #endregion
 
 document.addEventListener("pointerup", async (e) => {
@@ -4418,8 +4485,7 @@ document.addEventListener("pointerup", async (e) => {
   try {
     await updatePlan(planId, { date: day });
     if (isCoach()) {
-      const move = `${formatDateLV(plan.date)} → ${formatDateLV(day)}`;
-      queuePlanNotification(planId, plan.athlete_id, plan.title, `Diena pārcelta: ${move}`, `Diena pārcelta (${move})`);
+      queuePlanMoveNotification(planId, plan.athlete_id, plan.title, plan.date, day);
     }
     await loadNonTemplateData();
   } catch (err) {
@@ -4459,7 +4525,7 @@ async function saveCommentTextarea(textarea, event, silent) {
       const plan = plans.find(p => p.id === planId);
       if (plan) plan[`${type}_comment`] = value;
       // No email for comments — only actual training-data changes notify the
-      // athlete (see queuePlanNotification / the delete + edit + move sites).
+      // athlete (see the digest functions: queuePlanEditNotification / ...MoveNotification / ...DeleteNotification).
       if (!silent) render();
     } catch (e) {
       alert("Neizdevās saglabāt komentāru: " + (e.message || e));
@@ -4605,7 +4671,7 @@ document.getElementById("saveEditPlanBtn")?.addEventListener("click", async () =
     const idx = plans.findIndex(p => p.id === id);
     if (idx !== -1) plans[idx] = updated;
     if (isCoach() && beforeEdit) {
-      queuePlanNotification(id, beforeEdit.athlete_id, training.title, "Treniņa uzdevums mainīts", `Mainīts uzdevums (${formatDateLV(beforeEdit.date)})`);
+      queuePlanEditNotification(id, beforeEdit.athlete_id, training.title, beforeEdit.date);
     }
     editPlanDialog.close();
     await loadNonTemplateData();

@@ -567,3 +567,11 @@ Scouting it surfaced a bigger dead-fetch problem than Profile's: `weeklyStats`, 
 - **Garums/Laiks and the length tab are remembered per kind** (`intervalHistoryActive[kind]`). Shared state was wrong in both directions: intervals are looked at by length and tempo runs mostly by time.
 
 All TODO.md candidates are now done. Next candidates haven't been scouted yet — look for another panel with its own isolated state var + `render*()` fn + dialog/save/delete handlers, the same way the panels above were identified, before starting.
+
+### The coach's plan emails are one digest per athlete, sent after 10 quiet minutes
+
+Changed 2026-11-10: a coach building a week used to trigger one email per drag, edit or delete (7s after each) and the athlete got ten. Now everything the coach changes for one athlete — edit, move, delete, "Nedēļas plāns gatavs" — is collected in `pendingPlanDigests` (`app.js`, search `PLAN_DIGEST_QUIET_MS`) and goes out as **one** email only after `PLAN_DIGEST_QUIET_MS` (10 min) with no further change to that athlete's plans; every change restarts the clock.
+
+- **Undone changes drop out**: dragging a card back to its first day removes the line, several drags collapse into first-day → last-day, deleting replaces earlier edit/move lines, and a week that stops being full is taken back with `cancelWeekReadyNotification` (which is also how `notifiedFullWeeks` gets cleared). An empty digest cancels its timer.
+- **The timer lives in the open tab**, so `pagehide` flushes every waiting digest (and everything still in db.js's `pendingNotificationEmails`) immediately via `sendNotificationEmailOnLeave()` — a `keepalive` fetch using `cachedAccessToken` from `db.js`, because a closing page cannot finish an `await`. Deliberately `pagehide`, **not** `visibilitychange`: switching tabs mid-planning must not send.
+- Not part of the digest, still on the 7s `queueNotificationEmail`: "Nedēļa apskatīta", health/restriction emails, the athlete's "Neizpildīts treniņš" to the coach. Adding a brand-new training still sends nothing by itself.

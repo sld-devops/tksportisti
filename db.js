@@ -126,6 +126,30 @@ async function sendNotificationEmail({ target, athleteId, subject, message }) {
   }
 }
 
+// Closing the page must not lose emails that are still waiting for their delay.
+// A normal send needs an `await` for the login token, which a closing page may
+// not get to finish - so the token is kept here, up to date, and
+// sendNotificationEmailOnLeave() fires synchronously with `keepalive`, which
+// lets the browser finish the request after the page is gone.
+let cachedAccessToken = null;
+supabase.auth.getSession().then(({ data }) => { cachedAccessToken = data?.session?.access_token || null; });
+supabase.auth.onAuthStateChange((_event, session) => { cachedAccessToken = session?.access_token || null; });
+
+function sendNotificationEmailOnLeave(payload) {
+  if (!cachedAccessToken) return;
+  try {
+    fetch("https://yqaabswcvwkiimpoxsfj.supabase.co/functions/v1/send-notification", {
+      method: "POST",
+      keepalive: true,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${cachedAccessToken}`,
+      },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+  } catch (e) { /* nothing more can be done while the page is closing */ }
+}
+
 // The athlete's personal calendar-subscription link (supabase/functions/
 // calendar-feed). The secret token is built on the server from a secret that
 // never reaches the browser, so this just asks for the finished link. Throws
@@ -177,6 +201,15 @@ function queueNotificationEmail(key, payload) {
     sendNotificationEmail(payload);
   }, NOTIFY_DELAY_MS);
   pendingNotificationEmails.set(key, { payload, timer });
+}
+
+// Page is closing: send every email still waiting, now (see above).
+function flushPendingNotificationEmails() {
+  pendingNotificationEmails.forEach(({ payload, timer }) => {
+    clearTimeout(timer);
+    sendNotificationEmailOnLeave(payload);
+  });
+  pendingNotificationEmails.clear();
 }
 
 // Returns true if a still-pending email was cancelled.
