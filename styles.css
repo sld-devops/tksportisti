@@ -12,7 +12,7 @@
     var(--page-bg-image);
   --surface: #eef7d9;
   --surface-alt: #e0efc0;
-  --surface-hover: #d3e8a3;
+  --surface-hover: #dbeeb3; /* a touch lighter: the red accent text on it was 4.3:1, now 4.5:1 */
   --panel-row-hover: #e6f2c9;
   --accent: #c91f2f;
   --accent-dark: #9e1724;
@@ -1382,7 +1382,7 @@ h4 {
 
 .wbt-competition { color: var(--ink); }
 .wbt-competition:not(:has(input:checked)):hover,
-.wbt-competition:has(input:checked) { background: var(--race); color: var(--ink); border-color: var(--race); }
+.wbt-competition:has(input:checked) { background: var(--race); color: #fff; border-color: var(--race); } /* white: 4.6:1 on the blue, dark ink was 3.9:1 */
 
 .wbt-rest { color: var(--ink); }
 .wbt-rest:not(:has(input:checked)):hover,
