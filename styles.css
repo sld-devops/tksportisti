@@ -5540,6 +5540,41 @@ textarea:disabled {
   margin: 0;
   overflow-wrap: break-word;
 }
+/* First 5 lines only; the arrow under it (see panels/diary.js) opens the rest. */
+.diary-entry-content p:not(.is-expanded) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  overflow: hidden;
+}
+.diary-more-btn {
+  align-items: center;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 600;
+  gap: 5px;
+  margin-top: 4px;
+  min-height: 24px;
+  padding: 2px 4px;
+}
+.diary-more-btn[hidden] {
+  display: none;
+}
+.diary-more-btn:hover {
+  color: var(--accent);
+}
+.diary-more-arrow {
+  font-size: 0.65rem;
+  transition: transform 0.2s ease;
+}
+.diary-more-btn[aria-expanded="true"] .diary-more-arrow {
+  transform: rotate(90deg);
+}
 .diary-entry-actions {
   position: absolute;
   top: 8px;
