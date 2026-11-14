@@ -3729,6 +3729,7 @@ const EXERCISE_PDFS = [
     { title: "Kājas, gurni un korpuss", file: "pdf/vfs-kajas-gurni-korpuss.pdf", time: "~45 min" },
     { title: "Viss ķermenis", file: "pdf/vfs-viss-kermenis.pdf", time: "~60 min" },
     { title: "Kājas, pēdas un korpuss", file: "pdf/vfs-kajas-pedas-korpuss.pdf", time: "~65 min" },
+    { title: "Kājas, korpuss un rokas", file: "pdf/vfs-kajas-korpuss-rokas.pdf", time: "~65 min" },
   ] },
 ];
 
