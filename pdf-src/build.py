@@ -5,7 +5,7 @@ Usage:  python3 pdf-src/build.py            (all files)
         python3 pdf-src/build.py <name>     (one file, name without .txt)
 
 Source format: a few "key: value" lines, a blank line, then the text.
-"## Title | time" starts a section (the time is optional), "— Pauze ... —" is a rest row, "> text" is a note,
+"## Title | time" starts a section (the time is optional), "### Name" starts a kept-together block, "~" is a gap between parts of a block, "— Pauze ... —" is a rest row, "> text" is a note,
 every other line is one exercise. A (https://...) link anywhere in a line, or (label - https://...),
 becomes a clickable "video" link. The coach's wording is never changed.
 """
@@ -27,6 +27,9 @@ header { border-bottom: 3px solid #a3e635; padding-bottom: 10px; margin-bottom: 
 h1 { font-size: 20pt; line-height: 1.15; margin: 0 0 4px; }
 .duration { margin-top: 6px; font-weight: 700; font-size: 11pt; }
 h2 { display: flex; justify-content: space-between; align-items: baseline; font-size: 13pt; margin: 18px 0 6px; padding: 4px 10px; background: #f4fbe0; border-left: 4px solid #557a0a; break-after: avoid; }
+h3 { font-size: 11pt; margin: 14px 0 4px; color: #557a0a; break-after: avoid; }
+.block { break-inside: avoid; }
+.gap { height: 8px; }
 ul { list-style: none; margin: 0; padding: 0; }
 li { padding: 4px 0 4px 22px; position: relative; border-bottom: 1px solid #eef0f4; break-inside: avoid; }
 li::before { content: ''; position: absolute; left: 4px; top: 11px; width: 7px; height: 7px; background: #3d5a07; transform: rotate(45deg); }
@@ -62,7 +65,7 @@ def build(txt):
                 meta[k.strip()] = v.strip()
         else:
             body.append(raw.rstrip())
-    parts, open_list = [], False
+    parts, open_list, in_block = [], False, False
     def close():
         nonlocal open_list
         if open_list:
@@ -72,17 +75,30 @@ def build(txt):
             continue
         if ln.startswith("## "):
             close()
+            if in_block:
+                parts.append("</div>"); in_block = False
             name, _, t = ln[3:].partition(" | ")
             name = name.rstrip(": ")  # headings read the same with or without the coach's colon
             parts.append(f'<h2><span>{html.escape(name)}</span><span class="t">{html.escape(t)}</span></h2>')
+        elif ln.startswith("### "):
+            close()
+            if in_block:
+                parts.append("</div>")
+            parts.append(f'<div class="block"><h3>{html.escape(ln[4:])}</h3>')
+            in_block = True
+        elif ln.strip() == "~":
+            close()
+            parts.append('<div class="gap"></div>')
         elif ln.startswith("> "):
             close(); parts.append(f'<div class="note">{html.escape(ln[2:])}</div>')
         else:
             if not open_list:
                 parts.append("<ul>"); open_list = True
             cls = ' class="rest"' if ln.startswith("— Pauze") else ""
-            parts.append(f"<li{cls}>{line_html(ln)}</li>")
+            parts.append(f"<li{cls}>{line_html(ln[:1].upper() + ln[1:])}</li>")
     close()
+    if in_block:
+        parts.append("</div>")
     doc = f"""<!doctype html><html lang="lv"><head><meta charset="utf-8"><style>{CSS}</style></head><body>
 <header><div class="chip">{html.escape(meta['grupa'])}</div>
 <h1>{html.escape(meta['nosaukums'])}</h1>
