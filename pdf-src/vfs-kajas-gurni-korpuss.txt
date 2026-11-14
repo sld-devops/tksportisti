@@ -1,6 +1,5 @@
 grupa: VFS
 nosaukums: Kājas, gurni un korpuss
-kermena_dala: Kājas · gurni · korpuss
 ilgums: aptuveni 45 min
 fails: vfs-kajas-gurni-korpuss
 

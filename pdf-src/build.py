@@ -26,7 +26,6 @@ header { border-bottom: 3px solid #a3e635; padding-bottom: 10px; margin-bottom: 
 .brand { font-size: 8.5pt; letter-spacing: .08em; text-transform: uppercase; color: #566073; }
 .chip { display: inline-block; background: #a3e635; color: #15171a; font-weight: 700; font-size: 9pt; padding: 2px 10px; border-radius: 999px; margin: 8px 0 6px; }
 h1 { font-size: 20pt; line-height: 1.15; margin: 0 0 4px; }
-.body-part { color: #566073; font-size: 10pt; }
 .duration { margin-top: 6px; font-weight: 700; font-size: 11pt; }
 h2 { display: flex; justify-content: space-between; align-items: baseline; font-size: 13pt; margin: 18px 0 6px; padding: 4px 10px; background: #f4fbe0; border-left: 4px solid #557a0a; break-after: avoid; }
 ul { list-style: none; margin: 0; padding: 0; }
@@ -82,7 +81,6 @@ def build(txt):
 <header><div class="brand">Toma Komasa sportistu portāls</div>
 <div class="chip">{html.escape(meta['grupa'])}</div>
 <h1>{html.escape(meta['nosaukums'])}</h1>
-<div class="body-part">{html.escape(meta['kermena_dala'])}</div>
 {('<div class="duration">Ilgums: ' + html.escape(meta['ilgums']) + '</div>') if meta.get('ilgums') else ''}</header>
 {''.join(parts)}
 </body></html>"""
