@@ -5955,16 +5955,34 @@ textarea:disabled {
     display: none;
   }
 
+  /* Each button is as wide as its own words (2026-11-14). They used to be
+     stretched to a third of the row each (flex: 1 1 30%), which made "Notīrīt
+     nedēļu" and "Nokopēt plānu" into wide slabs and broke "Iepriekšējā nedēļa"
+     onto two lines. The athlete's name tag takes a line of its own so the two
+     week actions always sit together under it. */
   .week-nav-row button {
-    flex: 1 1 30%;
+    flex: 0 1 auto;
     font-size: 0.72rem;
-    padding: 8px 4px;
-    white-space: normal;
+    padding: 7px 7px;
     text-align: center;
   }
 
-  #copyPrevWeekBtn {
+  .week-nav-row #activeAthleteName {
+    margin: 0;
+    max-width: 100%;
+  }
+
+  /* The divider after the name tag becomes the line break: a zero-height,
+     full-width flex item. :not([hidden]) matters - render() hides it for the
+     athlete, and an id selector would otherwise beat the hidden attribute. */
+  .week-nav-row #copyWeekDivider:not([hidden]) {
+    background: none;
+    border: 0;
+    display: block;
     flex-basis: 100%;
+    height: 0;
+    margin: 0;
+    width: auto;
   }
 
   .app-body {
@@ -6060,9 +6078,51 @@ textarea:disabled {
     left: 14px;
   }
 
+  /* On a phone the average-feeling badge cannot share the top line with
+     "Nedēļa apskatīta": the two are ~330px together and overlapped each other
+     at 360px. It drops to a line of its own under the checkbox, caption and
+     badge side by side (they wrap onto two lines on the narrowest phones), and
+     the card's top padding grows to make room - only when the badge exists. */
   .week-feeling-badge-wrap {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+    left: 14px;
     right: 14px;
+    text-align: left;
+    top: 52px;
   }
+
+  .week-feeling-caption {
+    margin-bottom: 0;
+  }
+
+  .ws-comments:has(.week-feeling-badge-wrap) {
+    padding-top: 92px;
+  }
+
+  .week-comments-wrap:has(#weekReviewedWrap[hidden]) .ws-comments:has(.week-feeling-badge-wrap) {
+    padding-top: 52px;
+  }
+
+  /* Up to 400px the caption and the badge do not fit on one line (306px of
+     content in 299px at 360px), so the badge is two lines tall. */
+  @media (max-width: 400px) {
+    .ws-comments:has(.week-feeling-badge-wrap) {
+      padding-top: 108px;
+    }
+
+    .week-comments-wrap:has(#weekReviewedWrap[hidden]) .ws-comments:has(.week-feeling-badge-wrap) {
+      padding-top: 68px;
+    }
+  }
+
+  /* The athlete has no checkbox above it, so the badge takes the top line. */
+  .week-comments-wrap:has(#weekReviewedWrap[hidden]) .week-feeling-badge-wrap {
+    top: 12px;
+  }
+
 
   .calendar-grid {
     grid-template-columns: repeat(7, minmax(min(82vw, 300px), 1fr));
@@ -6161,9 +6221,10 @@ textarea:disabled {
     padding: 0 10px;
   }
 
+  /* 0.7rem / 6px is what lets all three week buttons share one line at 360px. */
   .week-nav-row button {
-    font-size: 0.75rem;
-    padding: 5px 7px;
+    font-size: 0.7rem;
+    padding: 5px 6px;
   }
 
   .view-tabs button {
