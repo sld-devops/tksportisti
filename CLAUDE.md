@@ -177,6 +177,15 @@ The desktop-on-a-phone layout exists because the owner had been switching Chrome
 - **The `max-width: 1040/720/380px` blocks simply stop matching while the viewport is pinned** — nothing about the phone layout was ever deleted, which is what makes both directions real. Since 2026-08-05 those blocks are what a phone gets by default again, and the owner has flagged that the phone layout still has buttons running off the edge and overlapping — a known, separate piece of work.
 - The login screen follows the same setting, deliberately: switching the viewport at login time would make the layout jump. The role is unknown before first paint (it takes a Supabase round trip), so the default cannot depend on coach vs athlete — a coach who wants the wide planner on their phone presses the button once.
 
+### The UI colour is warm sand and peach, not lime (2026-11-14)
+
+The owner found the lime green glaring across the whole portal and chose this out of three mocked-up alternatives (sand paper, steel gradient, sunset gradient - this is the third). Older notes in this file that say "lime" for a save button or a panel edge mean these tokens now.
+
+- **Everything is in `:root`**: `--surface`/`--surface-alt`/`--surface-hover`/`--panel-row-hover` (sand to peach), `--btn-bg`/`--btn-bg-hover` (the top-to-bottom gradient on `.secondary-action`, `.add-day-button`, `.secondary-action-sm`), `--brand`/`--brand-dark` (dark brown: every save button, `#activeAthleteName`, ticked checkboxes - white text on it), `--edge`/`--edge-soft`/`--edge-glow` (the peach left border and glow on `.panel`).
+- **Red text needs the light tones.** `--accent` on `--surface-hover` is 4.53:1 and that is the floor - don't darken it. The lower end of `--btn-bg` is only 4.2:1 for red, which is why `.delete-action` is overridden back to the flat `--surface-alt`/`--surface-hover`. Any new button with red text must do the same.
+- **`--lime`, `--lime-dark`, `--lime-bg` still exist and are still green on purpose**: they are the "excellent" status colour, read from JS (`panels/ruffier-test.js` "Teicami", the top feeling rating in `app.js`). Don't delete them and don't use them for UI chrome again.
+- Left as they were: the red accent, plan/execution card fills (`--card-plan-bg`, `--card-done-bg`), time-of-day, HR zones, week boxes, feeling scale.
+
 ### Phone overflow pass (2026-11-14)
 
 Three phone-only fixes in `styles.css`, found by measuring the page at 320/360/390/414/768px rather than by eye; the desktop screenshot is pixel-identical before and after.
