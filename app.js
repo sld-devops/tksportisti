@@ -3745,6 +3745,9 @@ const EXERCISE_PDFS = [
     { title: "Drills: dinamiskie, dziļie, seklie", file: "pdf/sfs-drills.pdf", time: "~30 min" },
     { title: "Lēcieni, seklie un dziļie", file: "pdf/sfs-lecieni-seklie-dziliie.pdf", time: "~30–50 min" },
   ] },
+  { group: "Iesildīšanās", items: [
+    { title: "Iesildīšanās pirms intensīviem skrējieniem", file: "pdf/iesildisanas-intensivi.pdf", time: "~45–55 min" },
+  ] },
 ];
 
 // Shown shortest first: "~45 min" -> 45, "~35–60 min" -> the middle (47.5); an entry
