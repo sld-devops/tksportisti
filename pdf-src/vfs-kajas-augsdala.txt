@@ -1,7 +1,7 @@
 grupa: VFS
-nosaukums: Ķermeņa augšdaļa, 3 bloki
-ilgums: aptuveni 35–55 min
-fails: vfs-augsdalas-tabulas
+nosaukums: Kājas un ķermeņa augšdaļa
+ilgums: aptuveni 55–95 min
+fails: vfs-kajas-augsdala
 
 ## Iesildīšanās | aptuveni 4 min
 Mierīga lēkāšana vai skriešana uz vietas 1 min
@@ -9,9 +9,34 @@ Izklupiens uz priekšu, ar to pašu kāju uz aizmuguri un tad uz sāniem ietupie
 Presītes 10-15x
 Dziļie pietupieni 10-20x
 
-## Ķermeņa augšdaļas vingrinājumi | aptuveni 30–50 min
+## Kāju vingrinājumi | aptuveni 20–40 min
 
 ### 1. bloks
+> Veicam vingrinājumus no šī bloka 2-3 reizes. Starp vingrinājumiem neveicam atpūtu. Atkārtojot šī bloka vingrinājumus, veicam 1-2 min atpūtu.
+Pietupieni (ietupiens līdz 90 grādos saliektām kājām, tad iztaisnojam kājas) 10 reizes
+Pietupieni (dziļie pietupieni, kājas plecu platumā) 10 reizes
+Sēdēšana pietupienā (iesēžamies 90 grādos saliektām kājām) 20-30''
+Pietupieni izklupiena pozīcijā 10 reizes katra kāja
+Izklupiena pozīcijā, stāv statiski 15-30'' katra kāja
+
+### 2. bloks
+> Veicam vingrinājumus no šī bloka 2-3 reizes. Starp vingrinājumiem neveicam atpūtu. Atkārtojot šī bloka vingrinājumus veicam 1-2 min atpūtu.
+Ātri ietupieni (ietupiens līdz 90° saliektām kājām un iztaisnojam līdz 45°) 10 reizes
+Ātri ietupieni izklupiena pozīcijā (ietupiens līdz 90° saliektām kājām, paceļamies līdz 45°) 20-30''
+Izklupiena pozīcijā un ar rokām veicam skriešanas roku kustību 20-30'' katra kāja
+Cilāšanās pirkstgalos 15-30 reizes
+
+### 3. bloks
+> Veicam vingrinājumus no šī bloka 2-3 reizes. Starp vingrinājumiem neveicam atpūtu. Atkārtojot šī bloka vingrinājumus veicam 1-2 min atpūtu.
+Kājas plecu platumā, lēkāšana ar abām kājām bez ietupiena (ar taisnām kājām) 30-60''
+Lēkāšana ar abām kājām bez ietupiena (ar taisnām kājām, pirkstgali vērsti uz āru) 30-60'' katra kāja
+Cilāšanās pirkstgalos ar abām kājām, pirkstgali vērsti uz āru 15-30 reizes
+Cilāšanās pirkstgalos ar abām kājām, pirkstgali vērsti uz iekšu 15-30 reizes
+Cilāšanās pirkstgalos ar vienu kāju 15-30 reizes katra kāja
+
+## Ķermeņa augšdaļas vingrinājumi | aptuveni 30–50 min
+
+### 4. bloks
 > Veicam vingrinājumus no šī bloka 2-3 reizes. Starp vingrinājumiem neveicam atpūtu. Atkārtojot šī bloka vingrinājumus veicam 1-2 min atpūtu.
 Guļ uz muguras, kājas paceltas gaisā, 90° saliektā stāvoklī. Pamīšus laižam lejā un ceļam augšā. 20 reizes katra kāja
 Guļ uz muguras, kājas paceltas gaisā, 90° saliektā stāvoklī. Abas laižam lejā un ceļam augšā. 10 reizes
@@ -20,7 +45,7 @@ Guļ uz muguras, kājas paceltas gaisā, 90° saliektā stāvoklī. Rokas aiz ga
 Guļ uz muguras, paceļam kājas un ķermeni augšā. Cenšamies noturēt kājas taisnas uz priekšu. 15-30''
 Guļ uz muguras, paceļam kāju pāri pretējās kājas celim, taisām presītes ar pretējo sānu 10-15 reizes katra kāja
 
-### 2. bloks
+### 5. bloks
 > Veicam vingrinājumus no šī bloka 2-3 reizes. Starp vingrinājumiem neveicam atpūtu. Atkārtojot šī bloka vingrinājumus veicam 1-2 min atpūtu.
 Plank 30-60''
 Sāna Plank – labā puse 30-60''
@@ -29,7 +54,7 @@ Plank, kāju liekot uz sāniem, pamīšus vienu, tad otru. Veic to visu laiku at
 Sāna Plank – labā puse, augšējo kāju cilājam uz augšu un laižam lejā. Atkārtojam visu laiku 30-60''
 Sāna Plank – kreisā puse, augšējo kāju cilājam uz augšu un laižam lejā. Atkārtojam visu laiku 30-60''
 
-### 3. bloks
+### 6. bloks
 > Veicam vingrinājumus no šī bloka 2-3 reizes. Starp vingrinājumiem neveicam atpūtu. Atkārtojot šī bloka vingrinājumus veicam 1-2 min atpūtu.
 Guļ uz muguras, sākam cilāt gurnus uz augšu/leju 30-60''
 Guļ uz muguras, noturam gurnus gaisā 30-60''
