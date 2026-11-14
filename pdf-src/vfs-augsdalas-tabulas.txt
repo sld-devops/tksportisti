@@ -1,0 +1,38 @@
+grupa: VFS
+nosaukums: Ķermeņa augšdaļas vingrinājumi (tabulas C, D, E)
+ilgums: aptuveni 35–55 min
+fails: vfs-augsdalas-tabulas
+
+## Iesildīšanās | aptuveni 4 min
+Mierīga lēkāšana vai skriešana uz vietas 1 min
+Izklupiens uz priekšu, ar to pašu kāju uz aizmuguri un tad uz sāniem ietupienā. Tas pats ar otru kāju. 5x katra kāja
+Presītes 10-15x
+Dziļie pietupieni 10-20x
+
+## Ķermeņa augšdaļas vingrinājumi | aptuveni 30–50 min
+
+### Tabula C
+> Veicam vingrinājumus no tabulas C 2-3 reizes. Starp vingrinājumiem neveicam atpūtu. Atkārtojot C tabulas vingrinājumus veicam 1-2 min atpūtu.
+Guļ uz muguras, kājas paceltas gaisā, 90° saliektā stāvoklī. Pamīšus laižam lejā un ceļam augšā. 20 reizes katra kāja
+Guļ uz muguras, kājas paceltas gaisā, 90° saliektā stāvoklī. Abas laižam lejā un ceļam augšā. 10 reizes
+Guļ uz muguras, kājas paceltas gaisā, 90° saliektā stāvoklī. Rokas aiz galvas. Veicam presītes. 20-30''
+Guļ uz muguras, kājas paceltas gaisā, 90° saliektā stāvoklī. Rokas aiz galvas. Veicam presītes uz sānu, pieskaroties ar roku pie pretējās kājas 10 reizes katra kāja
+Guļ uz muguras, paceļam kājas un ķermeni augšā. Cenšamies noturēt kājas taisnas uz priekšu. 15-30''
+Guļ uz muguras, paceļam kāju pāri pretējās kājas celim, taisām presītes ar pretējo sānu 10-15 reizes katra kāja
+
+### Tabula D
+> Veicam vingrinājumus no tabulas D 2-3 reizes. Starp vingrinājumiem neveicam atpūtu. Atkārtojot D tabulas vingrinājumus veicam 1-2 min atpūtu.
+Plank 30-60''
+Sāna Plank – labā puse 30-60''
+Sāna Plank – kreisā puse 30-60''
+Plank, kāju liekot uz sāniem, pamīšus vienu, tad otru. Veic to visu laiku atrodoties plank. 30-60''
+Sāna Plank – labā puse, augšējo kāju cilājam uz augšu un laižam lejā. Atkārtojam visu laiku 30-60''
+Sāna Plank – kreisā puse, augšējo kāju cilājam uz augšu un laižam lejā. Atkārtojam visu laiku 30-60''
+
+### Tabula E
+> Veicam vingrinājumus no tabulas E 2-3 reizes. Starp vingrinājumiem neveicam atpūtu. Atkārtojot E tabulas vingrinājumus veicam 1-2 min atpūtu.
+Guļ uz muguras, sākam cilāt gurnus uz augšu/leju 30-60''
+Guļ uz muguras, noturam gurnus gaisā 30-60''
+Guļ uz muguras, sākam cilāt gurnus uz augšu/leju 30-60''
+Guļ uz muguras, noturam gurnus gaisā 30-60''
+Guļ uz muguras, noturam gurnus gaisā, sākam cilāt kājas pamīšus pa vienai augšā/lejā 30-60''
