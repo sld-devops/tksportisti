@@ -1,13 +1,14 @@
 grupa: SFS
 nosaukums: Lēkāšana (Stepper)
-ilgums: aptuveni 10–15 min
+ilgums: aptuveni 45 min
 fails: sfs-lekasana-stepper
 
 ## Iesildīšanās | 2 min
 Lēkājam dažādos virzienos – 2 min
 
-## Pamatdaļa | aptuveni 8–12 min
+## Pamatdaļa | aptuveni 43 min
 > Lēkāšana – 30-45'' katrs posms
+> Visu setu atkārtojam 3 reizes
 
 ### 1. bloks
 Lēkāšana ar taisnām kājām

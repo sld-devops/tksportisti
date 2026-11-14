@@ -3740,7 +3740,7 @@ const EXERCISE_PDFS = [
     { title: "Viss ķermenis (bloki)", file: "pdf/vfs-bloki.pdf", time: "" },
   ] },
   { group: "SFS", items: [
-    { title: "Lēkāšana (Stepper)", file: "pdf/sfs-lekasana-stepper.pdf", time: "~10–15 min" },
+    { title: "Lēkāšana (Stepper)", file: "pdf/sfs-lekasana-stepper.pdf", time: "~45 min" },
     { title: "Pliometrija, lēcieni", file: "pdf/sfs-pliometrija-lecieni.pdf", time: "~25 min" },
   ] },
 ];
