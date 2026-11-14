@@ -4888,6 +4888,12 @@ textarea:disabled {
     height: 100%;
     max-height: none;
     overflow-y: auto;
+    /* The drawer clips at its own edge (overflow: hidden) and the cards used to
+       run the full width of it, so each card's left and right border was cut
+       off. A desktop column has the page gutter around it; a drawer has none,
+       so it carries its own. */
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
   .builder-sections-row {
@@ -6062,9 +6068,29 @@ textarea:disabled {
   }
 }
 
-/* Buttons carry a short alternative label for the narrowest phones (see below). */
+/* Header buttons carry a short alternative label for phones. */
 .label-short {
   display: none;
+}
+
+/* Every phone, not only the narrowest (it was max-width: 380px until 2026-11-14):
+   at 390-414px the full labels put each button on a row of its own and the
+   header stood 260px tall - twice what a 360px phone got - before the calendar
+   even started. This block has to stay after the base rule above, which is the
+   same specificity. */
+@media (max-width: 720px) {
+  .label-full {
+    display: none;
+  }
+
+  .label-short {
+    display: inline;
+  }
+
+  .app-header .secondary-action {
+    font-size: 0.85rem;
+    padding: 7px 10px;
+  }
 }
 
 /* ---- Narrow phones (iPhone SE 320px, common Android 360px, iPhone SE2 375px) ----
@@ -6090,16 +6116,6 @@ textarea:disabled {
   .app-header .secondary-action {
     font-size: 0.78rem;
     padding: 6px 8px;
-  }
-
-  /* "VFS/SFS/Iesildīšanās/Drill bibliotēka" needs two lines and a row of its own
-     here; the short label keeps it to one line beside the other buttons. */
-  .label-full {
-    display: none;
-  }
-
-  .label-short {
-    display: inline;
   }
 
   .week-label-row {
