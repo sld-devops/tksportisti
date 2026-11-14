@@ -7328,3 +7328,18 @@ body.is-dragging .session-card.is-draggable {
     display: none;
   }
 }
+
+/* Exercise-PDF dropdown: title on the left, whole-session length on the right. */
+.video-menu-list a.menu-item-timed {
+  align-items: baseline;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.menu-time {
+  color: var(--muted);
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+}

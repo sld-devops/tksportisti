@@ -3722,11 +3722,12 @@ setupHeaderMenu(
 );
 
 // Exercise instructions as PDFs in the pdf/ folder (made from the coach's text,
-// one shared layout). To add one: add { title, file } to its group.
+// one shared layout). To add one: add { title, file, time } to its group; time is
+// the whole session, as written in the PDF header.
 const EXERCISE_PDFS = [
   { group: "VFS", items: [
-    { title: "Kājas, gurni un korpuss", file: "pdf/vfs-kajas-gurni-korpuss.pdf" },
-    { title: "Viss ķermenis", file: "pdf/vfs-viss-kermenis.pdf" },
+    { title: "Kājas, gurni un korpuss", file: "pdf/vfs-kajas-gurni-korpuss.pdf", time: "~45 min" },
+    { title: "Viss ķermenis", file: "pdf/vfs-viss-kermenis.pdf", time: "~60 min" },
   ] },
 ];
 
@@ -3736,7 +3737,7 @@ setupHeaderMenu(
   EXERCISE_PDFS.length
     ? EXERCISE_PDFS.map((g) =>
         `<div class="video-menu-group">${g.group}</div>` +
-        g.items.map((i) => `<a href="${i.file}" target="_blank" rel="noopener">${i.title}</a>`).join("")
+        g.items.map((i) => `<a class="menu-item-timed" href="${i.file}" target="_blank" rel="noopener"><span>${i.title}</span><span class="menu-time">${i.time || ""}</span></a>`).join("")
       ).join("")
     : `<span class="video-menu-empty">Instrukcijas drīzumā</span>`
 );
