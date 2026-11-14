@@ -3739,6 +3739,9 @@ const EXERCISE_PDFS = [
     { title: "Viss ķermenis (2. variants)", file: "pdf/vfs-viss-kermenis-garais.pdf", time: "~55 min" },
     { title: "Viss ķermenis (bloki)", file: "pdf/vfs-bloki.pdf", time: "" },
   ] },
+  { group: "SFS", items: [
+    { title: "Lēkāšana (Stepper)", file: "pdf/sfs-lekasana-stepper.pdf", time: "~10–15 min" },
+  ] },
 ];
 
 setupHeaderMenu(
