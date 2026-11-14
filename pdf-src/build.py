@@ -6,7 +6,7 @@ Usage:  python3 pdf-src/build.py            (all files)
 
 Source format: a few "key: value" lines, a blank line, then the text.
 "## Title | time" starts a section (the time is optional), "— Pauze ... —" is a rest row, "> text" is a note,
-every other line is one exercise. A (https://...) link at the end of a line
+every other line is one exercise. A (https://...) link anywhere in a line, or (label - https://...),
 becomes a clickable "video" link. The coach's wording is never changed.
 """
 import html, re, subprocess, sys, shutil, tempfile
@@ -37,13 +37,19 @@ h2 .t { font-size: 10.5pt; font-weight: 600; color: #566073; }
 a { color: #9e1724; text-decoration: none; font-weight: 600; }
 """
 
+LINK_RE = re.compile(r"\s*\((?:([^()]*?)\s*-\s*)?(https?://[^)\s]+)\)")
+
 def line_html(text):
-    m = re.search(r"\s*\((https?://[^)\s]+)\)\s*$", text)
-    link = ""
-    if m:
-        link = f' <a href="{html.escape(m.group(1))}">▶ video</a>'
-        text = text[: m.start()]
-    return html.escape(text) + link
+    """Escapes a line and turns every "(https://...)" - optionally "(label - https://...)" -
+    into a clickable "video" link, in the place it was written."""
+    out, pos = [], 0
+    for m in LINK_RE.finditer(text):
+        out.append(html.escape(text[pos:m.start()]))
+        label = f" ({html.escape(m.group(1))})" if m.group(1) else ""
+        out.append(f' <a href="{html.escape(m.group(2))}">▶ video</a>{label}')
+        pos = m.end()
+    out.append(html.escape(text[pos:]))
+    return "".join(out).strip()
 
 def build(txt):
     meta, body, in_body = {}, [], False
@@ -67,6 +73,7 @@ def build(txt):
         if ln.startswith("## "):
             close()
             name, _, t = ln[3:].partition(" | ")
+            name = name.rstrip(": ")  # headings read the same with or without the coach's colon
             parts.append(f'<h2><span>{html.escape(name)}</span><span class="t">{html.escape(t)}</span></h2>')
         elif ln.startswith("> "):
             close(); parts.append(f'<div class="note">{html.escape(ln[2:])}</div>')

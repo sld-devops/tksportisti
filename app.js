@@ -3726,6 +3726,7 @@ setupHeaderMenu(
 const EXERCISE_PDFS = [
   { group: "VFS", items: [
     { title: "Kājas, gurni un korpuss", file: "pdf/vfs-kajas-gurni-korpuss.pdf" },
+    { title: "Viss ķermenis", file: "pdf/vfs-viss-kermenis.pdf" },
   ] },
 ];
 
