@@ -7311,3 +7311,20 @@ body.is-dragging .session-card.is-draggable {
     transform: none !important;
   }
 }
+
+/* Group heading inside the exercise-PDF dropdown (VFS, SFS, ...). */
+.video-menu-group {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 8px 10px 2px;
+  text-transform: uppercase;
+}
+
+/* The ▾ on header menu buttons wraps under the text on a phone; desktop layout only. */
+@media (max-width: 1040px) {
+  .video-arrow {
+    display: none;
+  }
+}

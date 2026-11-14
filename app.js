@@ -3682,14 +3682,14 @@ const VIDEO_TUTORIALS = [
   { title: "Staipīšanās – pēc treniņa", url: "https://www.youtube.com/watch?v=nd5inCvJkoU" },
 ];
 
-(function setupVideoMenu() {
-  const btn = document.getElementById("videoMenuBtn");
-  const list = document.getElementById("videoMenuList");
+// A header button that drops a list under itself. Used by the video list and the
+// exercise-PDF list; opening one closes the other.
+const headerMenuClosers = [];
+function setupHeaderMenu(btn, list, html) {
   if (!btn || !list) return;
-  list.innerHTML = VIDEO_TUTORIALS.length
-    ? VIDEO_TUTORIALS.map((v) => `<a href="${v.url}" target="_blank" rel="noopener">${v.title}</a>`).join("")
-    : `<span class="video-menu-empty">Video drīzumā</span>`;
+  list.innerHTML = html;
   const setOpen = (open) => {
+    if (open) headerMenuClosers.forEach((close) => close());
     list.hidden = !open;
     if (open) {
       // The list is fixed-position (the header clips anything hanging out of it),
@@ -3700,6 +3700,7 @@ const VIDEO_TUTORIALS = [
     }
     btn.setAttribute("aria-expanded", String(open));
   };
+  headerMenuClosers.push(() => { if (!list.hidden) setOpen(false); });
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
     setOpen(list.hidden);
@@ -3710,14 +3711,35 @@ const VIDEO_TUTORIALS = [
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") setOpen(false);
   });
-})();
+}
+
+setupHeaderMenu(
+  document.getElementById("videoMenuBtn"),
+  document.getElementById("videoMenuList"),
+  VIDEO_TUTORIALS.length
+    ? VIDEO_TUTORIALS.map((v) => `<a href="${v.url}" target="_blank" rel="noopener">${v.title}</a>`).join("")
+    : `<span class="video-menu-empty">Video drīzumā</span>`
+);
+
+// Exercise instructions as PDFs in the pdf/ folder (made from the coach's text,
+// one shared layout). To add one: add { title, file } to its group.
+const EXERCISE_PDFS = [
+  // { group: "VFS", items: [{ title: "…", file: "pdf/vfs-….pdf" }] },
+];
+
+setupHeaderMenu(
+  document.getElementById("exerciseLibraryBtn"),
+  document.getElementById("exerciseMenuList"),
+  EXERCISE_PDFS.length
+    ? EXERCISE_PDFS.map((g) =>
+        `<div class="video-menu-group">${g.group}</div>` +
+        g.items.map((i) => `<a href="${i.file}" target="_blank" rel="noopener">${i.title}</a>`).join("")
+      ).join("")
+    : `<span class="video-menu-empty">Instrukcijas drīzumā</span>`
+);
 
 document.getElementById("guideBtn")?.addEventListener("click", () => {
   window.open("pamaciba.html", "_blank", "noopener");
-});
-
-document.getElementById("exerciseLibraryBtn")?.addEventListener("click", () => {
-  window.open("https://drive.google.com/drive/folders/1OcKdRXjzMxTxAfFYTJLDGfwoCYW8w9R2?usp=drive_link", "_blank");
 });
 
 document.querySelectorAll("[data-layout]").forEach((btn) => {
