@@ -4029,78 +4029,6 @@ label {
   font-size: 0.75rem;
 }
 
-/* ---- Table view: every value reachable without hovering ---- */
-.chart-table-actions {
-  display: flex;
-  justify-content: center;
-  margin-top: 14px;
-}
-
-/* Only as wide as its content, centred - stretched across the full panel the
-   columns drifted metres apart. overflow-x is the safety net for a phone. */
-.chart-table-wrap {
-  -webkit-overflow-scrolling: touch;
-  background: var(--surface);
-  border: 1px solid var(--edge-soft);
-  border-radius: 10px;
-  margin: 10px auto 0;
-  max-width: 100%;
-  overflow-x: auto;
-  padding: 10px 16px;
-  width: fit-content;
-}
-
-.chart-table {
-  border-collapse: collapse;
-  font-size: 0.9rem;
-  width: auto;
-}
-
-.chart-table-note {
-  color: var(--muted);
-  font-size: 0.78rem;
-  margin: 8px auto 0;
-  max-width: 100%;
-  text-align: center;
-  width: fit-content;
-}
-
-.chart-table th,
-.chart-table td {
-  border-bottom: 1px solid var(--line);
-  padding: 7px 10px;
-  text-align: right;
-  white-space: nowrap;
-}
-
-.chart-table th:first-child,
-.chart-table td:first-child {
-  padding-left: 2px;
-}
-
-.chart-table th:last-child,
-.chart-table td:last-child {
-  padding-right: 2px;
-}
-
-.chart-table thead th {
-  color: var(--muted);
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.chart-table tbody th {
-  color: var(--ink);
-  font-weight: 600;
-  text-align: left;
-  white-space: nowrap;
-}
-
-.chart-table td {
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-
 /* ---- Weekly figures (inside the stats panel) and weekly comments (above Monday) ----
    These were one box below the calendar until 2026-08-07. The four figures now
    sit in "Paveiktā statistika", because that is the only thing they are used
@@ -6777,19 +6705,6 @@ body.is-dragging .session-card.is-draggable {
 @media (max-width: 700px) {
   .chart-point-label {
     display: none;
-  }
-
-  .chart-table {
-    font-size: 0.78rem;
-  }
-
-  .chart-table th,
-  .chart-table td {
-    padding: 5px 6px;
-  }
-
-  .chart-table-wrap {
-    padding: 8px 10px;
   }
 }
 
