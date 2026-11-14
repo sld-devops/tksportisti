@@ -3725,16 +3725,17 @@ setupHeaderMenu(
 // one shared layout). To add one: add { title, file, time } to its group; time is
 // the whole session, as written in the PDF header.
 const EXERCISE_PDFS = [
+  // Order: legs first, then trunk/arms, then whole body; shortest first within each.
   { group: "VFS", items: [
+    { title: "Kājas", file: "pdf/vfs-kajas.pdf", time: "~40 min" },
+    { title: "Kājas, pietupieni un palēcieni", file: "pdf/vfs-kajas-palecieni.pdf", time: "~40 min" },
     { title: "Kājas, gurni un korpuss", file: "pdf/vfs-kajas-gurni-korpuss.pdf", time: "~45 min" },
-    { title: "Viss ķermenis (1. variants)", file: "pdf/vfs-viss-kermenis.pdf", time: "~60 min" },
+    { title: "Kājas, darbs uz vienas kājas", file: "pdf/vfs-kajas-viena-kaja.pdf", time: "~35–60 min" },
     { title: "Kājas, pēdas un korpuss", file: "pdf/vfs-kajas-pedas-korpuss.pdf", time: "~65 min" },
     { title: "Kājas, korpuss un rokas", file: "pdf/vfs-kajas-korpuss-rokas.pdf", time: "~65 min" },
-    { title: "Kājas", file: "pdf/vfs-kajas.pdf", time: "~40 min" },
-    { title: "Korpuss, gurni un rokas", file: "pdf/vfs-korpuss-gurni-rokas.pdf", time: "~50 min" },
     { title: "Kājas un ķermeņa augšdaļa", file: "pdf/vfs-kajas-augsdala.pdf", time: "~55–95 min" },
-    { title: "Kājas, darbs uz vienas kājas", file: "pdf/vfs-kajas-viena-kaja.pdf", time: "~35–60 min" },
-    { title: "Kājas, pietupieni un palēcieni", file: "pdf/vfs-kajas-palecieni.pdf", time: "~40 min" },
+    { title: "Korpuss, gurni un rokas", file: "pdf/vfs-korpuss-gurni-rokas.pdf", time: "~50 min" },
+    { title: "Viss ķermenis (1. variants)", file: "pdf/vfs-viss-kermenis.pdf", time: "~60 min" },
     { title: "Viss ķermenis (2. variants)", file: "pdf/vfs-viss-kermenis-garais.pdf", time: "~55 min" },
     { title: "Viss ķermenis (bloki)", file: "pdf/vfs-bloki.pdf", time: "" },
   ] },
