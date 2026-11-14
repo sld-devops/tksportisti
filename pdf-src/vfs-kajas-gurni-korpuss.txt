@@ -4,6 +4,7 @@ ilgums: aptuveni 45 min
 fails: vfs-kajas-gurni-korpuss
 
 ## Iesildamies: | aptuveni 10 min
+Mierīga lēkāšana 2 min
 Iešana uz rokām x10
 Uz ceļiem, roku uz priekšu, pretējo kāju uz aizmuguri un savelk kopā. Katra puse x20.
 Uz ceļiem, viena roka aiz galvas un konkrēto roku cilā augšā/lejā taisot tā kā presīti x10
