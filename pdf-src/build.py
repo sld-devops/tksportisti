@@ -5,7 +5,7 @@ Usage:  python3 pdf-src/build.py            (all files)
         python3 pdf-src/build.py <name>     (one file, name without .txt)
 
 Source format: a few "key: value" lines, a blank line, then the text.
-"## Title | time" starts a section (the time is optional), "### Name" starts a kept-together block, "~" is a gap between parts of a block, "— Pauze ... —" is a rest row, "> text" is a note,
+"## Title | time" starts a section (the time is optional), "### Name" starts a kept-together block, "~" is a gap between parts of a block, "— Pauze ... —" (any line starting with "— ") is a centred marker row, "> text" is a note,
 every other line is one exercise. A (https://...) link anywhere in a line, or (label - https://...),
 becomes a clickable "video" link. The coach's wording is never changed.
 """
@@ -94,7 +94,7 @@ def build(txt):
         else:
             if not open_list:
                 parts.append("<ul>"); open_list = True
-            cls = ' class="rest"' if ln.startswith("— Pauze") else ""
+            cls = ' class="rest"' if ln.startswith("— ") else ""
             parts.append(f"<li{cls}>{line_html(ln[:1].upper() + ln[1:])}</li>")
     close()
     if in_block:

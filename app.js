@@ -3734,6 +3734,7 @@ const EXERCISE_PDFS = [
     { title: "Korpuss, gurni un rokas", file: "pdf/vfs-korpuss-gurni-rokas.pdf", time: "~50 min" },
     { title: "Kājas un ķermeņa augšdaļa", file: "pdf/vfs-kajas-augsdala.pdf", time: "~55–95 min" },
     { title: "Kājas, darbs uz vienas kājas", file: "pdf/vfs-kajas-viena-kaja.pdf", time: "~35–60 min" },
+    { title: "Kājas, pietupieni un palēcieni", file: "pdf/vfs-kajas-palecieni.pdf", time: "~40 min" },
     { title: "Viss ķermenis (bloki)", file: "pdf/vfs-bloki.pdf", time: "" },
   ] },
 ];
