@@ -1,0 +1,30 @@
+grupa: SFS
+nosaukums: Pliometrija, lēcieni
+ilgums: aptuveni 25 min
+fails: sfs-pliometrija-lecieni
+
+## Iesildamies: | aptuveni 4 min
+lēkāšana uz abām kājām, imitējam lēkšanu ar lecamauklu - 30''
+Taisnas kājas uz priekšu, kā šķērītes Drill, bet uz vietas - mazs vēziens- 30''
+Taisnas kājas uz priekšu, kā šķērītes Drill, bet uz vietas - plašs vēziens- 30''
+Sīksolis uz vietas - 30''
+Augstsolis (Vidējā augstumā) uz vietas - 15''
+Sitiens ar papēdi zem dibena uz vietas - 30''
+Lēciens augšā ar abām kājām no ietupiena, kājas taisnas palēcoties gaisā - 10x
+Lēciens augšā ar abām kājām no ietupiena, kājas palēcoties pievelk pie krūtīm - 10x
+
+## Pamatdaļa | aptuveni 13–20 min
+> Atkārtojam 2 vai 3 reizes, 60'' pauze
+lēkāšana uz abām kājām, kājas kopā, ceļos stingras, lēkā tikai ar pēdas daļu 30''
+Iesēžas ietupienā, lēcieni augšā ar abām kājām, gaisā kājas iztaisno uz leju 30''
+Iesēžas ietupienā, lēcieni augšā ar abām kājām, gaisā kājas sasit kopā 30''
+lēkāšana uz vienas kājas, otra kāja saliekta celī, pacelta augšā, 30'' katra kāja
+Augstsolis uz vietas - 20'' - maksimāli ātri
+— Pauze 60'' —
+Imitē lēkāšanu pāri barjerai ar abām kājām, kājas pievelkot pie krūtīm - 30''
+Imitē lēkāšanu pāri barjerai ar taisnas kājas vēzienu- 30''
+lēkāšana uz abām kājām pēdā, katrs trešais lēciens max augstu ar taisnām kājām - 30''
+Izklupiena pozīcijā, lēciens augšā no ietupiena, gaisā maina kājas vietām - 30''
+
+## Atsildīšanās | aptuveni 5 min
+Tikai izstaipīties
