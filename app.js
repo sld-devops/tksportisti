@@ -3744,6 +3744,7 @@ const EXERCISE_PDFS = [
     { title: "Pliometrija, lēcieni", file: "pdf/sfs-pliometrija-lecieni.pdf", time: "~25 min" },
     { title: "Pēdas bez apaviem", file: "pdf/sfs-pedas-basam-kajam.pdf", time: "~10–15 min" },
     { title: "Drills: dinamiskie, dziļie, seklie", file: "pdf/sfs-drills.pdf", time: "~30 min" },
+    { title: "Lēcieni, seklie un dziļie", file: "pdf/sfs-lecieni-seklie-dziliie.pdf", time: "~30–50 min" },
   ] },
 ];
 

@@ -1,0 +1,36 @@
+grupa: SFS
+nosaukums: Lēcieni, seklie un dziļie
+ilgums: aptuveni 30–50 min
+fails: sfs-lecieni-seklie-dziliie
+
+## Pamatdaļa: seklie/ātrie lēcieni | aptuveni 18–27 min
+> Atkārtojam 2 vai 3 reizes, 15'' pauze starp vingrinājumiem
+lēkāšana uz abām kājām, imitējam lēkšanu ar lecamauklu - 15''
+Taisnas kājas uz priekšu, kā šķērītes Drill, bet uz vietas - mazs vēziens- 15''
+Taisnas kājas uz priekšu, kā šķērītes Drill, bet uz vietas - plašs vēziens- 15''
+Sīksolis uz vietas - 15''
+Augstsolis uz vietas - 15''
+Sitiens ar papēdi zem dibena uz vietas - 15''
+A-SKIP vingrinājums - 15''
+B-SKIP vingrinājums (Izspēriens) - 15''
+Lēciens uz vienas kājas, otra kāja saliekta un pacelta augšā - 15'' (Katra kāja)
+Pārmaiņus lēciens uz paaugstinājuma - 15''
+Lēciens uz paaugstinājuma/nosēžas uz vienas kājas augšā - 15''
+Lēciens uz vienas kājas, katrs 3-šais ar vidēju augstumu - 15'' (Katra kāja)
+Lēciens pamīšus mainot kājas mazā izklupiena pozīcijā - 15''
+Lēciens no kājas kopā uz kājas plecu platumā - 15''
+Lēciens no kājas plecu platumā uz kājas krustā - 15''
+Lēciens uz vienas kājas, otra kāja saliekta un pacelta augšā, divi staplecieni un maina kājas esot gaisā - 15''
+
+## Pamatdaļa: dziļie lēcieni | aptuveni 14–21 min
+> Atkārtojam 2 vai 3 reizes, 15'' pauze starp vingrinājumiem
+Lēciens augšā ar abām kājām no ietupiena, kājas taisnas palēcoties gaisā - 10x
+Lēciens augšā ar abām kājām no ietupiena, kājas palēcoties pievelk pie krūtīm - 10x
+Šaurais/Platais iesēdiena lēciens - 10x
+Izklupiena lēciens - 10x (Katra puse)
+Lēciens augšā ar abām kājām, gaisā ceļus uzraujam uz augšu - 10x
+Lēciens augšā ar abām kājām no ietupiena, kājas palēcoties pievelk pie krūtīm - 10x
+Sprintera spēriens ar palēcienu - 10x
+Skater – lecam no viena sāna uz otru sānu, strādā līdzi ar rokām - 15''
+Pamīšus lēciens uz krēsla – 20x
+Dziļie lēcieni no knipsīša – 10x (Katra puse)
