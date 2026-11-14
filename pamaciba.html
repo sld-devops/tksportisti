@@ -38,6 +38,7 @@
       nav.toc a:hover, nav.toc a:focus-visible { text-decoration: underline; }
       section { background: #fff; border: 1px solid var(--line); border-radius: 12px; margin: 0 0 16px; padding: 18px 18px 14px; }
       h2 { font-size: 1.25rem; margin: 0 0 10px; }
+      h3 { font-size: 1.05rem; margin: 18px 0 6px; }
       ol, ul { margin: 8px 0 8px; padding-left: 1.3rem; }
       li { margin: 6px 0; }
       .btn {
@@ -69,7 +70,7 @@
         <a href="#menesis">4. Mēneša skats</a>
         <a href="#izpilde">5. Kā ierakstīt izpildi</a>
         <a href="#savs">6. Ja treneris plānu vēl nav sastādījis</a>
-        <a href="#sacensibas">7. Sacensības un rezultāti</a>
+        <a href="#sacensibas">7. Sacensību kalendārs un rekordi</a>
         <a href="#ierobezojumi">8. Slimība, darbs, traumas (ierobežojumi)</a>
         <a href="#nedela">9. Nedēļas skaitļi</a>
         <a href="#epasts">10. E-pasta paziņojumi</a>
@@ -157,17 +158,49 @@
       </section>
 
       <section id="sacensibas">
-        <h2>7. Sacensības un rezultāti</h2>
-        <p>Sacensības pievieno <b>pirms</b> tām, bet rezultātu ieraksti <b>pēc</b> tām. Tad sacensības no gaidāmajām pārceļas uz notikušajām.</p>
+        <h2>7. Sacensību kalendārs un rekordi</h2>
+        <p>Sacensības pievieno <b>pirms</b> tām, bet rezultātu ieraksti <b>pēc</b> tām. Visas savas sacensības redzi vienuviet, sadaļā <b>📅 Sacensību kalendārs</b> (virs kalendāra, tā ir aizvērta, uzspied uz virsraksta, lai atvērtu).</p>
+
+        <h3>Kā pievienot sacensības</h3>
         <ol>
           <li>Atver <b>📅 Sacensību kalendārs</b> un spied <span class="btn">🏁 Pievienot sacensības</span>.</li>
-          <li>Ieraksti datumu, nosaukumu, vietu, <b>distanci</b>, trasi un, ja gribi, <b>mērķa laiku</b>. Saglabā. Sacensības parādās sarakstā <b>Gaidāmās</b> un attiecīgajā dienā kalendārā.</li>
+          <li>Ieraksti datumu, nosaukumu, vietu, <b>distanci</b>, trasi un, ja gribi, <b>mērķa laiku</b>. Saglabā.</li>
+          <li>Sacensības parādās sarakstā <b>Gaidāmās</b> un attiecīgajā dienā nedēļas un mēneša kalendārā.</li>
+        </ol>
+        <p>Distanci ieraksti kā <i>5 km</i>, <i>10km</i>, <i>21,1 km</i> vai <i>1 jūdze</i>. Tā vajadzīga, lai vēlāk varētu saglabāt rekordu.</p>
+
+        <h3>Gaidāmās un Notikušās</h3>
+        <p>Sacensību kalendārā ir divi saraksti, starp kuriem pārslēdzies ar pogām augšā:</p>
+        <ul>
+          <li><b>Gaidāmās</b>: visas sacensības, kurām <b>vēl nav rezultāta</b>. Tuvākās ir saraksta augšā. Pie katras redzi datumu, vietu, distanci, trasi un mērķa laiku (vai “Nav mērķa”).</li>
+          <li><b>Notikušās</b>: sacensības, kurām <b>ir ierakstīts rezultāts</b>. Jaunākās ir augšā. Pie katras redzi ✅ savu laiku un vidējo tempu, kā arī komentāru, ko pierakstīji pēc sacensībām.</li>
+        </ul>
+        <div class="tip"><b>Svarīgi:</b> sacensības no gaidāmajām uz notikušajām pārceļas nevis tad, kad pienāk to datums, bet <b>kad ierakstīsi rezultātu</b>. Ja sacensības jau ir pagājušas, bet rezultāta vēl nav, tās paliek sarakstā Gaidāmās, līdz to ierakstīsi.</div>
+
+        <h3>Kā ierakstīt rezultātu</h3>
+        <ol>
           <li>Pēc sacensībām spied <span class="btn">Pievienot rezultātu</span>. To vari izdarīt gan sacensību dienas kartītē kalendārā, gan sarakstā <b>Sacensību kalendārā</b>.</li>
           <li>Ieraksti <b>rezultātu (laiku)</b>, piemēram <i>42:30</i>. Vidējais temps aizpildās pats, ja sacensībām ir norādīta distance. Vari pierakstīt arī komentāru, kā noritēja.</li>
-          <li>Saglabā. Sacensības pārceļas uz sarakstu <b>Notikušās</b>, un kalendārā pie tām parādās ✅ ar tavu laiku.</li>
+          <li>Saglabā. Sacensības pārceļas uz <b>Notikušās</b>, un kalendārā pie tām parādās ✅ ar tavu laiku.</li>
         </ol>
-        <p>Ja laiku ierakstīji nepareizi, spied <span class="btn">✏️ Labot rezultātu</span> un izlabo. Sacensību datus (datumu, distanci, mērķi) maini ar <span class="btn">✏️ Rediģēt</span>.</p>
-        <div class="tip"><b>Rezultāts kā rekords:</b> sarakstā <b>Notikušās</b> pie sacensībām ar rezultātu un distanci ir poga <span class="btn">🏅 Saglabāt kā rekordu</span>. Tā ieraksta laiku sadaļā <b>Personīgie rekordi</b>. Ja tai distancei jau ir lēnāks rekords, tas tiek aizstāts. Ja ir ātrāks, portāls pirms pārrakstīšanas pajautā.</div>
+        <p>Ja laiku ierakstīji nepareizi, spied <span class="btn">✏️ Labot rezultātu</span> un izlabo. Sacensību datus (datumu, distanci, mērķi) maini ar <span class="btn">✏️ Rediģēt</span>. Sacensības izdzēst vari kalendāra dienas kartītē ar ✕ vai sacensību rediģēšanas logā ar <span class="btn">Dzēst</span>.</p>
+
+        <h3>Kā saglabāt rezultātu kā rekordu</h3>
+        <p>Ja sacensībās sasniedzi savu labāko laiku distancē, tu vari to ierakstīt savos <b>Personīgajos rekordos</b> ar vienu klikšķi.</p>
+        <ol>
+          <li>Sacensību kalendārā atver sarakstu <b>Notikušās</b>.</li>
+          <li>Pie sacensībām spied <span class="btn">🏅 Saglabāt kā rekordu</span>. Poga ir tikai tām sacensībām, kurām ir <b>rezultāts</b> un <b>norādīta distance</b>.</li>
+          <li>Pogai uzrakstās <b>✅ Saglabāts</b>. Rekords ir sadaļā <b>Personīgie rekordi</b> kopā ar sacensību nosaukumu, vietu un datumu.</li>
+        </ol>
+        <p>Ko vēl der zināt par rekordu saglabāšanu:</p>
+        <ul>
+          <li>Ja distance ir <b>1 jūdze, 5 km, 10 km, pusmaratons (21 km) vai maratons (42 km)</b>, rekords ieiet attiecīgajā rindā. Citas distances parādās zem tām kā atsevišķi rekordi.</li>
+          <li>Ja tai distancei <b>jau ir rekords</b>, tas tiek <b>aizstāts</b>, nevis pievienots otrs. Ja jaunais laiks ir <b>ātrāks</b>, tas nomainās uzreiz.</li>
+          <li>Ja jaunais laiks ir <b>lēnāks</b> par esošo rekordu, portāls pirms mainīšanas <b>pajautā</b>, vai tiešām to nomainīt. Vari atteikties, un vecais rekords paliek.</li>
+          <li>Ja sacensībām distance nav norādīta, portāls to pasaka un rekordu nesaglabā. Tad nospied <span class="btn">✏️ Rediģēt</span>, pievieno distanci un mēģini vēlreiz.</li>
+        </ul>
+        <p>Rekordus vari pievienot arī pats, bez sacensībām: sānu panelī sadaļā <b>Personīgie rekordi</b>.</p>
+
         <p>Treneris redz tavas sacensības, mērķi un rezultātu, bet pats tās nelabo.</p>
       </section>
 
