@@ -1,5 +1,5 @@
 grupa: VFS
-nosaukums: Viss ķermenis
+nosaukums: Viss ķermenis (1. variants)
 ilgums: aptuveni 1 h
 fails: vfs-viss-kermenis
 

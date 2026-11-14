@@ -3727,7 +3727,7 @@ setupHeaderMenu(
 const EXERCISE_PDFS = [
   { group: "VFS", items: [
     { title: "Kājas, gurni un korpuss", file: "pdf/vfs-kajas-gurni-korpuss.pdf", time: "~45 min" },
-    { title: "Viss ķermenis", file: "pdf/vfs-viss-kermenis.pdf", time: "~60 min" },
+    { title: "Viss ķermenis (1. variants)", file: "pdf/vfs-viss-kermenis.pdf", time: "~60 min" },
     { title: "Kājas, pēdas un korpuss", file: "pdf/vfs-kajas-pedas-korpuss.pdf", time: "~65 min" },
     { title: "Kājas, korpuss un rokas", file: "pdf/vfs-kajas-korpuss-rokas.pdf", time: "~65 min" },
     { title: "Kājas", file: "pdf/vfs-kajas.pdf", time: "~40 min" },
@@ -3735,7 +3735,7 @@ const EXERCISE_PDFS = [
     { title: "Kājas un ķermeņa augšdaļa", file: "pdf/vfs-kajas-augsdala.pdf", time: "~55–95 min" },
     { title: "Kājas, darbs uz vienas kājas", file: "pdf/vfs-kajas-viena-kaja.pdf", time: "~35–60 min" },
     { title: "Kājas, pietupieni un palēcieni", file: "pdf/vfs-kajas-palecieni.pdf", time: "~40 min" },
-    { title: "Viss ķermenis (garais)", file: "pdf/vfs-viss-kermenis-garais.pdf", time: "~55 min" },
+    { title: "Viss ķermenis (2. variants)", file: "pdf/vfs-viss-kermenis-garais.pdf", time: "~55 min" },
     { title: "Viss ķermenis (bloki)", file: "pdf/vfs-bloki.pdf", time: "" },
   ] },
 ];

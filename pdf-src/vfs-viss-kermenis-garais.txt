@@ -1,5 +1,5 @@
 grupa: VFS
-nosaukums: Viss ķermenis (garais)
+nosaukums: Viss ķermenis (2. variants)
 ilgums: aptuveni 55 min
 fails: vfs-viss-kermenis-garais
 
