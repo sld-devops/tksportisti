@@ -177,6 +177,16 @@ The desktop-on-a-phone layout exists because the owner had been switching Chrome
 - **The `max-width: 1040/720/380px` blocks simply stop matching while the viewport is pinned** — nothing about the phone layout was ever deleted, which is what makes both directions real. Since 2026-08-05 those blocks are what a phone gets by default again, and the owner has flagged that the phone layout still has buttons running off the edge and overlapping — a known, separate piece of work.
 - The login screen follows the same setting, deliberately: switching the viewport at login time would make the layout jump. The role is unknown before first paint (it takes a Supabase round trip), so the default cannot depend on coach vs athlete — a coach who wants the wide planner on their phone presses the button once.
 
+### Phone overflow pass (2026-11-14)
+
+Three phone-only fixes in `styles.css`, found by measuring the page at 320/360/390/414/768px rather than by eye; the desktop screenshot is pixel-identical before and after.
+
+- **The drawer carries its own 8px side gutter** (`.planner-panel__scroll` in the ≤1040px block). `.planner-panel` clips at its edge and the cards ran its full width, so every card's side borders were cut off.
+- **Short header labels (`.label-short`) apply up to 720px, not 380px.** At 390–414px the full labels put one button per row and the header stood 260px tall (148px now). The block must stay *after* the base `.label-short { display: none }` rule — same specificity.
+- **In the log dialog, "No" sits above "Līdz" with "Reizes" beside them at ≤560px.** In three equal columns (~70px each on a phone) a time box with its 76px of arrows was wider than its column: the boxes overlapped and the typed time had 0px to show in. Scoped with `:has(.log-range-from)`. At ≤380px `#logDialog form` also gives back 6px of padding a side, or `76.5` is still clipped at 320px.
+- **Measuring phone widths headless:** Chromium clamps the window to ~500px, so load the staged `index.html` in `<iframe width="360">`s inside a wrapper page — media queries follow the iframe. `file://` frames cannot be read from the parent; have the probe `postMessage` its findings up. Desktop scrollbars take 15px in headless and phones' do not, so a "content 16px wider" on a scrolling element is usually that, and a `::after` separator at `right: -6px` reports as 6px of overflow.
+- Known and left alone: the Garmin and Strava logos touch each other (also on desktop), and the stats placeholders (`piem. 10h45m`) are clipped at 320px.
+
 ### Every date field draws its own calendar (`date-picker.js`)
 
 Added 2026-08-05. `<input type="date">` draws its calendar from the **browser's** language, not the page's: an English browser gives a Sunday-first week and `08/02/2026`. `lang="lv"` on the input changes nothing — measured in a headless browser, plain / `lang="lv"` / `lang="en-GB"` all render `08/02/2026`. So the only way to get a Monday-first Latvian calendar is to draw it, which `date-picker.js` (loaded before the panels) does for all ten date fields.

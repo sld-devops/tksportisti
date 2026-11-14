@@ -7359,3 +7359,38 @@ body.is-dragging .session-card.is-draggable {
   font-size: 0.8rem;
   font-weight: 600;
 }
+
+/* Log dialog on a phone: "No" above "Līdz", "Reizes" beside them (2026-11-14).
+   The three sat in three equal columns, which on a phone are ~70px each - but a
+   time box carries 76px of ▼▲ arrows, so the boxes were wider than their
+   columns, "No" lay on top of "Līdz", and the typed time had 0px left to show
+   in: it was hidden behind the arrows at every phone width (320-414px
+   measured). Stacked, each time box gets the whole row less the narrow
+   "Reizes" column. :has() keeps this to the from/to rows; other three-column
+   rows in the dialog are untouched. Desktop keeps the single row. */
+@media (max-width: 560px) {
+  #logFormContent .field-grid-3:has(.log-range-from) {
+    grid-template-columns: minmax(0, 1fr) 56px;
+  }
+
+  #logFormContent .field-grid-3:has(.log-range-from) > label:nth-child(1),
+  #logFormContent .field-grid-3:has(.log-range-from) > label:nth-child(2) {
+    grid-column: 1;
+  }
+
+  #logFormContent .field-grid-3:has(.log-range-from) > label:nth-child(3) {
+    align-self: center;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}
+
+/* On the narrowest phones (320px) the stacked time box above was still 5px
+   short of showing "76.5" whole. The dialog spends 46px a side on nested
+   padding; giving 6px a side back is enough. Log dialog only. */
+@media (max-width: 380px) {
+  #logDialog form {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
