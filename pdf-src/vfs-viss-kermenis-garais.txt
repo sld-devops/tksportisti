@@ -1,0 +1,68 @@
+grupa: VFS
+nosaukums: Viss ķermenis (garais)
+ilgums: aptuveni 55 min
+fails: vfs-viss-kermenis-garais
+
+## Iesildamies: | aptuveni 10 min
+Pastiepšanās pie pirkstgaliem / uz pirkstgaliem x10
+Dziļie ietupieni x10
+Izklupiens uz priekšu, roka uz sāniem x10
+Izklupiens uz aizmuguri (no ietupiena), abas rokas uz aizmuguri x10
+Iešana uz rokām + Pumpītis/muguras ieliekšana x6
+Balstā guļus, kāja uz priekšu + rokas pa vienai gaisā x5 katra kāja
+Presītes uz ceļiem (stāv uz ceļiem, iztaisno pretējo roku/kāju un pēc tam savelk kopā) x10 katra puse
+Roka aiz galvas, plecu noliec uz leju, tad uz augšu 10x katra puse
+Čurājošais sunītis x10 katra puse
+Guļ uz muguras, dibena cilāšana x10
+Presītes x40
+Lēkāšana 90sek (dažādos virzienos - kājas uz priekšu, uz aizmuguri, uz sāniem u.t.t.)
+
+## Pamatdaļa | aptuveni 44 min
+Balstā guļus, rokas pa vienai paceļ uz priekšu 60''
+Plank 60''
+Balstā guļus, ar rokām pamīšus skarās pie pretējā pleca 60''
+Guļ uz muguras (visa pilnībā pie zemes), rokas uz sāniem, kājas taisni gaisā. Pa vienai laiž lejā 60''
+Guļ uz muguras, kājas taisni gaisā, taisa presītes, ar rokām sniedzoties līdz pirkstgaliem 30''
+Guļ uz muguras, rokas uz sāniem, kājas taisni gaisā. Nolaiž tik zemu, kamēr visa mugura pie zemes, un notur 30''
+Guļ uz muguras, kājas taisni gaisā, taisa presītes, ar rokām sniedzoties līdz pirkstgaliem 30''
+Svecītes 60''
+— Pauze 60'' —
+Pietupieni 60''
+Sēdēšana ietupienā 60''
+Pietupieni uz pirkstgaliem 60''
+Sēdēšana ietupienā uz pirkstgaliem 60''
+Izklupiena pozīcijā, pietupieni 30'' katra kāja (https://www.youtube.com/watch?v=npFQHBFdNzQ)
+Izklupiena pozīcijā, stāv statiski un ar rokām imitē skriešanu sprintā (aktīvi kustina uz priekšu/atpakaļ) 30'' katra kāja
+Izklupiena pozīcijā, lēcieni uz vietas 30'' katra kāja
+— Pauze 60'' —
+Kāja pāri celim, presītes 30'' uz katru pusi
+Guļ uz muguras, kājas gaisā, ceļos saliektas 90°. Ar rokām spiež abas kājas prom no sevis, 3-5'' paspiež, tad atslābinās 60''
+Sēdus pozīcijā, kājas gaisā, pārnes svaru no vienas puses uz otru, katrā 3. reizē uz 3'' nofiksējot 60''
+Guļ uz muguras (visa pilnībā pie zemes), kājas gaisā, ceļos saliektas 90°. Nolaiž abas kājas taisni zemē un paceļ saliecot 60''
+Guļ uz muguras, kājas saliektas ceļos, ar roku pamīšus cenšas aizsniegt kājas papēdi (heel touches) 60''
+Dead Bug 60'' (https://www.youtube.com/watch?v=I5xbsA71v1A)
+— Pauze 60'' —
+Guļot uz sāniem, augšējās kājas cilāšana 60''
+Guļot uz sāniem, augšējās kājas apļošana gaisā 30''
+Guļot uz sāniem apakšējās kājas cilāšana (https://www.youtube.com/watch?v=38scppJHYec) 60''
+Guļot uz sāniem, augšējā kāja gaisā un nekustīga, apakšējo kāju velk klāt 30'' Pēc tam tas pats uz otru pusi.
+Guļ uz muguras, gurnu cilāšana 60'' (https://www.youtube.com/watch?v=yOPkM2pzznc)
+Guļ uz muguras, gurnu cilāšana uz vienas kājas 30''-30''
+Krabītī, uzceļ gurnus gaisā taisnā līnijā, notur 3'', atslābina 60''
+— Pauze 60'' —
+Lēkāšana uz abām kājām 45''
+Lēkāšana uz vienas kājas 45''-45''
+Lēkāšana uz abām kājām ar papēžiem kopā 45''
+Cilāšanās uz pirkstgaliem/papēžiem 30''
+Cilāšanās uz pirkstgaliem, papēži kopā 30''
+Cilāšanās uz pirkstgaliem, pirkstgali kopā 30''
+Cilāšanās uz pirkstgaliem, abas kājas blakus 30''
+Cilāšanās uz pirkstgaliem uz vienas kājas, 30'' katrā kāja (vēlams kaut kur pieturoties)
+— Pauze 60'' —
+Dive bombers (https://www.youtube.com/watch?v=mvNcSF-nXg4) 60''
+Plank pumpēšanās (stāv plankā, laižās lejā, mēģinot tuvināt lāpstiņas) 60''
+Statiskā pumpēšanās (rokas cieši gar sāniem, no balstā guļus nolaižās pēc iespējas tuvāk zemei un turās) 60''
+— Pauze 60'' —
+Guļot uz vēdera, rokas uz aizmuguri, paceļ ķermeņa augšdaļu, taisnas rokas saliek priekšā kopā un atpakaļ, nolaižas 60''
+Guļot uz vēdera, cilā īkšķīšus augšā/lejā trīs virzienos (uz priekšu, uz sāniem, uz aizmuguri) 60''
+Guļot uz vēdera, cilā reizē rokas/kājas 60''
