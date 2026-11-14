@@ -3725,7 +3725,6 @@ setupHeaderMenu(
 // one shared layout). To add one: add { title, file, time } to its group; time is
 // the whole session, as written in the PDF header.
 const EXERCISE_PDFS = [
-  // Order: legs first, then trunk/arms, then whole body; shortest first within each.
   { group: "VFS", items: [
     { title: "Kājas", file: "pdf/vfs-kajas.pdf", time: "~40 min" },
     { title: "Kājas, pietupieni un palēcieni", file: "pdf/vfs-kajas-palecieni.pdf", time: "~40 min" },
@@ -3748,11 +3747,19 @@ const EXERCISE_PDFS = [
   ] },
 ];
 
+// Shown shortest first: "~45 min" -> 45, "~35–60 min" -> the middle (47.5); an entry
+// without a time goes last. Array.sort is stable, so equal times keep the order above.
+function exerciseMenuMinutes(time) {
+  const nums = String(time || "").match(/\d+/g);
+  if (!nums) return Infinity;
+  return nums.map(Number).reduce((a, b) => a + b, 0) / nums.length;
+}
+
 setupHeaderMenu(
   document.getElementById("exerciseLibraryBtn"),
   document.getElementById("exerciseMenuList"),
   EXERCISE_PDFS.length
-    ? EXERCISE_PDFS.map((g) =>
+    ? EXERCISE_PDFS.map((g) => ({ ...g, items: [...g.items].sort((x, y) => exerciseMenuMinutes(x.time) - exerciseMenuMinutes(y.time)) })).map((g) =>
         `<div class="video-menu-group">${g.group}</div>` +
         g.items.map((i) => `<a class="menu-item-timed" href="${i.file}" target="_blank" rel="noopener"><span>${i.title}</span><span class="menu-time">${i.time || ""}</span></a>`).join("")
       ).join("")
