@@ -11,7 +11,6 @@ let trendWeeks = 8;
 let trendMonths = 8;
 let weeklyTrend = [];
 let monthlyTrend = [];
-let statsTableOpen = false;
 
 const statsBar = document.getElementById("statsBar");
 
@@ -28,12 +27,10 @@ const PAD = { top: 20, right: 22, bottom: 26, left: 22 };
 // color = validated categorical slot, assigned in fixed order and never
 // recycled; the hue is set once on the facet as --series and inherited.
 const STATS_METRICS = [
-  // short = the table heading. The full label is far too wide for a phone-width
-  // table; the unit moves to a caption under it rather than into every heading.
-  { key: "run_km", label: "Kilometrāža", short: "Kilometrāža", unit: "km", color: "chart-series-1" },
-  { key: "run_min", label: "Laiks", short: "Laiks", unit: "h", color: "chart-series-2" },
-  { key: "vfs_sfs_min", label: "VFS/SFS", short: "VFS/SFS", unit: "h", color: "chart-series-3" },
-  { key: "velo_min", label: "Velo", short: "Velo", unit: "h", color: "chart-series-4" },
+  { key: "run_km", label: "Kilometrāža", unit: "km", color: "chart-series-1" },
+  { key: "run_min", label: "Laiks", unit: "h", color: "chart-series-2" },
+  { key: "vfs_sfs_min", label: "VFS/SFS", unit: "h", color: "chart-series-3" },
+  { key: "velo_min", label: "Velo", unit: "h", color: "chart-series-4" },
 ];
 
 // #endregion
@@ -81,16 +78,6 @@ function statsAxisDateLabel(d) {
     return parts.length === 3 ? `${parts[2]}.${parts[1]}.` : "";
   }
   return statsMonthName(d.month_start, "short").replace(/\s+\d{4}$/, "");
-}
-
-// The first column is the widest cell in the table; the heading already says
-// "Nedēļa", so the week's start date alone carries it.
-function statsTableDateLabel(d) {
-  if (statsPeriod === "week") {
-    const parts = (d.week_start || "").split("-");
-    return parts.length === 3 ? `${parts[2]}.${parts[1]}.${parts[0].slice(2)}.` : "";
-  }
-  return statsMonthName(d.month_start, "long");
 }
 
 // A middle-anchored label on the first or last point hangs half its width past
@@ -229,35 +216,7 @@ function buildAxisLabels(data, plotBottom, withYear) {
 
 // #endregion
 
-// #region Tabulas skats un perioda/diapazona pogas
-// Tooltips must never be the only way to read a value, so every figure is also
-// available as a plain table.
-function buildStatsTableHtml(data) {
-  const head = STATS_METRICS.map((m) => `<th scope="col">${escapeHtml(m.short)}</th>`).join("");
-  // .slice() with no arguments copies the array (a new array, same contents),
-  // so that .reverse() (which mutates the array IN PLACE rather than returning
-  // a new one) doesn't also reverse `data` itself - which would break the
-  // chart, since it relies on chronological order.
-  const rows = data.slice().reverse().map((d) => `
-    <tr>
-      <th scope="row">${escapeHtml(statsTableDateLabel(d))}</th>
-      ${STATS_METRICS.map((m) => `<td>${(d[m.key] || 0).toFixed(1)}</td>`).join("")}
-    </tr>
-  `).join("");
-  // The wrapper is the safety net: the headings are short enough that the table
-  // normally fits, but a narrow phone can still be pushed sideways instead of
-  // silently clipping the last column.
-  return `
-    <div class="chart-table-wrap">
-      <table class="chart-table">
-        <thead><tr><th scope="col">${statsPeriod === "week" ? "Nedēļa" : "Mēnesis"}</th>${head}</tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-    <p class="chart-table-note">Kilometrāža — kilometros. Laiks, VFS/SFS un Velo — stundās.</p>
-  `;
-}
-
+// #region Perioda/diapazona pogas
 function buildStatsRangeHtml() {
   const isWeek = statsPeriod === "week";
   const ranges = isWeek
@@ -299,16 +258,11 @@ function renderStats() {
         <div class="chart-crosshair" hidden></div>
         <div class="chart-tooltip" hidden role="status"></div>
       </div>
-      <div class="chart-table-actions">
-        <button class="secondary-action" type="button" data-stats-table>${statsTableOpen ? "Paslēpt tabulu" : "Rādīt tabulu"}</button>
-      </div>
-      ${statsTableOpen ? buildStatsTableHtml(data) : ""}
     </div>
   `;
 
   attachStatsTabHandlers();
   attachStatsRangeHandlers();
-  attachStatsTableToggle();
   attachStatsHover(data);
 }
 
@@ -430,14 +384,7 @@ function attachStatsHover(data) {
 
 // #endregion
 
-// #region Pogu piesaiste (cilnes, diapazons, tabulas poga)
-function attachStatsTableToggle() {
-  statsBar.querySelector("[data-stats-table]")?.addEventListener("click", () => {
-    statsTableOpen = !statsTableOpen;
-    renderStats();
-  });
-}
-
+// #region Pogu piesaiste (cilnes, diapazons)
 function attachStatsTabHandlers() {
   statsBar.querySelectorAll("[data-stat-period]").forEach((btn) => {
     btn.addEventListener("click", () => {

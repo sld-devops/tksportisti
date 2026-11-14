@@ -177,6 +177,37 @@ The desktop-on-a-phone layout exists because the owner had been switching Chrome
 - **The `max-width: 1040/720/380px` blocks simply stop matching while the viewport is pinned** — nothing about the phone layout was ever deleted, which is what makes both directions real. Since 2026-08-05 those blocks are what a phone gets by default again, and the owner has flagged that the phone layout still has buttons running off the edge and overlapping — a known, separate piece of work.
 - The login screen follows the same setting, deliberately: switching the viewport at login time would make the layout jump. The role is unknown before first paint (it takes a Supabase round trip), so the default cannot depend on coach vs athlete — a coach who wants the wide planner on their phone presses the button once.
 
+### Copy / paste in the week calendar (coach, 2026-11-14)
+
+A copy icon on every coach plan card (third in `.card-actions`) and on a rest day; while something is copied, a paste icon stands beside each "Ieplānot no rīta/pusdienā/vakarā" button (training) or beside "Ieplānot brīvdienu" (rest day). State is one global, `copiedItem` in `app.js`, next to `renderPlanCard()`.
+
+- **`copiedItem` is a snapshot** (`{ kind: "plan", planId, title, details, custom_icon, coach_comment }` or `{ kind: "rest", date, coach_comment }`), so it survives a week change and the plan being edited or deleted afterwards. **It is cleared in the `athleteSelect` change handler** - one athlete's plan must not be pasteable into another's calendar.
+- **It stays on after a paste** (the point is the same training on several days). Off: the same copy icon again, "Atcelt" in `#copyModeBar`, Esc (ignored while a dialog is open), athlete switch. The bar exists because the paste icons follow the coach into weeks where the copied card is not on screen.
+- **The coach comment is copied, read from the textarea on screen first** - it autosaves on a delay, so the box can be newer than `plans`. The athlete's log and comment are never copied.
+- **Paste reuses `insertTrainingToDay()`**, which now takes `training.coach_comment` (builder trainings have none, so nothing changed for them). A rest day goes through `upsertDayNote()`; an empty copied comment is left out of the upsert so it cannot wipe a comment already on the target day.
+- **The paste button is a sibling of the add button inside `.paste-row`, never a child** (a button cannot nest in a button) and carries `data-paste-day`/`data-paste-rest`, not `data-day`/`data-rest-day` - the shared `calendarGrid` click handler would otherwise read a paste as "add the builder's training". `.paste-row` is only emitted while copying, so the normal markup is unchanged.
+- A restricted day-part has no add button and therefore no paste icon; `isTimeSlotRestricted()` is checked again on paste anyway.
+- Week view only; the month renderer is untouched. The icons are inline SVG (`COPY_ICON_SVG`/`PASTE_ICON_SVG`, `currentColor`).
+
+### The UI colour is warm sand and peach, not lime (2026-11-14)
+
+The owner found the lime green glaring across the whole portal and chose this out of three mocked-up alternatives (sand paper, steel gradient, sunset gradient - this is the third). Older notes in this file that say "lime" for a save button or a panel edge mean these tokens now.
+
+- **Everything is in `:root`**: `--surface`/`--surface-alt`/`--surface-hover`/`--panel-row-hover` (sand to peach), `--btn-bg`/`--btn-bg-hover` (the top-to-bottom gradient on `.secondary-action`, `.add-day-button`, `.secondary-action-sm`), `--brand`/`--brand-dark` (dark brown: every save button, `#activeAthleteName`, ticked checkboxes - white text on it), `--edge`/`--edge-soft`/`--edge-glow` (the peach left border and glow on `.panel`).
+- **Red text needs the light tones.** `--accent` on `--surface-hover` is 4.53:1 and that is the floor - don't darken it. The lower end of `--btn-bg` is only 4.2:1 for red, which is why `.delete-action` is overridden back to the flat `--surface-alt`/`--surface-hover`. Any new button with red text must do the same.
+- **`--lime`, `--lime-dark`, `--lime-bg` still exist and are still green on purpose**: they are the "excellent" status colour, read from JS (`panels/ruffier-test.js` "Teicami", the top feeling rating in `app.js`). Don't delete them and don't use them for UI chrome again.
+- Left as they were: the red accent, plan/execution card fills (`--card-plan-bg`, `--card-done-bg`), time-of-day, HR zones, week boxes, feeling scale.
+
+### Phone overflow pass (2026-11-14)
+
+Three phone-only fixes in `styles.css`, found by measuring the page at 320/360/390/414/768px rather than by eye; the desktop screenshot is pixel-identical before and after.
+
+- **The drawer carries its own 8px side gutter** (`.planner-panel__scroll` in the ≤1040px block). `.planner-panel` clips at its edge and the cards ran its full width, so every card's side borders were cut off.
+- **Short header labels (`.label-short`) apply up to 720px, not 380px.** At 390–414px the full labels put one button per row and the header stood 260px tall (148px now). The block must stay *after* the base `.label-short { display: none }` rule — same specificity.
+- **In the log dialog, "No" sits above "Līdz" with "Reizes" beside them at ≤560px.** In three equal columns (~70px each on a phone) a time box with its 76px of arrows was wider than its column: the boxes overlapped and the typed time had 0px to show in. Scoped with `:has(.log-range-from)`. At ≤380px `#logDialog form` also gives back 6px of padding a side, or `76.5` is still clipped at 320px.
+- **Measuring phone widths headless:** Chromium clamps the window to ~500px, so load the staged `index.html` in `<iframe width="360">`s inside a wrapper page — media queries follow the iframe. `file://` frames cannot be read from the parent; have the probe `postMessage` its findings up. Desktop scrollbars take 15px in headless and phones' do not, so a "content 16px wider" on a scrolling element is usually that, and a `::after` separator at `right: -6px` reports as 6px of overflow.
+- Known and left alone: the Garmin and Strava logos touch each other (also on desktop), and the stats placeholders (`piem. 10h45m`) are clipped at 320px.
+
 ### Every date field draws its own calendar (`date-picker.js`)
 
 Added 2026-08-05. `<input type="date">` draws its calendar from the **browser's** language, not the page's: an English browser gives a Sunday-first week and `08/02/2026`. `lang="lv"` on the input changes nothing — measured in a headless browser, plain / `lang="lv"` / `lang="en-GB"` all render `08/02/2026`. So the only way to get a Monday-first Latvian calendar is to draw it, which `date-picker.js` (loaded before the panels) does for all ten date fields.
@@ -490,7 +521,7 @@ Rebuilt twice on 2026-08-02: stacked bars → one combined line chart → **one 
 - **`edgeAnchor()` anchors the first and last label inwards.** Careful: a `text-anchor` in CSS *beats* the presentation attribute, so `.chart-axis-label`/`.chart-point-label` must NOT declare it — that override silently undid the anchoring once and left both ends hanging outside the card.
 - **Every point carries its own figure** (`.chart-point-label`), so nothing has to be hovered for — the owner's call 2026-08-02, and the reason there are no y-axis ticks and no end-of-line label any more (the numbers *are* the scale). **Zero weeks are deliberately left unlabelled**: the point already sits on the baseline, and a row of "0.0" across every untrained week is noise. Labels are clamped into the plot box and hidden below 700px, where 12 of them cannot be read and the tooltip/table take over — `PAD.top` is the room they need, so don't shrink it.
 - **`attachStatsHover()` puts one crosshair and one tooltip across all four facets** — that is what gives back the "what did every metric do that week" reading the combined plot had. It reads pixel geometry from the first facet's rendered `getBoundingClientRect()`, so it survives any width. Keyboard arrows mirror hover.
-- **The table toggle is not optional polish**: per-point values live only in the tooltip otherwise, and a tooltip must never be the only way to reach a number. Its headings are deliberately terse (`STATS_METRICS[].short`) with the units in a caption below and the week shown as its start date only — at phone width the full labels pushed the last column off the edge with no way to reach it. `.chart-table-wrap` is `width: fit-content` centred on a `--lime-bg` card (stretched to the full panel the columns drifted metres apart) and keeps `overflow-x: auto` as a safety net; the table measures ~400px on a desktop and steps its type back down under 700px (~318px), so it should not normally need it. The toggle is a plain `.secondary-action` — the same button as everywhere else in the app, not bespoke chart chrome.
+- **There is no table view any more** (removed 2026-11-14 at the owner's request - "Rādīt tabulu" and the table under the charts were not wanted at all). On a desktop every point still carries its own figure; below 700px those labels are hidden, so on a phone a value is reached by tapping the chart (the tooltip). Don't add the table back without being asked.
 - Metrics that are zero across the whole period keep their heading but draw no line — a flat line on the baseline says nothing.
 - No dark mode: the app is light-only, so there is no second set of steps to validate.
 
@@ -587,7 +618,9 @@ Added 2026-11. The header button "VFS/SFS/Iesildīšanās/Drill bibliotēka" (`#
 - **House style, agreed with the owner — keep it for new PDFs:** no portal name on the page (it gets printed); no subtitle repeating the title; seconds are written `30''`, never `30 s`; dark-green diamond bullets; section times on the right of the headings plus one "Ilgums" line; the coach's wording is kept as pasted, and only obvious typos / broken links / stray symbols are fixed, **and the owner is told which**. A heading like `Pamatdaļa - atkārtojam 2 vai 3 reizes` is split into the heading plus a yellow note.
 - **Times are estimates I work out from the text** (timed items summed, `katra kāja/puse` counted twice, rests added, repeats given as a range). They are labelled "aptuveni" and the owner is told so. Cool-down is normally included in the total; the one exception is *Iesildīšanās pirms intensīviem skrējieniem*, where the owner asked for it to be left out.
 - **The group is the owner's to name** — when a paste does not say, VFS/SFS was assumed from the content and said so in the reply. A paste may hold several trainings (the A–F "tabulas" text was two); ask before guessing how to split it.
-### "Notīrīt nedēļu" — the coach clears a whole week in one go
+### "Nodzēst plānu" — the coach clears a whole week in one go
+
+The button was labelled "Notīrīt nedēļu" until 2026-11-14, renamed at the owner's request; the id is still `#clearWeekBtn`.
 
 Added 2026-11-14, in the week navigation row next to "Nokopēt plānu" (`#clearWeekBtn`, shown by `render()` to the coach only, in week view, with an athlete picked). Before it, a mistake while planning meant deleting every training by hand with its ✕.
 

@@ -3,19 +3,38 @@
   --ink: #15171a;
   --muted: #566073;
   --line: #d9dee7;
-  --panel: #eef7d9;
+  --panel: #fcf2e7;
   /* Fixed page background photo (rotation removed 2026-09-03 at the owner's
      request - was a per-day pick set by an inline script in index.html). */
   --page-bg-image: url("images/bg-rotate-5.jpg");
   --page-bg-position: right center;
   --page: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.3) 100%),
     var(--page-bg-image);
-  --surface: #eef7d9;
-  --surface-alt: #e0efc0;
-  --surface-hover: #dbeeb3; /* a touch lighter: the red accent text on it was 4.3:1, now 4.5:1 */
-  --panel-row-hover: #e6f2c9;
+  /* Warm sand-to-peach surfaces (2026-11-14, replacing the lime-tinted set the
+     owner found glaring). --surface-hover is the darkest tone red accent text
+     ever sits on and is held at 4.5:1 against --accent - do not darken it. */
+  --surface: #fcf2e7;
+  --surface-alt: #f9e9d8;
+  --surface-hover: #f7e3cf;
+  --panel-row-hover: #fbefe2;
+  /* Buttons carry a soft top-to-bottom gradient. Ink text only: the lower end
+     is too dark for red text (4.2:1), which is why .delete-action keeps the
+     flat --surface-alt instead. */
+  --btn-bg: linear-gradient(180deg, #fef7ee 0%, #f5ddc4 100%);
+  --btn-bg-hover: linear-gradient(180deg, #fbecda 0%, #f1d3b3 100%);
+  /* The one strong UI colour: save buttons, the selected athlete's name tag,
+     ticked checkboxes. White text on it is 13.6:1. */
+  --brand: #3b2a22;
+  --brand-dark: #2a1d17;
+  /* Peach edge on cards and the glow around them. */
+  --edge: #e09a5f;
+  --edge-soft: #ecc9a6;
+  --edge-glow: rgba(224, 154, 95, 0.45);
+  --edge-glow-soft: rgba(224, 154, 95, 0.25);
   --accent: #c91f2f;
   --accent-dark: #9e1724;
+  /* Lime is no longer a UI colour - it survives only as the "excellent" status
+     colour (Rufjē "Teicami", the top feeling rating), read from JS. */
   --lime: #a3e635;
   --info-accent: #2563eb;
   --info-accent-dark: #1d4ed8;
@@ -172,7 +191,7 @@ button {
     rgba(226, 226, 226, 0.93) 100%
   );
   border: 1px solid rgba(255, 255, 255, 0.55);
-  border-bottom: 4px solid var(--lime);
+  border-bottom: 4px solid var(--edge);
   border-radius: 14px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
@@ -571,8 +590,8 @@ h4 {
 }
 
 #athleteSelectorPanel .refresh-status-btn:hover {
-  border-color: var(--lime);
-  color: var(--lime);
+  border-color: var(--edge);
+  color: var(--edge);
 }
 
 #athleteSelectorPanel .panel-header-row {
@@ -875,13 +894,13 @@ h4 {
 }
 
 .panel {
-  background: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95) 0%, rgba(253, 240, 226, 0.95) 100%);
   border: 1px solid #e2e2e2;
-  border-left: 3px solid var(--lime);
+  border-left: 3px solid var(--edge);
   border-radius: 8px;
   box-shadow:
     0 4px 10px rgba(0, 0, 0, 0.2),
-    0 0 0 2px rgba(163, 230, 53, 0.5);
+    0 0 0 2px var(--edge-glow);
 }
 
 .calendar-shell {
@@ -890,12 +909,12 @@ h4 {
   border-radius: 8px;
   box-shadow:
     0 18px 40px rgba(0, 0, 0, 0.4),
-    0 0 0 2px rgba(163, 230, 53, 0.25);
+    0 0 0 2px var(--edge-glow-soft);
 }
 
 #activeAthleteName {
-  background: var(--lime);
-  color: var(--ink);
+  background: var(--brand);
+  color: #fff;
   font-size: 1rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -939,7 +958,7 @@ h4 {
 
 .panel .panel-header:hover,
 .stats-collapsible .panel-header:hover {
-  background: #eaf5d0;
+  background: var(--panel-row-hover);
 }
 .panel-header-text {
   display: flex;
@@ -1426,7 +1445,7 @@ h4 {
 }
 
 .training-bar-header:hover {
-  background: #eaf5d0;
+  background: var(--panel-row-hover);
 }
 
 .training-bar-header h2 {
@@ -1738,8 +1757,8 @@ h4 {
   transition: background 0.15s, border-color 0.15s;
 }
 .icon-btn:hover {
-  background: var(--lime);
-  border-color: var(--lime-dark);
+  background: var(--surface-hover);
+  border-color: var(--edge);
 }
 /* Must stay after :hover - both selectors are (0,2,0), so source order is what
    keeps the chosen icon looking chosen while the pointer is over it. */
@@ -2313,13 +2332,12 @@ label {
   position: relative;
 }
 
-/* The green the wrapper used to have, lightened 20% towards white (--surface
-   #eef7d9 -> #f1f9e1), now on the card itself. Scoped to the two training
+/* The wrapper's surface tone, lightened towards white, now on the card itself. Scoped to the two training
    previews on purpose - #raceResultInfo shares the .generated-preview class
    and stays white. */
 #customPreview,
 #epPreview {
-  background: #f1f9e1;
+  background: #fef8f1;
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
 }
 
@@ -2423,7 +2441,7 @@ label {
 }
 
 .day-column:hover {
-  background: rgba(163, 230, 53, 0.1);
+  background: rgba(224, 154, 95, 0.1);
 }
 
 .day-column.today {
@@ -2683,7 +2701,7 @@ label {
 }
 
 .secondary-action-sm {
-  background: var(--surface-alt);
+  background: var(--btn-bg);
   border: 1px solid var(--line);
   border-radius: 6px;
   color: var(--ink);
@@ -2695,7 +2713,7 @@ label {
 }
 
 .secondary-action-sm:hover {
-  background: var(--surface-hover);
+  background: var(--btn-bg-hover);
   transform: translateY(-1px);
   box-shadow: 0 3px 8px rgba(21, 23, 26, 0.16);
 }
@@ -2726,7 +2744,7 @@ label {
 .add-day-button,
 .secondary-action,
 .delete-action {
-  background: var(--surface-alt);
+  background: var(--btn-bg);
   border: 1px solid var(--line);
   color: var(--ink);
   transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
@@ -2735,9 +2753,18 @@ label {
 .add-day-button:hover,
 .secondary-action:hover,
 .delete-action:hover {
-  background: var(--surface-hover);
+  background: var(--btn-bg-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(21, 23, 26, 0.18);
+}
+
+/* Red text: flat and light, see --btn-bg. */
+.delete-action {
+  background: var(--surface-alt);
+}
+
+.delete-action:hover {
+  background: var(--surface-hover);
 }
 
 .add-day-button:active,
@@ -3287,16 +3314,16 @@ label {
 }
 
 .primary-action {
-  background: var(--lime);
-  border: 1px solid var(--lime);
-  color: var(--ink);
+  background: var(--brand);
+  border: 1px solid var(--brand);
+  color: #fff;
   transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 
 .primary-action:hover {
-  background: #8bc926;
+  background: var(--brand-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(163, 230, 53, 0.35);
+  box-shadow: 0 4px 12px rgba(59, 42, 34, 0.3);
 }
 
 .primary-action:active {
@@ -3328,25 +3355,25 @@ label {
   box-sizing: border-box;
 }
 #updateTemplateBtn:hover {
-  background: #8bc926;
-  box-shadow: 0 4px 12px rgba(163, 230, 53, 0.35);
+  background: var(--brand-dark);
+  box-shadow: 0 4px 12px rgba(59, 42, 34, 0.3);
   transform: translateY(-1px);
 }
 
 .save-template-athlete-btn {
-  background: var(--lime);
+  background: var(--brand);
   border: 3px solid #000000;
-  color: var(--ink);
+  color: #fff;
 }
 
 .btn-keyword {
-  color: #000000;
+  color: inherit;
   font-weight: 700;
 }
 
 .save-template-athlete-btn:hover {
-  background: #8bc926;
-  box-shadow: 0 4px 12px rgba(163, 230, 53, 0.35);
+  background: var(--brand-dark);
+  box-shadow: 0 4px 12px rgba(59, 42, 34, 0.3);
 }
 
 .template-actions {
@@ -4002,78 +4029,6 @@ label {
   font-size: 0.75rem;
 }
 
-/* ---- Table view: every value reachable without hovering ---- */
-.chart-table-actions {
-  display: flex;
-  justify-content: center;
-  margin-top: 14px;
-}
-
-/* Only as wide as its content, centred - stretched across the full panel the
-   columns drifted metres apart. overflow-x is the safety net for a phone. */
-.chart-table-wrap {
-  -webkit-overflow-scrolling: touch;
-  background: var(--lime-bg);
-  border: 1px solid var(--olive-border);
-  border-radius: 10px;
-  margin: 10px auto 0;
-  max-width: 100%;
-  overflow-x: auto;
-  padding: 10px 16px;
-  width: fit-content;
-}
-
-.chart-table {
-  border-collapse: collapse;
-  font-size: 0.9rem;
-  width: auto;
-}
-
-.chart-table-note {
-  color: var(--muted);
-  font-size: 0.78rem;
-  margin: 8px auto 0;
-  max-width: 100%;
-  text-align: center;
-  width: fit-content;
-}
-
-.chart-table th,
-.chart-table td {
-  border-bottom: 1px solid var(--line);
-  padding: 7px 10px;
-  text-align: right;
-  white-space: nowrap;
-}
-
-.chart-table th:first-child,
-.chart-table td:first-child {
-  padding-left: 2px;
-}
-
-.chart-table th:last-child,
-.chart-table td:last-child {
-  padding-right: 2px;
-}
-
-.chart-table thead th {
-  color: var(--muted);
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.chart-table tbody th {
-  color: var(--ink);
-  font-weight: 600;
-  text-align: left;
-  white-space: nowrap;
-}
-
-.chart-table td {
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-
 /* ---- Weekly figures (inside the stats panel) and weekly comments (above Monday) ----
    These were one box below the calendar until 2026-08-07. The four figures now
    sit in "Paveiktā statistika", because that is the only thing they are used
@@ -4473,7 +4428,7 @@ label {
    report, so pointer-events are off rather than the box being disabled, which
    would grey the colour out. */
 .weekly-review-check {
-  accent-color: var(--lime);
+  accent-color: var(--brand);
   height: 20px;
   margin: 0;
   pointer-events: none;
@@ -4481,7 +4436,7 @@ label {
 }
 
 #weekReviewedCheckbox {
-  accent-color: var(--lime);
+  accent-color: var(--brand);
 }
 
 .weekly-review-actions {
@@ -4888,6 +4843,12 @@ textarea:disabled {
     height: 100%;
     max-height: none;
     overflow-y: auto;
+    /* The drawer clips at its own edge (overflow: hidden) and the cards used to
+       run the full width of it, so each card's left and right border was cut
+       off. A desktop column has the page gutter around it; a drawer has none,
+       so it carries its own. */
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
   .builder-sections-row {
@@ -5922,16 +5883,34 @@ textarea:disabled {
     display: none;
   }
 
+  /* Each button is as wide as its own words (2026-11-14). They used to be
+     stretched to a third of the row each (flex: 1 1 30%), which made "Notīrīt
+     nedēļu" and "Nokopēt plānu" into wide slabs and broke "Iepriekšējā nedēļa"
+     onto two lines. The athlete's name tag takes a line of its own so the two
+     week actions always sit together under it. */
   .week-nav-row button {
-    flex: 1 1 30%;
+    flex: 0 1 auto;
     font-size: 0.72rem;
-    padding: 8px 4px;
-    white-space: normal;
+    padding: 7px 7px;
     text-align: center;
   }
 
-  #copyPrevWeekBtn {
+  .week-nav-row #activeAthleteName {
+    margin: 0;
+    max-width: 100%;
+  }
+
+  /* The divider after the name tag becomes the line break: a zero-height,
+     full-width flex item. :not([hidden]) matters - render() hides it for the
+     athlete, and an id selector would otherwise beat the hidden attribute. */
+  .week-nav-row #copyWeekDivider:not([hidden]) {
+    background: none;
+    border: 0;
+    display: block;
     flex-basis: 100%;
+    height: 0;
+    margin: 0;
+    width: auto;
   }
 
   .app-body {
@@ -6027,9 +6006,51 @@ textarea:disabled {
     left: 14px;
   }
 
+  /* On a phone the average-feeling badge cannot share the top line with
+     "Nedēļa apskatīta": the two are ~330px together and overlapped each other
+     at 360px. It drops to a line of its own under the checkbox, caption and
+     badge side by side (they wrap onto two lines on the narrowest phones), and
+     the card's top padding grows to make room - only when the badge exists. */
   .week-feeling-badge-wrap {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+    left: 14px;
     right: 14px;
+    text-align: left;
+    top: 52px;
   }
+
+  .week-feeling-caption {
+    margin-bottom: 0;
+  }
+
+  .ws-comments:has(.week-feeling-badge-wrap) {
+    padding-top: 92px;
+  }
+
+  .week-comments-wrap:has(#weekReviewedWrap[hidden]) .ws-comments:has(.week-feeling-badge-wrap) {
+    padding-top: 52px;
+  }
+
+  /* Up to 400px the caption and the badge do not fit on one line (306px of
+     content in 299px at 360px), so the badge is two lines tall. */
+  @media (max-width: 400px) {
+    .ws-comments:has(.week-feeling-badge-wrap) {
+      padding-top: 108px;
+    }
+
+    .week-comments-wrap:has(#weekReviewedWrap[hidden]) .ws-comments:has(.week-feeling-badge-wrap) {
+      padding-top: 68px;
+    }
+  }
+
+  /* The athlete has no checkbox above it, so the badge takes the top line. */
+  .week-comments-wrap:has(#weekReviewedWrap[hidden]) .week-feeling-badge-wrap {
+    top: 12px;
+  }
+
 
   .calendar-grid {
     grid-template-columns: repeat(7, minmax(min(82vw, 300px), 1fr));
@@ -6062,9 +6083,29 @@ textarea:disabled {
   }
 }
 
-/* Buttons carry a short alternative label for the narrowest phones (see below). */
+/* Header buttons carry a short alternative label for phones. */
 .label-short {
   display: none;
+}
+
+/* Every phone, not only the narrowest (it was max-width: 380px until 2026-11-14):
+   at 390-414px the full labels put each button on a row of its own and the
+   header stood 260px tall - twice what a 360px phone got - before the calendar
+   even started. This block has to stay after the base rule above, which is the
+   same specificity. */
+@media (max-width: 720px) {
+  .label-full {
+    display: none;
+  }
+
+  .label-short {
+    display: inline;
+  }
+
+  .app-header .secondary-action {
+    font-size: 0.85rem;
+    padding: 7px 10px;
+  }
 }
 
 /* ---- Narrow phones (iPhone SE 320px, common Android 360px, iPhone SE2 375px) ----
@@ -6092,16 +6133,6 @@ textarea:disabled {
     padding: 6px 8px;
   }
 
-  /* "VFS/SFS/Iesildīšanās/Drill bibliotēka" needs two lines and a row of its own
-     here; the short label keeps it to one line beside the other buttons. */
-  .label-full {
-    display: none;
-  }
-
-  .label-short {
-    display: inline;
-  }
-
   .week-label-row {
     gap: 8px;
     margin-top: 8px;
@@ -6118,9 +6149,10 @@ textarea:disabled {
     padding: 0 10px;
   }
 
+  /* 0.7rem / 6px is what lets all three week buttons share one line at 360px. */
   .week-nav-row button {
-    font-size: 0.75rem;
-    padding: 5px 7px;
+    font-size: 0.7rem;
+    padding: 5px 6px;
   }
 
   .view-tabs button {
@@ -6460,10 +6492,12 @@ body.is-dragging .session-card.is-draggable {
   position: fixed;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.85;
+  opacity: 0.9;
   transform: rotate(2deg);
-  background: var(--surface);
-  border: 2px solid var(--accent);
+  /* A white card with the peach edge, like the cards it was lifted from - it
+     used to be a tinted box with a red frame, which read as an error. */
+  background: #fff;
+  border: 2px solid var(--edge);
   border-radius: 8px;
   padding: 10px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.15);
@@ -6475,9 +6509,11 @@ body.is-dragging .session-card.is-draggable {
   display: none;
 }
 
+/* Same dashed peach as a copied card (.is-copied): "this is where it goes".
+   Translucent, so the day's own buttons and cards stay readable under it. */
 .day-column.drag-target {
-  background: var(--surface-alt);
-  outline: 2px dashed var(--accent);
+  background: rgba(224, 154, 95, 0.16);
+  outline: 2px dashed var(--edge);
   outline-offset: -2px;
   border-radius: 8px;
 }
@@ -6670,19 +6706,6 @@ body.is-dragging .session-card.is-draggable {
   .chart-point-label {
     display: none;
   }
-
-  .chart-table {
-    font-size: 0.78rem;
-  }
-
-  .chart-table th,
-  .chart-table td {
-    padding: 5px 6px;
-  }
-
-  .chart-table-wrap {
-    padding: 8px 10px;
-  }
 }
 
 /* ---- Athlete's own record of an unplanned training (panels/self-log.js) ----
@@ -6819,16 +6842,16 @@ body.is-dragging .session-card.is-draggable {
   width: auto;
 }
 
-/* Save is the primary action here, so it gets the lime the app uses for
+/* Save is the primary action here, so it gets the colour the app uses for
    saves; Atcelt stays the shared grey .cancel-action beside it. */
 .self-log-form-actions .self-log-save-btn {
-  background: var(--lime);
-  border-color: var(--lime);
-  color: var(--lime-dark);
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
 }
 
 .self-log-form-actions .self-log-save-btn:hover {
-  background: var(--lime-dark);
+  background: var(--brand-dark);
   color: #fff;
 }
 
@@ -7342,4 +7365,139 @@ body.is-dragging .session-card.is-draggable {
   flex-shrink: 0;
   font-size: 0.8rem;
   font-weight: 600;
+}
+
+/* Log dialog on a phone: "No" above "Līdz", "Reizes" beside them (2026-11-14).
+   The three sat in three equal columns, which on a phone are ~70px each - but a
+   time box carries 76px of ▼▲ arrows, so the boxes were wider than their
+   columns, "No" lay on top of "Līdz", and the typed time had 0px left to show
+   in: it was hidden behind the arrows at every phone width (320-414px
+   measured). Stacked, each time box gets the whole row less the narrow
+   "Reizes" column. :has() keeps this to the from/to rows; other three-column
+   rows in the dialog are untouched. Desktop keeps the single row. */
+@media (max-width: 560px) {
+  #logFormContent .field-grid-3:has(.log-range-from) {
+    grid-template-columns: minmax(0, 1fr) 56px;
+  }
+
+  #logFormContent .field-grid-3:has(.log-range-from) > label:nth-child(1),
+  #logFormContent .field-grid-3:has(.log-range-from) > label:nth-child(2) {
+    grid-column: 1;
+  }
+
+  #logFormContent .field-grid-3:has(.log-range-from) > label:nth-child(3) {
+    align-self: center;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}
+
+/* On the narrowest phones (320px) the stacked time box above was still 5px
+   short of showing "76.5" whole. The dialog spends 46px a side on nested
+   padding; giving 6px a side back is enough. Log dialog only. */
+@media (max-width: 380px) {
+  #logDialog form {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+/* ---- Copy / paste in the week calendar (coach, 2026-11-14) ----
+   The copy icon is one more .icon-action-btn beside the pencil and the cross;
+   the paste icon stands at the right end of each "Ieplānot ..." button, in a
+   .paste-row that only exists while something is copied. Both icons are drawn
+   (inline SVG, currentColor), not emoji, so they take the button's own colour. */
+.cp-icon {
+  display: block;
+  fill: none;
+  height: 16px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.4;
+  width: 16px;
+}
+
+.icon-action-btn.copy-btn {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.icon-action-btn.copy-btn.is-active {
+  background: var(--brand);
+  color: #fff;
+}
+
+/* What is on the clipboard: a dashed peach frame, so it reads as "picked up"
+   rather than as a new or selected card. */
+.session-card.is-copied,
+.day-rest-text.is-copied {
+  outline: 2px dashed var(--edge);
+  outline-offset: 2px;
+}
+
+.day-rest-head {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  justify-content: space-between;
+}
+
+.paste-row {
+  align-items: stretch;
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.paste-row .add-day-button {
+  flex: 1;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+/* Light, not the dark save colour: there are up to 21 of these on screen at
+   once and a wall of dark squares outweighed the calendar itself. */
+.paste-btn {
+  align-items: center;
+  background: var(--btn-bg);
+  border: 1px solid var(--edge);
+  border-radius: 7px;
+  color: var(--brand);
+  cursor: pointer;
+  display: inline-flex;
+  flex: none;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+  width: 30px;
+}
+
+.paste-btn:hover {
+  background: var(--brand);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+@media (pointer: coarse) {
+  .paste-btn {
+    min-height: 40px;
+    width: 44px;
+  }
+}
+
+.copy-mode-bar {
+  align-items: center;
+  background: var(--surface);
+  border: 1px dashed var(--edge);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.88rem;
+  gap: 8px 12px;
+  justify-content: space-between;
+  margin: 0 0 10px;
+  padding: 8px 12px;
 }

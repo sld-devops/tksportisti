@@ -2496,6 +2496,61 @@ function newPlanClass(planId) {
   return newPlanUntil[planId] > Date.now() ? " plan-just-added" : "";
 }
 
+// Copy / paste in the week calendar (coach only). The coach presses the copy
+// icon on a training card or on a rest day; from then on every day shows a
+// paste icon - beside the three "Ieplānot ..." buttons for a training, beside
+// "Ieplānot brīvdienu" for a rest day - until the copy is switched off again
+// (same icon, the bar's "Atcelt", Esc, or picking another athlete).
+//
+// copiedItem is a snapshot, not a reference to the plan: { kind: "plan",
+// planId, title, details, custom_icon, coach_comment } or { kind: "rest",
+// date, coach_comment }. It deliberately survives a week change, so the same
+// training can be dropped into next week; it is cleared on an athlete change
+// so one athlete's plan cannot land in another's calendar by accident.
+let copiedItem = null;
+
+const COPY_ICON_SVG = '<svg class="cp-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 3.5v-.5a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5"/></svg>';
+const PASTE_ICON_SVG = '<svg class="cp-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3H4a1.5 1.5 0 0 0-1.5 1.5v8A1.5 1.5 0 0 0 4 14h8a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 12 3h-1.5"/><rect x="5.5" y="1.5" width="5" height="3" rx="1"/><path d="M8 7v4.5M6 9.5l2 2 2-2"/></svg>';
+
+function pasteButtonHtml(attrs, label) {
+  return `<button class="paste-btn" ${attrs} type="button" title="${label}" aria-label="${label}">${PASTE_ICON_SVG}</button>`;
+}
+
+function clearCopiedItem() {
+  if (!copiedItem) return;
+  copiedItem = null;
+  renderCalendar();
+}
+
+// The strip above the week that says what is on the clipboard and offers the
+// way out. Without it the paste icons would follow the coach into a week where
+// the copied card is not on screen, with nothing to switch them off.
+function renderCopyModeBar() {
+  let bar = document.getElementById("copyModeBar");
+  const show = !!copiedItem && activeRole === "coach" && viewMode === "week";
+  if (!bar) {
+    if (!show) return;
+    bar = document.createElement("div");
+    bar.id = "copyModeBar";
+    bar.className = "copy-mode-bar";
+    calendarGrid.parentElement.insertBefore(bar, calendarGrid);
+    bar.addEventListener("click", (e) => {
+      if (e.target.closest("[data-copy-cancel]")) clearCopiedItem();
+    });
+  }
+  bar.hidden = !show;
+  if (!show) return;
+  const what = copiedItem.kind === "rest" ? "🌴 Brīvdiena" : escapeHtml(displayTitle(copiedItem.title));
+  bar.innerHTML = `<span>Nokopēts: <strong>${what}</strong> — spied ielīmēšanas ikonu dienā, kur to vajag.</span><button class="secondary-action-sm" data-copy-cancel type="button">Atcelt</button>`;
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape" || !copiedItem) return;
+  // An open dialog takes Esc for itself.
+  if (document.querySelector("dialog[open]")) return;
+  clearCopiedItem();
+});
+
 function renderPlanCard(plan) {
   const isCoach = activeRole === "coach";
   const coachDisabled = !isCoach ? "disabled" : "";
@@ -2513,12 +2568,13 @@ function renderPlanCard(plan) {
   const planLogNotes = planLog?.notes ? `<div class="log-notes">${planLog.notes}</div>` : "";
 
   if (isCoach) {
+    const isCopied = copiedItem?.kind === "plan" && copiedItem.planId === plan.id;
     const logBlock = planLog
       ? `<div class="log-card log-inline">${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details, false, "week") : ""}${feelingBadge}${planLogNotes}</div>`
       : "";
 
     return `
-      <article class="session-card is-draggable${notCompleted ? " not-completed" : ""}${newPlanClass(plan.id)}" data-plan-id="${plan.id}">
+      <article class="session-card is-draggable${notCompleted ? " not-completed" : ""}${newPlanClass(plan.id)}${isCopied ? " is-copied" : ""}" data-plan-id="${plan.id}">
         ${todBadge}
         <h3>${displayTitle(plan.title)}</h3>
         ${movedBadge}
@@ -2527,7 +2583,7 @@ function renderPlanCard(plan) {
         ${hasPamatdala ? `<div class="task-card">${formatDetailsForCard(plan.details, "week").replace(/\n/g, "<br>")}<textarea class="inline-comment" data-comment-plan="${plan.id}" data-comment-type="coach" placeholder="Trenera komentārs...">${plan.coach_comment || ""}</textarea></div>` : `<textarea class="inline-comment" data-comment-plan="${plan.id}" data-comment-type="coach" placeholder="Trenera komentārs...">${plan.coach_comment || ""}</textarea>`}
         ${logBlock}
         ${notCompleted ? `<div class="not-completed-badge"><span class="not-completed-icon">!</span> Sportists atzīmēja kā neizpildītu</div>${plan.athlete_comment ? `<div class="log-notes not-completed-comment">${plan.athlete_comment}</div>` : ""}` : ""}
-        <div class="card-actions"><button class="icon-action-btn" data-edit-plan="${plan.id}" type="button" title="Rediģēt">✏️</button><button class="icon-action-btn is-delete" data-delete-plan="${plan.id}" type="button" title="Dzēst">✕</button></div>
+        <div class="card-actions"><button class="icon-action-btn" data-edit-plan="${plan.id}" type="button" title="Rediģēt">✏️</button><button class="icon-action-btn is-delete" data-delete-plan="${plan.id}" type="button" title="Dzēst">✕</button><button class="icon-action-btn copy-btn${isCopied ? " is-active" : ""}" data-copy-plan="${plan.id}" type="button" title="${isCopied ? "Beigt kopēšanu" : "Kopēt uz citu dienu"}" aria-label="${isCopied ? "Beigt kopēšanu" : "Kopēt uz citu dienu"}" aria-pressed="${isCopied}">${COPY_ICON_SVG}</button></div>
       </article>
     `;
   }
@@ -2739,7 +2795,13 @@ function renderCalendar() {
             <span class="day-date">${date.getDate()}.${date.getMonth() + 1}.</span>
           </div>
           ${raceHtml}
-          ${activeRole === "coach" && !fullyRestricted ? `<div class="time-of-day-buttons">${["morning", "afternoon", "evening"].map(tod => restrictedTods.includes(tod) ? "" : `<button class="add-day-button" data-day="${dateStr}" data-tod="${tod}" type="button">${tod === "morning" ? "🌄 Ieplānot no rīta" : tod === "afternoon" ? "☀️ Ieplānot pusdienā" : "🌇 Ieplānot vakarā"}</button>`).join("")}</div>` : ""}
+          ${activeRole === "coach" && !fullyRestricted ? `<div class="time-of-day-buttons">${["morning", "afternoon", "evening"].map(tod => {
+            if (restrictedTods.includes(tod)) return "";
+            const addBtn = `<button class="add-day-button" data-day="${dateStr}" data-tod="${tod}" type="button">${tod === "morning" ? "🌄 Ieplānot no rīta" : tod === "afternoon" ? "☀️ Ieplānot pusdienā" : "🌇 Ieplānot vakarā"}</button>`;
+            return copiedItem?.kind === "plan"
+              ? `<div class="paste-row">${addBtn}${pasteButtonHtml(`data-paste-day="${dateStr}" data-paste-tod="${tod}"`, "Ielīmēt nokopēto treniņu")}</div>`
+              : addBtn;
+          }).join("")}</div>` : ""}
           ${dayPlans.length
             ? dayPlans.map(renderPlanCard).join("")
             : dayRaces.length
@@ -2750,8 +2812,10 @@ function renderCalendar() {
                   ? ""
                 : activeRole === "coach"
                   ? `${dayNote?.is_rest_day
-                    ? `<div class="day-rest-text">🌴 Brīvdiena<textarea class="inline-comment" data-comment-day="${dateStr}" placeholder="Trenera komentārs...">${dayNote?.coach_comment || ""}</textarea></div>`
-                    : `<button class="add-day-button rest-day-toggle-btn" data-rest-day="${dateStr}" type="button">🌴 Ieplānot brīvdienu</button>`
+                    ? `<div class="day-rest-text${copiedItem?.kind === "rest" && copiedItem.date === dateStr ? " is-copied" : ""}"><span class="day-rest-head">🌴 Brīvdiena<button class="icon-action-btn copy-btn${copiedItem?.kind === "rest" && copiedItem.date === dateStr ? " is-active" : ""}" data-copy-rest="${dateStr}" type="button" title="Kopēt brīvdienu uz citu dienu" aria-label="Kopēt brīvdienu uz citu dienu">${COPY_ICON_SVG}</button></span><textarea class="inline-comment" data-comment-day="${dateStr}" placeholder="Trenera komentārs...">${dayNote?.coach_comment || ""}</textarea></div>`
+                    : copiedItem?.kind === "rest"
+                      ? `<div class="paste-row"><button class="add-day-button rest-day-toggle-btn" data-rest-day="${dateStr}" type="button">🌴 Ieplānot brīvdienu</button>${pasteButtonHtml(`data-paste-rest="${dateStr}"`, "Ielīmēt nokopēto brīvdienu")}</div>`
+                      : `<button class="add-day-button rest-day-toggle-btn" data-rest-day="${dateStr}" type="button">🌴 Ieplānot brīvdienu</button>`
                   }`
                   : dayNote?.is_rest_day
                     ? `<div class="day-rest-text">🌴 Brīvdiena${dayNote?.coach_comment ? "<br>" + escapeHtml(dayNote.coach_comment) : ""}</div><textarea class="rest-day-athlete-comment" data-rest-athlete-comment="${dateStr}" placeholder="Kā pagāja atpūtas diena?" rows="1">${dayNote?.athlete_comment || ""}</textarea>`
@@ -2796,6 +2860,7 @@ function renderCalendar() {
     });
   });
 
+  renderCopyModeBar();
   renderDayFoldBar();
   renderWeeklySummary();
   growAllCommentBoxes();
@@ -3359,7 +3424,7 @@ function render() {
     !hasAthletes || (activeRole === "coach" && !getSelectedAthleteId());
   document.getElementById("copyPrevWeekBtn").hidden = activeRole !== "coach" || viewMode !== "week";
   document.getElementById("copyWeekDivider").hidden = activeRole !== "coach" || viewMode !== "week";
-  // Coach + week view + an athlete picked: "Notīrīt nedēļu" has nothing to act on otherwise.
+  // Coach + week view + an athlete picked: "Nodzēst plānu" has nothing to act on otherwise.
   document.getElementById("clearWeekBtn").hidden =
     activeRole !== "coach" || viewMode !== "week" || !getSelectedAthleteId();
   const isCurrentWeek = formatDateISO(currentWeekStart) === formatDateISO(getMonday(new Date()));
@@ -3441,6 +3506,7 @@ function render() {
   document.getElementById("healthJournalPanel").hidden = !hasAthletes;
   document.getElementById("labTestsPanel").hidden = !hasAthletes;
   document.getElementById("lactateTestsPanel").hidden = !hasAthletes;
+  renderCopyModeBar();
   updateSidebarPanelLock();
 }
 
@@ -3481,6 +3547,7 @@ function resetNewTrainingForm() {
 // render() call), because the static elements (buttons, dialogs) in
 // index.html exist the whole time - only their content/visibility changes.
 athleteSelect.addEventListener("change", async () => {
+  copiedItem = null;
   const gen = ++loadGen;
   selectedTemplateId = null;
   resetNewTrainingForm();
@@ -3498,6 +3565,11 @@ document.getElementById("dropdownList").addEventListener("click", (e) => {
   e.stopPropagation();
   if (e.target.closest(".athlete-week-header")) return;
   const row = e.target.closest(".athlete-row");
+  // Phone layout: picking an athlete is the reason the drawer was opened, so it
+  // closes itself and the coach lands on that athlete's calendar without a
+  // second tap. Tapping the athlete who is already picked counts too. On a
+  // desktop the sidebar is a column, not a drawer, and stays as it is.
+  if (row && window.innerWidth <= 1040) togglePlannerMenu(false);
   if (!row || row.classList.contains("selected")) {
     document.getElementById("athleteDropdown").classList.remove("open");
     return;
@@ -3670,7 +3742,7 @@ document.getElementById("copyWeekConfirmBtn")?.addEventListener("click", async (
   }
 });
 
-// "Notīrīt nedēļu" (coach only): removes the week's trainings and its rest-day
+// "Nodzēst plānu" (coach only; the button was "Notīrīt nedēļu" until 2026-11-14): removes the week's trainings and its rest-day
 // marks in one go, after a confirmation that says exactly what will go. A training
 // the athlete has already logged an execution for is left alone, so a mistake
 // while planning can never wipe the athlete's own data. Races, restrictions,
@@ -3703,8 +3775,8 @@ document.getElementById("clearWeekBtn")?.addEventListener("click", async () => {
       return;
     }
 
-    const label = document.getElementById("weekLabel")?.textContent || "šo nedēļu";
-    let message = `Notīrīt nedēļu ${label}?\n\nTiks dzēsti treniņi: ${toDelete.length}`;
+    const label = document.getElementById("weekLabel")?.textContent || "šī nedēļa";
+    let message = `Nodzēst plānu (${label})?\n\nTiks dzēsti treniņi: ${toDelete.length}`;
     if (restDays.length) message += `\nTiks noņemtas brīvdienas: ${restDays.length}`;
     if (kept) message += `\n\nNetiks aiztikti treniņi, kuriem sportists jau ir ierakstījis izpildi: ${kept}`;
     message += "\n\nAtcelt dzēšanu vairs nevarēs.";
@@ -3733,8 +3805,8 @@ const VIDEO_TUTORIALS = [
   { title: "Iesildīšanās – mobilitāte", url: "https://www.youtube.com/watch?v=qdW_EV7-sM0" },
   { title: "Iesildīšanās – pirms un pēc skrējiena", url: "https://www.youtube.com/watch?v=r9B3HAqwWRo" },
   { title: "Drills – normāli un palēninājumā", url: "https://www.youtube.com/watch?v=k1lxf_IREV8" },
-  { title: "Drills – komplekss pirms specifiskajiem treniņiem", url: "https://www.youtube.com/watch?v=YNdwfIdTSrc" },
-  { title: "Pliometrija – pēdu darbs pēc lēnajiem treniņiem", url: "https://www.youtube.com/watch?v=ttArcoo6MCI" },
+  { title: "Drills – komplekss pirms intensīvajiem treniņiem", url: "https://www.youtube.com/watch?v=YNdwfIdTSrc" },
+  { title: "Pliometrija – pēdas", url: "https://www.youtube.com/watch?v=ttArcoo6MCI" },
   { title: "SFS – kājas", url: "https://www.youtube.com/watch?v=tkRCu0LNXnU" },
   { title: "VFS – kājas", url: "https://www.youtube.com/watch?v=QmkWTtoUf5M" },
   { title: "VFS – svari, pamatvingrinājumi", url: "https://www.youtube.com/watch?v=mDAJD6nho3o" },
@@ -4429,6 +4501,64 @@ calendarGrid.addEventListener("click", async (event) => {
     return;
   }
 
+  // Copy / paste (coach). The comment is read from the box on screen first:
+  // it autosaves on a delay, so what is typed can be newer than what is stored.
+  const copyPlanBtn = event.target.closest("[data-copy-plan]");
+  if (copyPlanBtn && activeRole === "coach") {
+    const id = copyPlanBtn.dataset.copyPlan;
+    const plan = plans.find(p => p.id === id);
+    if (copiedItem?.kind === "plan" && copiedItem.planId === id) {
+      copiedItem = null;
+    } else if (plan) {
+      const box = calendarGrid.querySelector(`[data-comment-plan="${id}"][data-comment-type="coach"]`);
+      copiedItem = {
+        kind: "plan", planId: id, title: plan.title, details: plan.details,
+        custom_icon: plan.custom_icon || null,
+        coach_comment: box ? box.value : (plan.coach_comment || ""),
+      };
+    }
+    renderCalendar();
+    return;
+  }
+
+  const copyRestBtn = event.target.closest("[data-copy-rest]");
+  if (copyRestBtn && activeRole === "coach") {
+    const date = copyRestBtn.dataset.copyRest;
+    if (copiedItem?.kind === "rest" && copiedItem.date === date) {
+      copiedItem = null;
+    } else {
+      const box = calendarGrid.querySelector(`[data-comment-day="${date}"]`);
+      const note = dayNotes.find(n => n.date === date);
+      copiedItem = { kind: "rest", date, coach_comment: box ? box.value : (note?.coach_comment || "") };
+    }
+    renderCalendar();
+    return;
+  }
+
+  const pasteBtn = event.target.closest("[data-paste-day]");
+  if (pasteBtn && activeRole === "coach" && copiedItem?.kind === "plan") {
+    const day = pasteBtn.dataset.pasteDay;
+    const tod = pasteBtn.dataset.pasteTod || "";
+    if (isTimeSlotRestricted(day, tod || null)) return;
+    await insertTrainingToDay(day, copiedItem, tod);
+    return;
+  }
+
+  const pasteRestBtn = event.target.closest("[data-paste-rest]");
+  if (pasteRestBtn && activeRole === "coach" && copiedItem?.kind === "rest") {
+    const note = { athlete_id: getSelectedAthleteId(), date: pasteRestBtn.dataset.pasteRest, is_rest_day: true };
+    // An empty copied comment is left out, so a comment already written on
+    // the target day is not wiped by pasting a rest day over it.
+    if (copiedItem.coach_comment) note.coach_comment = copiedItem.coach_comment;
+    try {
+      await upsertDayNote(note);
+      await loadNonTemplateData();
+    } catch (e) {
+      alert("Neizdevās ielīmēt brīvdienu: " + (e.message || e));
+    }
+    return;
+  }
+
   if (dayButton && activeRole === "coach") {
     const day = dayButton.dataset.day;
     const tod = dayButton.dataset.tod || "";
@@ -4919,7 +5049,8 @@ async function insertTrainingToDay(dateStr, training, tod = "") {
       date: dateStr,
       title: training.title,
       details: training.details,
-      coach_comment: "",
+      // Only a pasted copy carries a comment; a training from the builder has none.
+      coach_comment: training.coach_comment || "",
       athlete_comment: "",
       created_by: currentUser.id,
       time_of_day: tod || null,
