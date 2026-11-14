@@ -1,9 +1,8 @@
 grupa: VFS
 nosaukums: Kājas, gurni un korpuss
 kermena_dala: Kājas · gurni · korpuss
+ilgums: aptuveni 45 min
 fails: vfs-kajas-gurni-korpuss
-
-> Apzīmējumi: «x10» ir atkārtojumu skaits, «30 s» ir vingrinājuma ilgums sekundēs. Pauzes ir tur, kur norādīts.
 
 ## Iesildamies:
 Iešana uz rokām x10
@@ -17,43 +16,43 @@ Izklupiens uz aizmuguri un 3x pietupiens ar aizmugurējo kāju x10 (5x katra kā
 Dziļie pietupieni x20
 
 ## Pamatdaļa:
-Pietupieni, ceļoties iztaisnojas uz pirkstgaliem 30 s
-Sēdēšana pietupienā 30 s
-Palēcieni no dziļā pietupiena, gaisā sasitot kopā papēžus 30 s
-— Pauze 30 s —
-Izklupiena pozīcijā, pietupieni 30 s katra kāja (https://www.youtube.com/watch?v=npFQHBFdNzQ)
-Izklupiena pozīcijā, stāv statiski un ar rokām imitē skriešanu sprintā 30 s katra kāja
-— Pauze 30 s —
-Izklupiena pozīcijā knipsītī, pietupieni 30 s katra kāja
-Izklupiena pozīcijā, lēcieni uz vietas 30 s katra kāja
-— Pauze 30 s —
-Čurājošais sunītis 30 s katra kāja
-Uz rokām pretējo roku un kāju savelk kopā un iztaisno 30 s katra puse
-— Pauze 30 s —
-Guļ uz muguras (visa pilnībā pie zemes), kājas taisni gaisā. Pamīšus pa vienai kājai laiž zemē un atkal ceļ augšā taisnas 30 s
-Guļ uz muguras, rokas zem dibena, kājas tur statiski 15cm virs zemes 30 s
-— Pauze 30 s —
-Svecītes 30 s
-Kāja pāri celim, presītes 30 s katra puse
-— Pauze 30 s —
-Dead Bug 60 s (https://www.youtube.com/watch?v=I5xbsA71v1A)
-Sēdus pozīcijā, kājas gaisā, pārnes svaru no vienas puses uz otru 30 s
-— Pauze 30 s —
-Guļ uz muguras, gurnu cilāšana 30 s (https://www.youtube.com/watch?v=yOPkM2pzznc)
-Gurnu noturēšana gaisā 30 s
-Guļ uz muguras, gurnu cilāšana turot vienu kāju paceltu gaisā 30 s katra kāja
-Gurnu noturēšana gaisā 30 s
-Guļ uz muguras, gurnus notur gaisā, ar kājām soļo 30 s
-— Pauze 30 s —
-Plank 3x30 s ar 30 s pauzēm
-Plank sāna 2x30 s ar 30 s pauzēm katra puse
-— Pauze 30 s —
-Sēdēšana pietupienā 30 s
-Sēdēšana pietupienā uz pirkstgaliem 30 s
-Platajā stājā, pietupieni uz vienas kājas, vienā pusē, tad otrā pusē 30 s
-Dziļie pietupieni 30 s
-Izklupienā pietupieni 30 s katra kāja
-> Ja pietiek laiks, pēdējos 4 vingrinājumus (visus, izņemot «Sēdēšana pietupienā 30 s») atkārto vēl vienu vai divas reizes.
+Pietupieni, ceļoties iztaisnojas uz pirkstgaliem 30''
+Sēdēšana pietupienā 30''
+Palēcieni no dziļā pietupiena, gaisā sasitot kopā papēžus 30''
+— Pauze 30'' —
+Izklupiena pozīcijā, pietupieni 30'' katra kāja (https://www.youtube.com/watch?v=npFQHBFdNzQ)
+Izklupiena pozīcijā, stāv statiski un ar rokām imitē skriešanu sprintā 30'' katra kāja
+— Pauze 30'' —
+Izklupiena pozīcijā knipsītī, pietupieni 30'' katra kāja
+Izklupiena pozīcijā, lēcieni uz vietas 30'' katra kāja
+— Pauze 30'' —
+Čurājošais sunītis 30'' katra kāja
+Uz rokām pretējo roku un kāju savelk kopā un iztaisno 30'' katra puse
+— Pauze 30'' —
+Guļ uz muguras (visa pilnībā pie zemes), kājas taisni gaisā. Pamīšus pa vienai kājai laiž zemē un atkal ceļ augšā taisnas 30''
+Guļ uz muguras, rokas zem dibena, kājas tur statiski 15cm virs zemes 30''
+— Pauze 30'' —
+Svecītes 30''
+Kāja pāri celim, presītes 30'' katra puse
+— Pauze 30'' —
+Dead Bug 60'' (https://www.youtube.com/watch?v=I5xbsA71v1A)
+Sēdus pozīcijā, kājas gaisā, pārnes svaru no vienas puses uz otru 30''
+— Pauze 30'' —
+Guļ uz muguras, gurnu cilāšana 30'' (https://www.youtube.com/watch?v=yOPkM2pzznc)
+Gurnu noturēšana gaisā 30''
+Guļ uz muguras, gurnu cilāšana turot vienu kāju paceltu gaisā 30'' katra kāja
+Gurnu noturēšana gaisā 30''
+Guļ uz muguras, gurnus notur gaisā, ar kājām soļo 30''
+— Pauze 30'' —
+Plank 3x30'' ar 30'' pauzēm
+Plank sāna 2x30'' ar 30'' pauzēm katra puse
+— Pauze 30'' —
+Sēdēšana pietupienā 30''
+Sēdēšana pietupienā uz pirkstgaliem 30''
+Platajā stājā, pietupieni uz vienas kājas, vienā pusē, tad otrā pusē 30''
+Dziļie pietupieni 30''
+Izklupienā pietupieni 30'' katra kāja
+> Ja pietiek laiks, pēdējos 4 vingrinājumus (visus, izņemot «Sēdēšana pietupienā 30''») atkārto vēl vienu vai divas reizes.
 
 ## Atsildamies
 Staipīšanās
