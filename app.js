@@ -3746,7 +3746,7 @@ const EXERCISE_PDFS = [
     { title: "Lēcieni, seklie un dziļie", file: "pdf/sfs-lecieni-seklie-dziliie.pdf", time: "~30–50 min" },
   ] },
   { group: "Iesildīšanās", items: [
-    { title: "Iesildīšanās pirms intensīviem skrējieniem", file: "pdf/iesildisanas-intensivi.pdf", time: "~45–55 min" },
+    { title: "Iesildīšanās pirms intensīviem skrējieniem", file: "pdf/iesildisanas-intensivi.pdf", time: "~30–35 min" },
   ] },
 ];
 

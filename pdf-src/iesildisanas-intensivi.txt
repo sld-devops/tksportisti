@@ -1,6 +1,6 @@
 grupa: Iesildīšanās
 nosaukums: Iesildīšanās pirms intensīviem skrējieniem
-ilgums: aptuveni 45–55 min
+ilgums: aptuveni 30–35 min
 fails: iesildisanas-intensivi
 
 ## Iesildīšanās | 15-20 min
