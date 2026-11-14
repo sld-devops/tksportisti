@@ -2,172 +2,216 @@ grupa: VFS
 nosaukums: Viss ķermenis (bloki)
 fails: vfs-bloki
 
-## Pamatdaļa
+### 1. bloks
 Mountain climbers 60''
 Plank 60''
 Balstā guļus ar rokām pa vienai skarās pie pretējā pleca 60''
+~
 Guļ uz muguras, kājas gaisā, ceļos saliektas 90°. Ar rokām spiež abas kājas prom no sevis, ar kājām pretojās. 3-5'' paspiež, pēc tam atslābinās 60''
 Dead Bug 60'' (https://www.youtube.com/watch?v=I5xbsA71v1A)
 Sēdus pozīcijā, kājas gaisā, pārnes svaru no vienas puses uz otru. Uz to pusi uz kuru pārnes svaru, papildus iztaisno kāju 60''
-~
+
+### 2. bloks
 Pietupieni 60''
 Sēdēšana ietupienā 60''
 Cilāšanās ietupienā no 45°-90° 30''
 rokas aiz galvas palēcieni 30''
+~
 Izklupienā, pietupieni 30'' ar katru kāju
 Izklupienā, palēcieni uz vietas 30'' ar katru kāju
 Izklupienā, kājas knipsītī pietupieni 30'' ar katru kāju
-~
+
+### 3. bloks
 Plank 90''
 Side plank 45'' katra puse
 plank 60''
 Guļ uz sāniem, apakšējā roka zem galvas, augšējā uz gurna, kājas tur gaisā 60'' katra puse
-~
+
+### 4. bloks
 Pietupieni, ceļoties augšā uz pirkstgaliem 60''
 Sēdēšana ietupienā uz pirkstgaliem 60''
 Cilāšanās ietupienā no 45°-90° 30''
 rokas aiz galvas palēcieni 30''
+~
 Sprintera spēriens (https://www.youtube.com/watch?v=Pd5Xhlemq7M) 45'' katra kāja
 No iepriekšējā vingrinājuma atstāj kāju saliektu augšā, aizver acis un tur līdzsvaru 45''. Pēc tam tas pats ar otru kāju.
-~
+
+### 5. bloks
 Pumpēšanās x3 + iedomu (var īstas) hanteļu cilāšana x8 (https://www.youtube.com/watch?v=npAExC8z7ls) 90''
 Plank pumpēšanās 60'' (stāv plankā, laižās lejā mēģinot tuvināt lāpstiņas)
 statiskā pumpēšanās 30'' (rokas cieši gar sāniem, no balstā guļus nolaižās pēc iespējas tuvāk zemei un turās)
-~
+
+### 6. bloks
 Guļ uz muguras, gurnu cilāšana 60'' (https://www.youtube.com/watch?v=yOPkM2pzznc)
 gurnu noturēšana gaisā 60''
 Gurnu noturēšana gaisā, ar kājām soļo 60''
-~
+
+### 7. bloks
 Balstā guļus 20''
 nolaišanās ar rokām līdz pusei uz leju (ieliekti elkoņi) 20''
 rokas cieši gar sāniem, no balstā guļus nolaižās pēc iespējas tuvāk zemei un turās 20''
 Plank 60''
 Balstā guļus 30''
 rokas cieši gar sāniem, no balstā guļus nolaižās pēc iespējas tuvāk zemei un turās 30''
-~
+
+### 8. bloks
 Balstā guļus, ar vienu roku pastiepjās uz priekšu/augšu tā lai ieliecās mugura, pēc tam ar to pašu roku stiepjās pie pretējās kājas pirkstgala 30'' katra puse
 apgrieztais plank 60''
 Balstā guļus, pa vienai rokai elkoņus laiž cieši gar sāniem uz augšu 60''
+~
 Superman 60''
 Guļot uz vēdera, rokas uz aizmuguri, cilājās tikai ar ķermeņa augšdaļu 60''
 Vardīte (https://www.youtube.com/watch?v=wJnFpjOdEMg) 60''
-~
+
+### 9. bloks
 Sprintera spēriens (https://www.youtube.com/watch?v=Pd5Xhlemq7M) 45'' katra kāja
 Tas pats, tikai ar lēcienu 45''. Pēc tam tas pats ar otru kāju. 90''
+~
 Izklupienā, pietupieni 30'' ar katru kāju
 Izklupienā, palēcieni uz vietas 30'' ar katru kāju
 Izklupienā, kājas knipsītī pietupieni 30'' ar katru kāju
-~
+
+### 10. bloks
 Balstā guļus, kājas pa vienai liek uz priekšu 60''
 Plank 60''
 Balstā guļus, ar rokām pamīšus skarās pie pretējā pleca 60''
+~
 Guļ uz muguras (visa pilnībā pie zemes), rokas uz sāniem, kājas taisni gaisā. Pa vienai laiž lejā 60''
 Sēdus pozīcijā, kājas gaisā, pārnes svaru no vienas puses uz otru. Uz to pusi uz kuru pārnes svaru, papildus iztaisno kāju 60''
 Guļ uz muguras, rokas uz sāniem, kājas taisni gaisā. Nolaiž tik zemu, cik ļauj mugura (kamēr visa mugura pie zemes) un notur 30''
-~
+
+### 11. bloks
 Snovborda lēcieni 30gab (https://www.youtube.com/watch?v=TreZAMxlIag)
 Pietupiens, ceļoties augšā iztaisnojas uz pirkstgaliem 30gab
 Palēcieni no dziļā ietupiena, gaisā sasitot kopā papēžus 30gab
 Pietupieni stāvot uz pirkstgaliem 30gab
 Lēcieni platais/šaurais 30gab (https://www.youtube.com/watch?v=RIMT0Rv-lRk)
 Pietupieni 30gab (viss bez pauzēm pa vidu, kopā apm 6-7min)
-~
+
+### 12. bloks
 Plank 120''
 Side plank 60''-60''
 Guļ uz sāniem, apakšējā roka zem galvas, augšējā uz gurna, kājas tur gaisā 60'' katra puse
-~
+
+### 13. bloks
 Guļot uz sāniem, augšējās kājas cilāšana 60''
 Guļot uz sāniem augšējā kāja gaisā apļošana 30''
 Guļot uz sāniem apakšējās kājas cilāšana (https://www.youtube.com/watch?v=38scppJHYec) 60''
 Guļot uz sāniem, augšējā kāja gaisā un nekustīga, apakšējo kāju velk klāt 30'' Pēc tam tas pats uz otru pusi.
-~
+
+### 14. bloks
 Superman 60''
 Guļot uz vēdera, rokas virs galvas, īkšķīšus cilā uz augšu, pēc tam uz leju 60''
 Guļot uz vēdera, rokas uz aizmuguri, cilājās tikai ar ķermeņa augšdaļu 60''
-~
+
+### 15. bloks
 Sēdēšana ietupienā pret sienu 5x60'' ar 15'' pauzēm pa vidu
-~
+
+### 16. bloks
 Izklupiena pozīcijā, pietupieni 30'' katra kāja (https://www.youtube.com/watch?v=npFQHBFdNzQ)
 Izklupiena pozīcijā, stāv statiski un ar rokām imitē skriešanu sprintā (aktīvi kustina uz priekšu/atpakaļ) 30'' katra kāja
 Izklupiena pozīcijā, lēcieni uz vietas 30'' katra kāja
+~
 Lēkāšana (it kā ar aukliņu) ar abām kājām 45''
 Lēkāšanas uz vienas kājas 45'' katra kāja
 Papēži kopā, dibeni sasprindzināti, kājas taisnas, lēkāšana uz abām kājām 45''
-~
+
+### 17. bloks
 Mountain climbers 60''
 Plank 60''
 Commandos 60'' (https://www.youtube.com/watch?v=hjWcFYloJhA)
+~
 Dead Bug 60'' (https://www.youtube.com/watch?v=I5xbsA71v1A)
 Guļ uz muguras (visa pilnībā pie zemes), rokas uz sāniem, kājas taisni gaisā. Pa vienai laiž lejā 60''
 Guļ uz muguras, kājas gaisā, ceļos saliektas 90°. Ar rokām spiež abas kājas prom no sevis, ar kājām pretojās. 3-5'' paspiež, pēc tam atslābinās 60''
-~
+
+### 18. bloks
 Guļ uz muguras, gurnu cilāšana 60'' (https://www.youtube.com/watch?v=yOPkM2pzznc)
 gurnu noturēšana gaisā 60''
 Gurnu noturēšana gaisā, ar kājām soļo 60''
+~
 Stāv uz rokām krabītī, ar roku stiepjās pāri galvai 60'' (https://www.youtube.com/watch?v=NKVfc6EtTCA)
 Iepriekšējā pozīcijā, uzceļ gurnus augšā (tā, lai ķermenis no ceļiem līdz pleciem taisnā līnijā), sasprindzina dibenu notur 3 sekundes, tad atslābina 60''
 Guļ uz muguras, gurnu cilāšana kamēr viena kāja gaisā 30''-30''
-~
+
+### 19. bloks
 Mountain climbers 60''
 Plank 60''
 Commandos 60'' (https://www.youtube.com/watch?v=hjWcFYloJhA)
+~
 Guļ uz muguras, kājas gaisā, ceļos saliektas 90°. Ar rokām spiež abas kājas prom no sevis, ar kājām pretojās. 3-5'' paspiež, pēc tam atslābinās 60''
 Dead Bug 60'' (https://www.youtube.com/watch?v=I5xbsA71v1A)
 Sēdus pozīcijā, kājas gaisā, pārnes svaru no vienas puses uz otru. Uz to pusi uz kuru pārnes svaru, papildus iztaisno kāju 60''
-~
+
+### 20. bloks
 Lēkāšana (it kā ar aukliņu) ar abām kājām 45''
 Lēkāšanas uz vienas kājas 45'' katra kāja
 Papēži kopā, dibeni sasprindzināti, kājas taisnas, lēkāšana uz abām kājām 45''
+~
 Cilāšanās uz pirkstgaliem 60''
 Cilāšanās pamīšus uz pirkstgaliem un papēžiem 60''
 Cilāšanās uz pirkstgaliem (augšā ātri, lejā lēnām 3-5'') 30''
-~
+
+### 21. bloks
 Pumpēšanās x3 + iedomu (var īstas) hanteļu cilāšana x8 (https://www.youtube.com/watch?v=npAExC8z7ls) 90''
 Plank pumpēšanās 60'' (stāv plankā, ar pleciem laižās lejā mēģinot tuvināt lāpstiņas)
 statiskā pumpēšanās 30'' (rokas cieši gar sāniem, no balstā guļus nolaižās pēc iespējas tuvāk zemei un turās)
+~
 Stāv kājas, rokas izstieptas uz sāniem plecu augstumā. Apļo rokas 60''
 Viegli cilā taisnas rokas augšā/lejā (kā lidotu) 60''
 Rokas taisnas virs galvas, katru rokas pirkstu kustina uz savu pusi, pēdējās 15sek max tempā. 60''
-~
+
+### 22. bloks
 Lēkāšana uz abām kājām (viegli, kā ar aukliņu) 45''
 lēkāšana uz vienas kājas 45'' katra kāja
 Pēdas kopā, pirkstgali uz āru, kājas taisnas, dibens sasprindzināts, lēcieni uz vietas 45''
+~
 Pietupieni, ceļoties augšā pastiepjās uz pirkstgaliem 60''
 sēdēšana ietupienā uz pirkstgaliem 60''
 pietupieni, pēc katra otrā palēciens 60''
+~
 Kājas plecu platumā, cilājās uz pirkstgaliem 60''
 Notupjās uz ceļiem un pirkstgaliem. No šī stāvokļa bez roku palīdzības pieceļās tupus un atkal nolaižās atpakaļ (abas kājas jāatrauj reizē) 60''
 viena kāja aizlikta aiz otras, ar rokām turās pie sienas, cilājās uz pirkstgala 30'' katra kāja
-~
+
+### 23. bloks
 Balstā guļus 60''
 Commandos 60'' (https://www.youtube.com/watch?v=hjWcFYloJhA)
 Plank 60''
+~
 Guļ uz muguras, kājas gaisā, saliektas 90°. Ar rokām spiež abas kājas prom no sevis, ar kājām pretojās. 3-5'' paspiež, pēc tam atslābinās 60''
 Kājas saliektas, pēdas uz zemes, rokas aiz galvas, presītes 30''
 Dead Bug 60'' (https://www.youtube.com/watch?v=I5xbsA71v1A)
 Kājas saliektas, pēdas uz zemes, rokas aiz galvas, presītes 30''
-~
+
+### 24. bloks
 Balstā guļus, ar kājām pamīšus solis uz priekšu 60''
 Plank, ar kājām pamīšus sper soli uz sāniem 60''
 Balstā guļus, noliek kāju priekšā blakus rokai, ar otras kājas ceļgalu veic kustību uz priekšu starp nolikto roku un kāju. Pamīšus abas puses 60''
+~
 Side plank 45'' katra puse
 Guļ uz sāniem, abas kājas gaisā 45'' katra puse.
-~
+
+### 25. bloks
 Lēkāšana uz abām kājām (viegli, kā ar aukliņu) 45''
 lēkāšana uz vienas kājas 45'' katra kāja
 Pēdas kopā, pirkstgali uz āru, kājas taisnas, dibens sasprindzināts, lēcieni uz vietas 45''
+~
 Cilāšanās uz pirkstgaliem/papēžiem 30''
 Cilāšanās uz pirkstgaliem, papēži kopā 30''
 Cilāšanās uz pirkstgaliem, pirkstgali kopā 30''
 Cilāšanās uz pirkstgaliem, abas kājas blakus 30''
 Notupjas un ceļas augšā uz pirkstgaliem tā, lai abi ceļi reizē atraujas 60''
-~
+
+### 26. bloks
 Stāv uz ceļiem, cilā vienu kāju uz sāniem 60'' (https://www.youtube.com/watch?v=La3xYT8MGks)
 Stāv uz ceļiem, viena kāja pacelta gaisā uz sāniem, notur nekustīgi 30''. Pēc tam tas pats ar otru kāju.
+~
 Guļ uz muguras, gurnu cilāšana 60'' (https://www.youtube.com/watch?v=yOPkM2pzznc)
 gurnu noturēšana gaisā 60''
 Gurnu noturēšana gaisā, ar kājām soļo 60''
-~
+
+### 27. bloks
 Pietupieni, ceļoties augšā iztaisno vienu kāju paceļoties uz pirkstgala 60''
 Sēdēšana ietupienā 60''
 Pietupieni, ceļoties augšā, ar abām kājām paceļās uz pirkstgaliem 60''
