@@ -23,7 +23,6 @@ CSS = """
 * { box-sizing: border-box; }
 body { font-family: 'DejaVu Sans', sans-serif; color: #15171a; font-size: 10.5pt; line-height: 1.45; margin: 0; }
 header { border-bottom: 3px solid #a3e635; padding-bottom: 10px; margin-bottom: 14px; }
-.brand { font-size: 8.5pt; letter-spacing: .08em; text-transform: uppercase; color: #566073; }
 .chip { display: inline-block; background: #a3e635; color: #15171a; font-weight: 700; font-size: 9pt; padding: 2px 10px; border-radius: 999px; margin: 8px 0 6px; }
 h1 { font-size: 20pt; line-height: 1.15; margin: 0 0 4px; }
 .duration { margin-top: 6px; font-weight: 700; font-size: 11pt; }
@@ -78,8 +77,7 @@ def build(txt):
             parts.append(f"<li{cls}>{line_html(ln)}</li>")
     close()
     doc = f"""<!doctype html><html lang="lv"><head><meta charset="utf-8"><style>{CSS}</style></head><body>
-<header><div class="brand">Toma Komasa sportistu portāls</div>
-<div class="chip">{html.escape(meta['grupa'])}</div>
+<header><div class="chip">{html.escape(meta['grupa'])}</div>
 <h1>{html.escape(meta['nosaukums'])}</h1>
 {('<div class="duration">Ilgums: ' + html.escape(meta['ilgums']) + '</div>') if meta.get('ilgums') else ''}</header>
 {''.join(parts)}
