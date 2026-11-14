@@ -3359,6 +3359,9 @@ function render() {
     !hasAthletes || (activeRole === "coach" && !getSelectedAthleteId());
   document.getElementById("copyPrevWeekBtn").hidden = activeRole !== "coach" || viewMode !== "week";
   document.getElementById("copyWeekDivider").hidden = activeRole !== "coach" || viewMode !== "week";
+  // Coach + week view + an athlete picked: "Notīrīt nedēļu" has nothing to act on otherwise.
+  document.getElementById("clearWeekBtn").hidden =
+    activeRole !== "coach" || viewMode !== "week" || !getSelectedAthleteId();
   const isCurrentWeek = formatDateISO(currentWeekStart) === formatDateISO(getMonday(new Date()));
   trainingBar.hidden = activeRole !== "coach" || !hasAthletes;
   document.getElementById("weekBlockTypeSelect").hidden = viewMode !== "week";
@@ -3662,6 +3665,64 @@ document.getElementById("copyWeekConfirmBtn")?.addEventListener("click", async (
   } catch (e) {
     console.error("Kļūda kopējot nedēļu:", e);
     alert("Neizdevās nokopēt nedēļu.");
+  } finally {
+    hideLoading();
+  }
+});
+
+// "Notīrīt nedēļu" (coach only): removes the week's trainings and its rest-day
+// marks in one go, after a confirmation that says exactly what will go. A training
+// the athlete has already logged an execution for is left alone, so a mistake
+// while planning can never wipe the athlete's own data. Races, restrictions,
+// work shifts and comments are not touched. The per-training delete emails
+// are queued the same way as the single ✕ does it (one digest, after 10 quiet minutes).
+document.getElementById("clearWeekBtn")?.addEventListener("click", async () => {
+  if (!isCoach()) return;
+  const athleteId = getSelectedAthleteId();
+  if (!athleteId) return;
+  const weekStart = formatDateISO(currentWeekStart);
+  const weekEnd = formatDateISO(getWeekEnd(currentWeekStart));
+
+  try {
+    showLoading();
+    // Read live from the database, not from the cached week arrays.
+    const [weekPlans, weekNotes] = await Promise.all([
+      getPlans(athleteId, weekStart, weekEnd),
+      getDayNotes(athleteId, weekStart, weekEnd),
+    ]);
+    const withLogs = await getPlanIdsWithLogs(weekPlans.map((p) => p.id));
+    const toDelete = weekPlans.filter((p) => !withLogs.has(p.id));
+    const kept = weekPlans.length - toDelete.length;
+    const restDays = weekNotes.filter((n) => n.is_rest_day);
+    hideLoading();
+
+    if (!toDelete.length && !restDays.length) {
+      alert(kept
+        ? `Šajā nedēļā nav ko dzēst: treniņiem, kuriem sportists ir ierakstījis izpildi (${kept}), neviens netiek aiztikts.`
+        : "Šajā nedēļā nav ko dzēst.");
+      return;
+    }
+
+    const label = document.getElementById("weekLabel")?.textContent || "šo nedēļu";
+    let message = `Notīrīt nedēļu ${label}?\n\nTiks dzēsti treniņi: ${toDelete.length}`;
+    if (restDays.length) message += `\nTiks noņemtas brīvdienas: ${restDays.length}`;
+    if (kept) message += `\n\nNetiks aiztikti treniņi, kuriem sportists jau ir ierakstījis izpildi: ${kept}`;
+    message += "\n\nAtcelt dzēšanu vairs nevarēs.";
+    if (!confirm(message)) return;
+
+    showLoading();
+    for (const plan of toDelete) {
+      await deletePlan(plan.id);
+      queuePlanDeleteNotification(plan.id, plan.athlete_id, plan.title, plan.date);
+    }
+    for (const note of restDays) {
+      await upsertDayNote({ athlete_id: athleteId, date: note.date, is_rest_day: false });
+    }
+    await loadNonTemplateData();
+  } catch (e) {
+    console.error("Kļūda tīrot nedēļu:", e);
+    alert("Neizdevās notīrīt nedēļu: " + (e.message || e));
+    try { await loadNonTemplateData(); } catch (_) { /* show whatever is left */ }
   } finally {
     hideLoading();
   }

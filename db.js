@@ -650,6 +650,20 @@ async function getLogEntriesByPlanId(planId) {
   return data || [];
 }
 
+// Which of these plans already have an execution logged by the athlete. Asks the
+// database directly (like getLogEntriesByPlanId above) - the in-memory log list
+// only covers the loaded week and can be stale. Used by "Notīrīt nedēļu", which
+// must never delete a training the athlete has already written an execution for.
+async function getPlanIdsWithLogs(planIds) {
+  if (!planIds.length) return new Set();
+  const { data, error } = await supabase
+    .from("log_entries")
+    .select("plan_id")
+    .in("plan_id", planIds);
+  if (error) throw error;
+  return new Set((data || []).map((r) => r.plan_id));
+}
+
 async function insertLogEntry(entry) {
   const { data, error } = await supabase
     .from("log_entries")

@@ -574,6 +574,7 @@
                    planned, instead of a line of its own further up the page. -->
               <div id="activeAthleteName"></div>
               <span class="week-nav-divider" id="copyWeekDivider" aria-hidden="true"></span>
+              <button id="clearWeekBtn" class="secondary-action" type="button" hidden>Notīrīt nedēļu</button>
               <div class="copy-week-dropdown" id="copyWeekDropdown">
                 <button id="copyPrevWeekBtn" class="secondary-action" type="button" hidden>Nokopēt plānu</button>
                 <div class="copy-week-panel" id="copyWeekDialog" hidden>
@@ -1086,7 +1087,7 @@
     <div id="loadingOverlay" class="loading-overlay" hidden><div class="loading-spinner"></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="db.js?v=13" defer></script>
+    <script src="db.js?v=14" defer></script>
     <script src="auth.js?v=6" defer></script>
     <!-- Before the panels: it converts every date field the moment one appears. -->
     <script src="date-picker.js?v=2" defer></script>
@@ -1107,6 +1108,6 @@
     <script src="panels/ruffier-test.js?v=3" defer></script>
     <script src="panels/lactate-test.js?v=1" defer></script>
     <script src="panels/self-log.js?v=8" defer></script>
-    <script src="app.js?v=91" defer></script>
+    <script src="app.js?v=92" defer></script>
   </body>
 </html>
