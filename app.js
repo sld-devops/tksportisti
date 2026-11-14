@@ -3724,7 +3724,9 @@ setupHeaderMenu(
 // Exercise instructions as PDFs in the pdf/ folder (made from the coach's text,
 // one shared layout). To add one: add { title, file } to its group.
 const EXERCISE_PDFS = [
-  // { group: "VFS", items: [{ title: "…", file: "pdf/vfs-….pdf" }] },
+  { group: "VFS", items: [
+    { title: "Kājas, gurni un korpuss", file: "pdf/vfs-kajas-gurni-korpuss.pdf" },
+  ] },
 ];
 
 setupHeaderMenu(
