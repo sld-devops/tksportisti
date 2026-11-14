@@ -177,6 +177,18 @@ The desktop-on-a-phone layout exists because the owner had been switching Chrome
 - **The `max-width: 1040/720/380px` blocks simply stop matching while the viewport is pinned** — nothing about the phone layout was ever deleted, which is what makes both directions real. Since 2026-08-05 those blocks are what a phone gets by default again, and the owner has flagged that the phone layout still has buttons running off the edge and overlapping — a known, separate piece of work.
 - The login screen follows the same setting, deliberately: switching the viewport at login time would make the layout jump. The role is unknown before first paint (it takes a Supabase round trip), so the default cannot depend on coach vs athlete — a coach who wants the wide planner on their phone presses the button once.
 
+### Copy / paste in the week calendar (coach, 2026-11-14)
+
+A copy icon on every coach plan card (third in `.card-actions`) and on a rest day; while something is copied, a paste icon stands beside each "Ieplānot no rīta/pusdienā/vakarā" button (training) or beside "Ieplānot brīvdienu" (rest day). State is one global, `copiedItem` in `app.js`, next to `renderPlanCard()`.
+
+- **`copiedItem` is a snapshot** (`{ kind: "plan", planId, title, details, custom_icon, coach_comment }` or `{ kind: "rest", date, coach_comment }`), so it survives a week change and the plan being edited or deleted afterwards. **It is cleared in the `athleteSelect` change handler** - one athlete's plan must not be pasteable into another's calendar.
+- **It stays on after a paste** (the point is the same training on several days). Off: the same copy icon again, "Atcelt" in `#copyModeBar`, Esc (ignored while a dialog is open), athlete switch. The bar exists because the paste icons follow the coach into weeks where the copied card is not on screen.
+- **The coach comment is copied, read from the textarea on screen first** - it autosaves on a delay, so the box can be newer than `plans`. The athlete's log and comment are never copied.
+- **Paste reuses `insertTrainingToDay()`**, which now takes `training.coach_comment` (builder trainings have none, so nothing changed for them). A rest day goes through `upsertDayNote()`; an empty copied comment is left out of the upsert so it cannot wipe a comment already on the target day.
+- **The paste button is a sibling of the add button inside `.paste-row`, never a child** (a button cannot nest in a button) and carries `data-paste-day`/`data-paste-rest`, not `data-day`/`data-rest-day` - the shared `calendarGrid` click handler would otherwise read a paste as "add the builder's training". `.paste-row` is only emitted while copying, so the normal markup is unchanged.
+- A restricted day-part has no add button and therefore no paste icon; `isTimeSlotRestricted()` is checked again on paste anyway.
+- Week view only; the month renderer is untouched. The icons are inline SVG (`COPY_ICON_SVG`/`PASTE_ICON_SVG`, `currentColor`).
+
 ### The UI colour is warm sand and peach, not lime (2026-11-14)
 
 The owner found the lime green glaring across the whole portal and chose this out of three mocked-up alternatives (sand paper, steel gradient, sunset gradient - this is the third). Older notes in this file that say "lime" for a save button or a panel edge mean these tokens now.
