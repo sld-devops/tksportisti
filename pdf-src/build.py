@@ -5,7 +5,7 @@ Usage:  python3 pdf-src/build.py            (all files)
         python3 pdf-src/build.py <name>     (one file, name without .txt)
 
 Source format: a few "key: value" lines, a blank line, then the text.
-"## Title" starts a section, "— Pauze ... —" is a rest row, "> text" is a note,
+"## Title" starts a section, "### Name | time" a block heading, "— Pauze ... —" is a rest row, "> text" is a note,
 every other line is one exercise. A (https://...) link at the end of a line
 becomes a clickable "video" link. The coach's wording is never changed.
 """
@@ -29,6 +29,8 @@ h1 { font-size: 20pt; line-height: 1.15; margin: 0 0 4px; }
 .body-part { color: #566073; font-size: 10pt; }
 .duration { margin-top: 6px; font-weight: 700; font-size: 11pt; }
 h2 { font-size: 13pt; margin: 18px 0 6px; padding: 4px 10px; background: #f4fbe0; border-left: 4px solid #557a0a; break-after: avoid; }
+h3 { display: flex; justify-content: space-between; font-size: 10.5pt; margin: 10px 0 2px; color: #557a0a; break-after: avoid; }
+h3 .t { color: #566073; font-weight: 600; }
 ul { list-style: none; margin: 0; padding: 0; }
 li { padding: 4px 0 4px 22px; position: relative; border-bottom: 1px solid #eef0f4; break-inside: avoid; }
 li::before { content: ''; position: absolute; left: 3px; top: 10px; width: 8px; height: 8px; border: 1.5px solid #557a0a; border-radius: 2px; }
@@ -67,6 +69,10 @@ def build(txt):
             continue
         if ln.startswith("## "):
             close(); parts.append(f"<h2>{html.escape(ln[3:])}</h2>")
+        elif ln.startswith("### "):
+            close()
+            name, _, t = ln[4:].partition(" | ")
+            parts.append(f'<h3><span>{html.escape(name)}</span><span class="t">{html.escape(t)}</span></h3>')
         elif ln.startswith("> "):
             close(); parts.append(f'<div class="note">{html.escape(ln[2:])}</div>')
         else:
