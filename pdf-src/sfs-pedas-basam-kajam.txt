@@ -1,10 +1,10 @@
 grupa: SFS
-nosaukums: Pēdas basām kājām
+nosaukums: Pēdas bez apaviem
 ilgums: aptuveni 10–15 min, bez skrējiena
 fails: sfs-pedas-basam-kajam
 
 > Skrējiens pirms tam 30-60 min. (Atkarīgs no iedotā treniņa pirms tam)
-> Vingrinājumus izpilda obligāti ar basām kājām (Tikai zeķītes)
+> Vingrinājumus izpilda obligāti bez apaviem (Tikai zeķītes)
 Iešana uz pirkstu galiem, maziem solīšiem, bet pacēlums maksimāli uz pirkstgaliem – 15-30''
 Lēkāšana uz pirkstgaliem, papēdis nepieskarās vispār, kājas celīšos neieliecam, lēkājam uz pēdiņām vairāk – pēdas taisnas uz priekšu – 15-30''
 Lēkāšana uz pirkstgaliem, papēdis nepieskarās vispār, kājas celīšos neieliecam, lēkājam uz pēdiņām vairāk – pēdas taisnas pirkstu gali uz iekšu – 15-30''

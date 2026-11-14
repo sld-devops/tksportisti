@@ -3742,7 +3742,7 @@ const EXERCISE_PDFS = [
   { group: "SFS", items: [
     { title: "Lēkāšana (Stepper)", file: "pdf/sfs-lekasana-stepper.pdf", time: "~45 min" },
     { title: "Pliometrija, lēcieni", file: "pdf/sfs-pliometrija-lecieni.pdf", time: "~25 min" },
-    { title: "Pēdas basām kājām", file: "pdf/sfs-pedas-basam-kajam.pdf", time: "~10–15 min" },
+    { title: "Pēdas bez apaviem", file: "pdf/sfs-pedas-basam-kajam.pdf", time: "~10–15 min" },
   ] },
 ];
 
