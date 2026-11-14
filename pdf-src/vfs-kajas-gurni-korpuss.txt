@@ -4,7 +4,6 @@ kermena_dala: Kājas · gurni · korpuss
 fails: vfs-kajas-gurni-korpuss
 
 ## Iesildamies:
-Veicam lēkāšanu 2
 Iešana uz rokām x10
 Uz ceļiem, roku uz priekšu, pretējo kāju uz aizmuguri un savelk kopā. Katra puse x20.
 Uz ceļiem, viena roka aiz galvas un konkrēto roku cilā augšā/lejā taisot tā kā presīti x10
