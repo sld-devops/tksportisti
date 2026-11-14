@@ -29,7 +29,7 @@ h1 { font-size: 20pt; line-height: 1.15; margin: 0 0 4px; }
 h2 { display: flex; justify-content: space-between; align-items: baseline; font-size: 13pt; margin: 18px 0 6px; padding: 4px 10px; background: #f4fbe0; border-left: 4px solid #557a0a; break-after: avoid; }
 ul { list-style: none; margin: 0; padding: 0; }
 li { padding: 4px 0 4px 22px; position: relative; border-bottom: 1px solid #eef0f4; break-inside: avoid; }
-li::before { content: ''; position: absolute; left: 3px; top: 10px; width: 8px; height: 8px; border: 1.5px solid #557a0a; border-radius: 2px; }
+li::before { content: ''; position: absolute; left: 4px; top: 11px; width: 7px; height: 7px; background: #3d5a07; transform: rotate(45deg); }
 li.rest { color: #566073; font-style: italic; text-align: center; background: #f6f7f9; border-bottom: none; margin: 2px 0; }
 li.rest::before { display: none; }
 .note { margin-top: 10px; padding: 8px 12px; background: #fff7d6; border-radius: 6px; font-weight: 600; }
