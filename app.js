@@ -3498,6 +3498,11 @@ document.getElementById("dropdownList").addEventListener("click", (e) => {
   e.stopPropagation();
   if (e.target.closest(".athlete-week-header")) return;
   const row = e.target.closest(".athlete-row");
+  // Phone layout: picking an athlete is the reason the drawer was opened, so it
+  // closes itself and the coach lands on that athlete's calendar without a
+  // second tap. Tapping the athlete who is already picked counts too. On a
+  // desktop the sidebar is a column, not a drawer, and stays as it is.
+  if (row && window.innerWidth <= 1040) togglePlannerMenu(false);
   if (!row || row.classList.contains("selected")) {
     document.getElementById("athleteDropdown").classList.remove("open");
     return;
