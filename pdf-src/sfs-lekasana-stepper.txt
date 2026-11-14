@@ -3,17 +3,18 @@ nosaukums: Lēkāšana (Stepper)
 ilgums: aptuveni 10–15 min
 fails: sfs-lekasana-stepper
 
-> Lēkāšana – 30-45'' katrs posms
+## Iesildīšanās | 2 min
 Lēkājam dažādos virzienos – 2 min
 
+## Pamatdaļa | aptuveni 8–12 min
+> Lēkāšana – 30-45'' katrs posms
+
 ### 1. bloks
-Pirkstgali pret Stepper
 Lēkāšana ar taisnām kājām
 Lēkāš. ar kopā papēžiem
 Lēkāš. ar purngaliem kopā
 
 ### 2. bloks
-Pirkstgali pret Stepper
 Šķērīte
 Augstsolis
 Lēciens, Lēciens, Celis – pamīšus strauji
@@ -21,7 +22,6 @@ Platais / Šaurais
 Izklupienā no vienas uz otru kāju
 
 ### 3. bloks
-Pirkstgali pret Stepper
 Izklupienā palekties – Labā / Kreisā
 Lēkāšana uz vienas kājas Labā / Kreisā
 Lēkāšana ar taisnām kājām
