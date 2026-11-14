@@ -618,7 +618,9 @@ Added 2026-11. The header button "VFS/SFS/Iesildīšanās/Drill bibliotēka" (`#
 - **House style, agreed with the owner — keep it for new PDFs:** no portal name on the page (it gets printed); no subtitle repeating the title; seconds are written `30''`, never `30 s`; dark-green diamond bullets; section times on the right of the headings plus one "Ilgums" line; the coach's wording is kept as pasted, and only obvious typos / broken links / stray symbols are fixed, **and the owner is told which**. A heading like `Pamatdaļa - atkārtojam 2 vai 3 reizes` is split into the heading plus a yellow note.
 - **Times are estimates I work out from the text** (timed items summed, `katra kāja/puse` counted twice, rests added, repeats given as a range). They are labelled "aptuveni" and the owner is told so. Cool-down is normally included in the total; the one exception is *Iesildīšanās pirms intensīviem skrējieniem*, where the owner asked for it to be left out.
 - **The group is the owner's to name** — when a paste does not say, VFS/SFS was assumed from the content and said so in the reply. A paste may hold several trainings (the A–F "tabulas" text was two); ask before guessing how to split it.
-### "Notīrīt nedēļu" — the coach clears a whole week in one go
+### "Nodzēst plānu" — the coach clears a whole week in one go
+
+The button was labelled "Notīrīt nedēļu" until 2026-11-14, renamed at the owner's request; the id is still `#clearWeekBtn`.
 
 Added 2026-11-14, in the week navigation row next to "Nokopēt plānu" (`#clearWeekBtn`, shown by `render()` to the coach only, in week view, with an athlete picked). Before it, a mistake while planning meant deleting every training by hand with its ✕.
 

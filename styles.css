@@ -6564,10 +6564,12 @@ body.is-dragging .session-card.is-draggable {
   position: fixed;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.85;
+  opacity: 0.9;
   transform: rotate(2deg);
-  background: var(--surface);
-  border: 2px solid var(--accent);
+  /* A white card with the peach edge, like the cards it was lifted from - it
+     used to be a tinted box with a red frame, which read as an error. */
+  background: #fff;
+  border: 2px solid var(--edge);
   border-radius: 8px;
   padding: 10px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.15);
@@ -6579,9 +6581,11 @@ body.is-dragging .session-card.is-draggable {
   display: none;
 }
 
+/* Same dashed peach as a copied card (.is-copied): "this is where it goes".
+   Translucent, so the day's own buttons and cards stay readable under it. */
 .day-column.drag-target {
-  background: var(--surface-alt);
-  outline: 2px dashed var(--accent);
+  background: rgba(224, 154, 95, 0.16);
+  outline: 2px dashed var(--edge);
   outline-offset: -2px;
   border-radius: 8px;
 }

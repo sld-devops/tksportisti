@@ -3424,7 +3424,7 @@ function render() {
     !hasAthletes || (activeRole === "coach" && !getSelectedAthleteId());
   document.getElementById("copyPrevWeekBtn").hidden = activeRole !== "coach" || viewMode !== "week";
   document.getElementById("copyWeekDivider").hidden = activeRole !== "coach" || viewMode !== "week";
-  // Coach + week view + an athlete picked: "Notīrīt nedēļu" has nothing to act on otherwise.
+  // Coach + week view + an athlete picked: "Nodzēst plānu" has nothing to act on otherwise.
   document.getElementById("clearWeekBtn").hidden =
     activeRole !== "coach" || viewMode !== "week" || !getSelectedAthleteId();
   const isCurrentWeek = formatDateISO(currentWeekStart) === formatDateISO(getMonday(new Date()));
@@ -3742,7 +3742,7 @@ document.getElementById("copyWeekConfirmBtn")?.addEventListener("click", async (
   }
 });
 
-// "Notīrīt nedēļu" (coach only): removes the week's trainings and its rest-day
+// "Nodzēst plānu" (coach only; the button was "Notīrīt nedēļu" until 2026-11-14): removes the week's trainings and its rest-day
 // marks in one go, after a confirmation that says exactly what will go. A training
 // the athlete has already logged an execution for is left alone, so a mistake
 // while planning can never wipe the athlete's own data. Races, restrictions,
@@ -3775,8 +3775,8 @@ document.getElementById("clearWeekBtn")?.addEventListener("click", async () => {
       return;
     }
 
-    const label = document.getElementById("weekLabel")?.textContent || "šo nedēļu";
-    let message = `Notīrīt nedēļu ${label}?\n\nTiks dzēsti treniņi: ${toDelete.length}`;
+    const label = document.getElementById("weekLabel")?.textContent || "šī nedēļa";
+    let message = `Nodzēst plānu (${label})?\n\nTiks dzēsti treniņi: ${toDelete.length}`;
     if (restDays.length) message += `\nTiks noņemtas brīvdienas: ${restDays.length}`;
     if (kept) message += `\n\nNetiks aiztikti treniņi, kuriem sportists jau ir ierakstījis izpildi: ${kept}`;
     message += "\n\nAtcelt dzēšanu vairs nevarēs.";
