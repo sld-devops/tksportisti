@@ -1,6 +1,6 @@
 grupa: SFS
 nosaukums: Drills: dinamiskie, dziļie, seklie
-ilgums: aptuveni 25 min
+ilgums: aptuveni 30 min
 fails: sfs-drills
 
 ## Lēns skrējiens, iesildamies | 5 min
@@ -23,7 +23,8 @@ Kājas krustā, noliecamies uz leju 2x, pastiepjamies uz augšu
 Pievelkam celi pie sevis un izsperam
 Pievelkam papēdi pie dibena un pastiepjamies
 
-## Dziļie – 15'' katrs vingrinājums | aptuveni 3 min
+## Dziļie | aptuveni 8 min
+> Izpilde apmēram 30'', starp vingrinājumiem 15'' pauze
 Izklupiens uz priekšu, katrā reizē 3x pietupiens, tad tālāk tas pats uz priekšu ar otru kāju
 Pagriežas ar sānu, platā pietupienā iet ar sānu uz priekšu, pietupiens augšā, uz katru jaunu sāna soli pietupiens.
 Tas pats ar otru sānu
@@ -36,7 +37,8 @@ Tas pats ar otru pusi
 Ejam uz priekšu no papēža pārejot uz pirkstgalu beigās paceļoties pirkstu galos, papēdi kārtīgi pie zemes un tad pirkstu gals pastiepts uz augšu
 Atkārtojam dziļie izklupienu ejot uz priekšu
 
-## Seklie, uz vietas – 15'' katrs vingrinājums | aptuveni 2 min
+## Seklie, uz vietas | aptuveni 6 min
+> Izpilde apmēram 30'', starp vingrinājumiem 15'' pauze
 lēkāšana uz abām kājām, kājas kopā, ceļos stingras, lēkā tikai ar pēdas daļu, pēdas taisnas
 lēkāšana uz abām kājām, kājas kopā, ceļos stingras, lēkā tikai ar pēdas daļu, purngali uz iekšu
 lēkāšana uz abām kājām, kājas kopā, ceļos stingras, lēkā tikai ar pēdas daļu, purngali uz āru
