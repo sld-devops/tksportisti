@@ -7675,3 +7675,17 @@ input.needs-value {
   background: var(--btn-bg);
   border-color: var(--edge);
 }
+
+/* Under the 80% body zoom a "100vh" box is drawn 20% short (it is 100vh of the
+   zoomed space), which left the sidebar ending well above the bottom of the
+   screen. Divide by the zoom so the sidebar and the library list reach the
+   bottom again. Must stay after the base rules they override. */
+@media (min-width: 1400px) {
+  .planner-panel__scroll {
+    max-height: calc(100vh / 0.8 - 28px);
+    max-height: calc(100dvh / 0.8 - 28px);
+  }
+  #exerciseMenuList {
+    max-height: calc(100vh / 0.8 - 90px);
+  }
+}
