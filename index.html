@@ -95,7 +95,6 @@
           <button id="guideBtn" class="secondary-action video-menu" type="button"><span class="label-full">Portāla lietošanas instrukcija</span><span class="label-short">Lietošanas instrukcija</span></button>
         </div>
         <div class="header-right">
-          <button id="installAppBtn" class="secondary-action" type="button" hidden><span class="label-full">Instalēt lietotni</span><span class="label-short">Instalēt</span></button>
           <button id="screenViewBtn" class="secondary-action" type="button" hidden><span class="label-full"></span><span class="label-short"></span></button>
           <button id="accountSwitchBtn" class="secondary-action" type="button" hidden><span class="label-full"></span><span class="label-short"></span></button>
           <button id="notifyEmailBtn" class="secondary-action" type="button"><span class="label-full">Paziņojumu e-pasts</span><span class="label-short">E-pasts</span></button>
@@ -166,6 +165,8 @@
                      the header while this is shown); it just opens the same
                      dialog as the header button the coach still uses. -->
                 <button class="secondary-action panel-add-btn" id="notifyEmailSideBtn" type="button">Pievienot e-pastu paziņojumiem</button>
+                <!-- Shown by setupInstallBtn() in app.js, only where installing is possible. -->
+                <button class="secondary-action panel-add-btn" id="installAppBtn" type="button" hidden>Instalēt lietotni telefonā</button>
                 <div class="calendar-link-panel" id="calendarLinkPanel" hidden>
                   <p class="calendar-link-error" id="calendarLinkError" hidden></p>
                   <div id="calendarLinkReady" hidden>
@@ -1118,6 +1119,6 @@
     <script src="panels/ruffier-test.js?v=3" defer></script>
     <script src="panels/lactate-test.js?v=1" defer></script>
     <script src="panels/self-log.js?v=9" defer></script>
-    <script src="app.js?v=108" defer></script>
+    <script src="app.js?v=109" defer></script>
   </body>
 </html>
