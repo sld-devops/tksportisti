@@ -7570,3 +7570,18 @@ input.needs-value {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px rgba(201, 31, 47, 0.25);
 }
+
+/* Wide desktop screens: draw everything at 80% (2026-11-15). The owner found the
+   portal "too close" at the browser's 100% and right at 80%, so a big screen
+   now gets that by default instead of needing a hand-set browser zoom. Only from
+   1400px up: below that the layout is already tight, and a phone pinned to the
+   desktop view (1200px) must not shrink further. Media queries still see the
+   real width, which is safe here - at 80% there is 25% more room than they
+   assume, so the 1041-1460px short header labels merely stay short a little
+   longer. On <body>, not <html>: vh units inside a zoomed html shrink too. */
+@media (min-width: 1400px) {
+  body {
+    zoom: 0.8;
+    min-height: calc(100vh / 0.8);
+  }
+}
