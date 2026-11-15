@@ -627,6 +627,8 @@ function isIntervalType(type) {
 }
 
 function displayTitle(name) {
+  // "Atjaunojošais/lēnais" reads as "un", but the trail run's slash stays a slash.
+  if (name === TRAIL_TYPE) return name;
   return name ? name.replace(/\s*\(.*?\)\s*$/, "").replace(/\//g, " un ") : "";
 }
 
