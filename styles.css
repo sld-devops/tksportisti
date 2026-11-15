@@ -3313,17 +3313,20 @@ label {
   padding: 4px 8px;
 }
 
+/* Save buttons are the same peach gradient as the header buttons (owner's call
+   2026-11-15 - they were dark brown, which read as heavy blocks). The peach
+   edge is what tells the confirming button from a plain .secondary-action. */
 .primary-action {
-  background: var(--brand);
-  border: 1px solid var(--brand);
-  color: #fff;
+  background: var(--btn-bg);
+  border: 1px solid var(--edge);
+  color: var(--ink);
   transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 
 .primary-action:hover {
-  background: var(--brand-dark);
+  background: var(--btn-bg-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 42, 34, 0.3);
+  box-shadow: 0 4px 12px rgba(21, 23, 26, 0.18);
 }
 
 .primary-action:active {
@@ -3355,15 +3358,15 @@ label {
   box-sizing: border-box;
 }
 #updateTemplateBtn:hover {
-  background: var(--brand-dark);
-  box-shadow: 0 4px 12px rgba(59, 42, 34, 0.3);
+  background: var(--btn-bg-hover);
+  box-shadow: 0 4px 12px rgba(21, 23, 26, 0.18);
   transform: translateY(-1px);
 }
 
 .save-template-athlete-btn {
-  background: var(--brand);
-  border: 3px solid #000000;
-  color: #fff;
+  background: var(--btn-bg);
+  border: 1px solid var(--edge);
+  color: var(--ink);
 }
 
 .btn-keyword {
@@ -3372,8 +3375,8 @@ label {
 }
 
 .save-template-athlete-btn:hover {
-  background: var(--brand-dark);
-  box-shadow: 0 4px 12px rgba(59, 42, 34, 0.3);
+  background: var(--btn-bg-hover);
+  box-shadow: 0 4px 12px rgba(21, 23, 26, 0.18);
 }
 
 .template-actions {
@@ -6845,14 +6848,14 @@ body.is-dragging .session-card.is-draggable {
 /* Save is the primary action here, so it gets the colour the app uses for
    saves; Atcelt stays the shared grey .cancel-action beside it. */
 .self-log-form-actions .self-log-save-btn {
-  background: var(--brand);
-  border-color: var(--brand);
-  color: #fff;
+  background: var(--btn-bg);
+  border-color: var(--edge);
+  color: var(--ink);
 }
 
 .self-log-form-actions .self-log-save-btn:hover {
-  background: var(--brand-dark);
-  color: #fff;
+  background: var(--btn-bg-hover);
+  color: var(--ink);
 }
 
 /* A self-logged training is a plain white card, like any other. What marks it
