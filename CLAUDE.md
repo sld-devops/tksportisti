@@ -96,6 +96,10 @@ Every `[data-log-interval]` box carries its own ▲/▼ arrows (`attachIntervalS
 - Warmup, cooldown and the main part all read by position via `splitDetailFields()`, matching `loadTemplateToForm`. Don't reintroduce `if (m[2]) …`-style guarded assignment here: a guard means "keep whatever was in the box", which is exactly the bug.
 - The interval branch clears pace and rest when the line has neither, and uses the `/^(\d+)x([^\s;()]+)/` length matcher rather than the old `([\d.\s]+\s*\w+)`.
 
+### "Sacensību uzturs" is only offered for the hard sessions
+
+The checkbox shows for both interval kinds, long runs and tempo runs and nowhere else (owner's call 2026-11-15; before that it showed for every type). `supportsRaceNutrition()` in `app.js` decides, in both the builder (`renderCustomBuilder`) and the edit dialog (`renderEditPlanBuilder`, whose row used to be always visible). **A row that is already ticked stays visible whatever the type** - an older easy-run plan or template that carries the "✓ Sacensību uzturs" line must still be untickable; hiding it and clearing it would silently drop the line on the next save. Picking a type in the builder clears the box first (`clearCustomBuilderFields()`), so a ticked box does not follow the coach to a type that has no use for it.
+
 ### Velo and Eliptiskais are "one-line" training types (`CARDIO_LINE_TYPES`)
 
 Eliptiskais (elliptical trainer; it was called "Eliptical" for a few hours on 2026-11-15 and was renamed at the owner's request) was added next to Velo, because coaches kept typing it by hand under "Cita veida treniņš". Both write one line, `Velo: 1h; 130-140` / `Eliptiskais: 45min; 130-140` - **the label is the type's own name, not `Pamatdaļa:`** - with no warm-up, cool-down or drills.

@@ -358,6 +358,14 @@ const STRIDES_LABEL = "Kāpinājumi";
 // The first version wrote "Kāpinājumi beigās"; still recognised, so nothing
 // written in that wording is ever left unread.
 const STRIDES_LABEL_OLD = "Kāpinājumi beigās";
+// "Sacensību uzturs" belongs to the hard sessions only: both interval kinds,
+// long runs and tempo runs (owner's call 2026-11-15). A row that already has
+// the box ticked stays visible whatever the type, so a saved plan that carries
+// the line from before can still be unticked rather than losing it silently.
+function supportsRaceNutrition(type) {
+  return isIntervalType(type) || type === "Garais skrējiens" || type === "Tempa skrējiens";
+}
+
 function supportsStrides(type) {
   return type === "Atjaunojošais/lēnais skrējiens" || type === "Vidējas intensitātes skrējiens";
 }
@@ -1620,7 +1628,7 @@ function renderCustomBuilder() {
   if (!stridesAllowed) { includeStrides.checked = false; stridesDetail.value = ""; }
   document.getElementById("stridesDetailRow").hidden = !includeStrides.checked;
 
-  raceNutritionRow.hidden = false;
+  raceNutritionRow.hidden = !(supportsRaceNutrition(type) || raceNutrition.checked);
   const isTempo = type === "Tempa skrējiens";
   spikesRow.hidden = !isInterval;
   if (!isInterval) spikes.checked = false;
@@ -1715,6 +1723,8 @@ function renderEditPlanBuilder() {
   document.getElementById("epStridesDetailRow").hidden = !document.getElementById("epIncludeStrides").checked;
 
   const epIsTempo = type === "Tempa skrējiens";
+  document.getElementById("epRaceNutritionRow").hidden =
+    !(supportsRaceNutrition(type) || document.getElementById("epRaceNutrition").checked);
   document.getElementById("epSpikesRow").hidden = !isInterval;
   if (!isInterval) document.getElementById("epSpikes").checked = false;
   document.getElementById("epRaceShoesRow").hidden = !(isInterval || epIsTempo);
