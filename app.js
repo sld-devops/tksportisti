@@ -2523,7 +2523,7 @@ function badgeForTitle(title) {
   if (t.includes("garais")) return "⌛";
   if (t.includes("intervāli")) return "⚡";
   if (t.includes("tempa")) return "📈";
-  if (t.includes("taku/kalnu")) return "🏞️";
+  if (t.includes("taku/kalnu")) return "🌲";
   if (t.includes("vfs") || t.includes("sfs")) return "💪";
   if (t.includes("velo")) return "🚴";
   if (t.includes("eliptiskais")) return ELIPTISKAIS_ICON_HTML;
