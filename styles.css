@@ -7643,13 +7643,20 @@ input.needs-value {
 /* Year switch at the top of the sidebar (panels/year-filter.js). */
 .year-filter {
   align-items: center;
-  background: var(--surface);
-  border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  /* The same card as every sidebar panel (.panel): gradient, peach left edge, glow. */
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95) 0%, rgba(253, 240, 226, 0.95) 100%);
+  border: 1px solid #e2e2e2;
+  border-left: 3px solid var(--edge);
+  border-radius: 8px;
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.2),
+    0 0 0 2px var(--edge-glow);
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   padding: 8px 10px;
+  position: relative;
+  z-index: 1;
 }
 .year-filter-label {
   color: var(--muted);
