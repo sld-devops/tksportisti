@@ -7539,3 +7539,9 @@ body.is-dragging .session-card.is-draggable {
 .log-tod-picker .comment-label {
   margin-top: 0;
 }
+
+/* A required name left empty (requireOtherRunName in app.js): red until typed in. */
+input.needs-value {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(201, 31, 47, 0.25);
+}

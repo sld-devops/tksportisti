@@ -399,6 +399,21 @@ const isCardioLineType = (t) => CARDIO_LINE_TYPES.includes(t);
 const cardioLineLabel = (line) => CARDIO_LINE_TYPES.find((t) => (line || "").startsWith(t + ":")) || "";
 const CARDIO_LABEL_RE = new RegExp("^(?:Pamatdaļa|" + CARDIO_LINE_TYPES.join("|") + "):\\s*");
 
+// "Cita veida treniņš" used to fall back to that generic title when the name box
+// was left empty, so the coach typed the real name ("Latvijas Kontūras
+// skrējiens") into the comment instead. The name is now required: nothing is
+// added, saved or applied until it is filled in. Returns true when it is fine.
+function requireOtherRunName(typeValue, nameInput) {
+  if (typeValue !== OTHER_RUN_TYPE || !nameInput || nameInput.value.trim()) return true;
+  nameInput.classList.add("needs-value");
+  nameInput.focus();
+  alert("Ieraksti treniņa nosaukumu, piemēram, „Latvijas Kontūras skrējiens”. Komentārs ir piezīmēm, nevis nosaukumam.");
+  return false;
+}
+document.addEventListener("input", (e) => {
+  if (e.target.matches?.("#customName, #epCustomName")) e.target.classList.remove("needs-value");
+});
+
 function getGeneratedTraining() {
   const type = customType.value;
 
@@ -4502,6 +4517,7 @@ document.addEventListener("click", async (event) => {
 
   const updateBtn = event.target.closest("#updateTemplateBtn");
   if (updateBtn && selectedTemplateId) {
+    if (!requireOtherRunName(customType.value, customName)) return;
     const training = getGeneratedTraining();
     const name = document.getElementById("customName").value.trim() || training.title;
     const details = training.details;
@@ -4642,6 +4658,7 @@ calendarGrid.addEventListener("click", async (event) => {
     const day = dayButton.dataset.day;
     const tod = dayButton.dataset.tod || "";
     if (isTimeSlotRestricted(day, tod || null)) return;
+    if (!requireOtherRunName(customType.value, customName)) return;
     const training = getGeneratedTraining();
     if (training) {
       await insertTrainingToDay(day, training, tod);
@@ -5059,6 +5076,7 @@ calendarGrid.addEventListener("change", async (event) => {
 });
 
 async function saveNewTemplate(forAthlete) {
+  if (!requireOtherRunName(customType.value, customName)) return;
   const training = getGeneratedTraining();
   try {
     const saved = await insertTemplate({
@@ -5081,6 +5099,7 @@ document.getElementById("saveTemplateForAthleteBtn")?.addEventListener("click", 
 document.getElementById("saveEditPlanBtn")?.addEventListener("click", async () => {
   const id = editPlanDialog.dataset.editId;
   if (!id) return;
+  if (!requireOtherRunName(document.getElementById("epType").value, document.getElementById("epCustomName"))) return;
   const training = getEditPlanTraining();
   if (!training.title) return;
   const beforeEdit = plans.find(p => p.id === id);
@@ -5158,6 +5177,7 @@ const bulkApplyAthleteListEl = document.getElementById("bulkApplyAthleteList");
 let bulkApplyTraining = null;
 
 function openBulkApplyDialog() {
+  if (!requireOtherRunName(customType.value, customName)) return;
   const training = getGeneratedTraining();
   if (!training) {
     alert("Vispirms izveido treniņu (izvēlies tipu un aizpildi laukus).");
