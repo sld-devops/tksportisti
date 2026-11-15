@@ -3605,6 +3605,7 @@ function render() {
   document.getElementById("lactateTestsPanel").hidden = !hasAthletes;
   renderCopyModeBar();
   updateSidebarPanelLock();
+  refreshInstallButtons();
 }
 
 // Every sidebar panel except athlete management shows one athlete's data, so
@@ -4373,9 +4374,17 @@ setupScreenViewBtn();
 // Android Chrome hands over an install prompt (beforeinstallprompt) which the
 // button fires; iPhone has no such prompt, so the button explains the
 // Share -> Add to Home Screen steps. Hidden once running as an installed app.
+let installAvailable = false;
+// Both install buttons (athlete: sidebar box, coach: bottom of the sidebar) are
+// only shown where installing is possible; the coach's one only to a coach,
+// because the athlete's already has its own.
+function refreshInstallButtons() {
+  const a = document.getElementById("installAppBtn");
+  const c = document.getElementById("installAppBtnCoach");
+  if (a) a.hidden = !installAvailable;
+  if (c) c.hidden = !(installAvailable && isCoach());
+}
 (function setupInstallBtn() {
-  const btn = document.getElementById("installAppBtn");
-  if (!btn) return;
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }
@@ -4385,21 +4394,23 @@ setupScreenViewBtn();
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferred = e;
-    btn.hidden = false;
+    installAvailable = true;
+    refreshInstallButtons();
   });
-  window.addEventListener("appinstalled", () => { btn.hidden = true; deferred = null; });
+  window.addEventListener("appinstalled", () => { installAvailable = false; deferred = null; refreshInstallButtons(); });
   const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && isTouchDevice();
-  if (isIos) btn.hidden = false;
-  btn.addEventListener("click", async () => {
+  if (isIos) { installAvailable = true; refreshInstallButtons(); }
+  document.querySelectorAll(".install-app-btn").forEach((btn) => btn.addEventListener("click", async () => {
     if (deferred) {
       deferred.prompt();
       await deferred.userChoice.catch(() => {});
       deferred = null;
-      btn.hidden = true;
+      installAvailable = false;
+      refreshInstallButtons();
     } else if (isIos) {
       alert("iPhone: apakšā nospied Dalīties (kvadrāts ar bultiņu), tad \"Pievienot sākuma ekrānam\". Portāls atvērsies kā lietotne bez pārlūka.");
     }
-  });
+  }));
 })();
 
 document.addEventListener("keydown", (e) => {

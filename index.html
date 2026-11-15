@@ -166,7 +166,7 @@
                      dialog as the header button the coach still uses. -->
                 <button class="secondary-action panel-add-btn" id="notifyEmailSideBtn" type="button">Pievienot e-pastu paziņojumiem</button>
                 <!-- Shown by setupInstallBtn() in app.js, only where installing is possible. -->
-                <button class="secondary-action panel-add-btn" id="installAppBtn" type="button" hidden>Instalēt lietotni telefonā</button>
+                <button class="secondary-action panel-add-btn install-app-btn" id="installAppBtn" type="button" hidden>Instalēt lietotni telefonā</button>
                 <div class="calendar-link-panel" id="calendarLinkPanel" hidden>
                   <p class="calendar-link-error" id="calendarLinkError" hidden></p>
                   <div id="calendarLinkReady" hidden>
@@ -313,6 +313,9 @@
             <div class="panel-body" id="lactateTestsBody"></div>
           </section>
 
+          <!-- Coach's own install button (the athlete's sits in #calendarLinkBox,
+               which a coach never sees). Shown by refreshInstallButtons(). -->
+          <button class="secondary-action panel-add-btn install-app-btn" id="installAppBtnCoach" type="button" hidden>Instalēt lietotni telefonā</button>
           </div>
       </aside>
 
@@ -1119,6 +1122,6 @@
     <script src="panels/ruffier-test.js?v=3" defer></script>
     <script src="panels/lactate-test.js?v=1" defer></script>
     <script src="panels/self-log.js?v=9" defer></script>
-    <script src="app.js?v=109" defer></script>
+    <script src="app.js?v=110" defer></script>
   </body>
 </html>
