@@ -418,10 +418,9 @@ function getGeneratedTraining() {
   const type = customType.value;
 
   if (isFreeTextType(type)) {
-    // Warm-up and cool-down can be ticked off, as for a long run (2026-11-15).
-    const warmup = includeWarmup.checked ? formatPart("Iesildīšanās", warmupDuration.value, warmupPulse.value, null, warmupAdditional.value) : "";
+    const warmup = formatPart("Iesildīšanās", warmupDuration.value, warmupPulse.value, null, warmupAdditional.value);
     const drills = getDrillsPart();
-    const cooldown = includeCooldown.checked ? formatPart("Atsildīšanās", cooldownDuration.value, cooldownPulse.value, null, cooldownAdditional.value) : "";
+    const cooldown = formatPart("Atsildīšanās", cooldownDuration.value, cooldownPulse.value, null, cooldownAdditional.value);
     // [a, b].filter(Boolean) drops every "empty" element (empty text, null,
     // undefined) - a short way to write Python's `[x for x in [a,b] if x]`.
     const lines = [warmup, drills].filter(Boolean);
@@ -446,11 +445,11 @@ function getGeneratedTraining() {
   const isVelo = isCardioLineType(type);
 
   const warmup = isEasyOrLong
-    ? (includeWarmup.checked ? formatPart("Iesildīšanās", warmupDuration.value, warmupPulse.value, null, warmupAdditional.value) : "")
+    ? formatPart("Iesildīšanās", warmupDuration.value, warmupPulse.value, null, warmupAdditional.value)
     : (isSimple || isVelo) ? "" : formatPart("Iesildīšanās", warmupDuration.value, warmupPulse.value, null, warmupAdditional.value);
   const drills = (isEasyOrLong || isSimple || isVelo) ? "" : getDrillsPart();
   const cooldown = isEasyOrLong
-    ? (includeCooldown.checked ? formatPart("Atsildīšanās", cooldownDuration.value, cooldownPulse.value, null, cooldownAdditional.value) : "")
+    ? formatPart("Atsildīšanās", cooldownDuration.value, cooldownPulse.value, null, cooldownAdditional.value)
     : (isSimple || isVelo) ? "" : formatPart("Atsildīšanās", cooldownDuration.value, cooldownPulse.value, null, cooldownAdditional.value);
   const lines = [warmup, drills].filter(Boolean);
 
@@ -522,9 +521,9 @@ function getEditPlanTraining() {
     const getVal = id => document.getElementById(id).value.trim();
     const getBool = id => document.getElementById(id).checked;
 
-    const warmup = getBool("epIncludeWarmup") ? epFormatPart("Iesildīšanās", "epWarmupDuration", "epWarmupPulse", null, "epWarmupAdditional") : "";
+    const warmup = epFormatPart("Iesildīšanās", "epWarmupDuration", "epWarmupPulse", null, "epWarmupAdditional");
     const drills = getBool("epIncludeDrills") ? "Drill" : "";
-    const cooldown = getBool("epIncludeCooldown") ? epFormatPart("Atsildīšanās", "epCooldownDuration", "epCooldownPulse", null, "epCooldownAdditional") : "";
+    const cooldown = epFormatPart("Atsildīšanās", "epCooldownDuration", "epCooldownPulse", null, "epCooldownAdditional");
     const lines = [warmup, drills].filter(Boolean);
     const mainText = getVal("epFreeText");
     if (mainText) lines.push(`Pamatdaļa: ${mainText}`);
@@ -550,11 +549,11 @@ function getEditPlanTraining() {
   const getBool = id => document.getElementById(id).checked;
 
   const warmup = isEasyOrLong
-    ? (getBool("epIncludeWarmup") ? epFormatPart("Iesildīšanās", "epWarmupDuration", "epWarmupPulse", null, "epWarmupAdditional") : "")
+    ? epFormatPart("Iesildīšanās", "epWarmupDuration", "epWarmupPulse", null, "epWarmupAdditional")
     : (isSimple || isVelo) ? "" : epFormatPart("Iesildīšanās", "epWarmupDuration", "epWarmupPulse", null, "epWarmupAdditional");
   const drills = (isEasyOrLong || isSimple || isVelo) ? "" : (getBool("epIncludeDrills") ? "Drill" : "");
   const cooldown = isEasyOrLong
-    ? (getBool("epIncludeCooldown") ? epFormatPart("Atsildīšanās", "epCooldownDuration", "epCooldownPulse", null, "epCooldownAdditional") : "")
+    ? epFormatPart("Atsildīšanās", "epCooldownDuration", "epCooldownPulse", null, "epCooldownAdditional")
     : (isSimple || isVelo) ? "" : epFormatPart("Atsildīšanās", "epCooldownDuration", "epCooldownPulse", null, "epCooldownAdditional");
   const lines = [warmup, drills].filter(Boolean);
 
@@ -1689,17 +1688,12 @@ function renderCustomBuilder() {
   document.getElementById("customNameRow").hidden = !isOtherRun;
 
   // "Cita veida treniņš" has the same warm-up / cool-down tick boxes as a long run.
-  warmupToggleRow.hidden = !(isEasyOrLong || isFree);
-  cooldownToggleRow.hidden = !(isEasyOrLong || isFree);
+  // The Iesildīšanās / Atsildīšanās tick boxes are gone (owner, 2026-11-15): a part
+  // with no duration is left out of the details anyway, so ticking added nothing.
+  warmupToggleRow.hidden = true;
+  cooldownToggleRow.hidden = true;
 
-  if (isEasyOrLong || isFree) {
-    document.getElementById("warmupSection").hidden = false;
-    document.getElementById("cooldownSection").hidden = false;
-    warmupFields.hidden = !includeWarmup.checked;
-    cooldownFields.hidden = !includeCooldown.checked;
-    document.getElementById("warmupAdditionalRow").hidden = !includeWarmup.checked;
-    document.getElementById("cooldownAdditionalRow").hidden = !includeCooldown.checked;
-  } else if (isSimple || isVelo) {
+  if (isSimple || isVelo) {
     document.getElementById("warmupSection").hidden = true;
     document.getElementById("cooldownSection").hidden = true;
     warmupFields.hidden = true;
@@ -1787,17 +1781,10 @@ function renderEditPlanBuilder() {
 
   document.getElementById("epCustomNameRow").hidden = !isOtherRun;
 
-  document.getElementById("epWarmupToggleRow").hidden = !(isEasyOrLong || isFree);
-  document.getElementById("epCooldownToggleRow").hidden = !(isEasyOrLong || isFree);
+  document.getElementById("epWarmupToggleRow").hidden = true;
+  document.getElementById("epCooldownToggleRow").hidden = true;
 
-  if (isEasyOrLong || isFree) {
-    document.getElementById("epWarmupSection").hidden = false;
-    document.getElementById("epCooldownSection").hidden = false;
-    document.getElementById("epWarmupFields").hidden = !document.getElementById("epIncludeWarmup").checked;
-    document.getElementById("epCooldownFields").hidden = !document.getElementById("epIncludeCooldown").checked;
-    document.getElementById("epWarmupAdditionalRow").hidden = !document.getElementById("epIncludeWarmup").checked;
-    document.getElementById("epCooldownAdditionalRow").hidden = !document.getElementById("epIncludeCooldown").checked;
-  } else if (isSimple || isVelo) {
+  if (isSimple || isVelo) {
     document.getElementById("epWarmupSection").hidden = true;
     document.getElementById("epCooldownSection").hidden = true;
     document.getElementById("epWarmupFields").hidden = true;
