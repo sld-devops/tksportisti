@@ -687,3 +687,9 @@ At the owner's request (the installed app has room), `max-width: 720px` now show
 ### Wide screens are drawn at 80% (2026-11-15)
 
 From 1400px of viewport width up, `body { zoom: 0.8 }` (end of `styles.css`): the owner found 100% "too close" and the browser's 80% "how it should be". It is on `<body>`, not `<html>`, because vh units inside a zoomed element shrink too (`min-height` is compensated with `/ 0.8`). Media queries still see the real width, which is harmless: at 80% there is 25% more room than they assume. A phone pinned to the desktop view (1200px) and anything under 1400px are untouched. Checked only by screenshot at 1400px; modal dialogs (top layer) and the date picker/chart tooltips were not exercised under zoom - look there first if something sits off by 20%. To undo: delete that one media block.
+
+### "Video pamācības" moved inside the library dropdown (2026-11-15)
+
+The separate header button is gone. The library dropdown (`#exerciseMenuList`) ends with a "Video" heading and a "Video pamācības ▸" row (`.video-submenu-trigger`, added by `setupVideoSubmenu()` in `app.js`); clicking it opens `#videoSubList` (`VIDEO_TUTORIALS`) as a flyout to the right of the library list on screens >= 900px, and just under its row on narrower ones. The library list is as tall as the screen allows (`max-height: calc(100vh - 90px)`) so the whole list shows without scrolling.
+
+**Menus are placed with `placeFixed()`, which divides by `uiZoom()`**: `<body>` is drawn at `zoom: 0.8` on wide screens, `getBoundingClientRect()` is in real pixels, but `left`/`top` on a fixed element inside the zoomed body are in zoomed ones - without the division the list sat 20% up-left of its button (measured at 1400px). Any new fixed popup positioned from a rect needs the same.

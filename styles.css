@@ -348,6 +348,7 @@ button {
 }
 
 .video-menu-list a,
+.video-submenu-trigger,
 .video-menu-empty {
   border-radius: 6px;
   color: var(--ink);
@@ -356,7 +357,9 @@ button {
   text-decoration: none;
 }
 
-.video-menu-list a:hover {
+.video-menu-list a:hover,
+.video-submenu-trigger:hover,
+.video-submenu-trigger[aria-expanded="true"] {
   background: var(--panel-row-hover);
 }
 
@@ -7596,4 +7599,24 @@ input.needs-value {
     zoom: 0.8;
     min-height: calc(100vh / 0.8);
   }
+}
+
+/* The library list is meant to be seen whole, without scrolling (owner, 2026-11-15):
+   as tall as the screen allows. The Video pamācības trigger is a button inside it
+   and the video flyout is a second list beside it. */
+#exerciseMenuList {
+  max-height: calc(100vh - 90px);
+}
+
+.video-submenu-trigger {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.video-sub-list {
+  z-index: 1003; /* above the library list it hangs from */
 }

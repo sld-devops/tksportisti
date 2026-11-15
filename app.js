@@ -3917,9 +3917,26 @@ const VIDEO_TUTORIALS = [
   { title: "Staipīšanās – pēc treniņa", url: "https://www.youtube.com/watch?v=nd5inCvJkoU" },
 ];
 
-// A header button that drops a list under itself. Used by the video list and the
-// exercise-PDF list; opening one closes the other.
+// A header button that drops a list under itself (the exercise library; its
+// Video pamācības entry opens a second list beside it, see below).
 const headerMenuClosers = [];
+// Wide screens draw <body> at zoom 0.8 (styles.css). getBoundingClientRect() and
+// innerWidth are in real screen pixels, but top/left on a fixed element inside
+// the zoomed body are in zoomed ones, so a menu placed from a button's rect lands
+// 20% too far up-left unless the numbers are divided by the zoom.
+function uiZoom() {
+  const z = parseFloat(getComputedStyle(document.body).zoom);
+  return z > 0 ? z : 1;
+}
+// Puts a fixed element at a screen position (left/top in real pixels), kept
+// fully on screen.
+function placeFixed(el, left, top) {
+  const z = uiZoom();
+  const w = el.offsetWidth * z;
+  const h = el.offsetHeight * z;
+  el.style.left = `${Math.max(8, Math.min(left, window.innerWidth - w - 8)) / z}px`;
+  el.style.top = `${Math.max(8, Math.min(top, window.innerHeight - h - 8)) / z}px`;
+}
 function setupHeaderMenu(btn, list, html) {
   if (!btn || !list) return;
   list.innerHTML = html;
@@ -3930,8 +3947,7 @@ function setupHeaderMenu(btn, list, html) {
       // The list is fixed-position (the header clips anything hanging out of it),
       // so place it under the button by hand, after it is shown so it has a width.
       const r = btn.getBoundingClientRect();
-      list.style.top = `${r.bottom + 6}px`;
-      list.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - list.offsetWidth - 8))}px`;
+      placeFixed(list, r.left, r.bottom + 6);
     }
     btn.setAttribute("aria-expanded", String(open));
   };
@@ -3947,14 +3963,6 @@ function setupHeaderMenu(btn, list, html) {
     if (e.key === "Escape") setOpen(false);
   });
 }
-
-setupHeaderMenu(
-  document.getElementById("videoMenuBtn"),
-  document.getElementById("videoMenuList"),
-  VIDEO_TUTORIALS.length
-    ? VIDEO_TUTORIALS.map((v) => `<a href="${v.url}" target="_blank" rel="noopener">${v.title}</a>`).join("")
-    : `<span class="video-menu-empty">Video drīzumā</span>`
-);
 
 // Exercise instructions as PDFs in the pdf/ folder (made from the coach's text,
 // one shared layout). To add one: add { title, file, time } to its group; time is
@@ -4003,6 +4011,47 @@ setupHeaderMenu(
       ).join("")
     : `<span class="video-menu-empty">Instrukcijas drīzumā</span>`
 );
+
+// "Video pamācības" lives at the end of the library list and opens a second list
+// beside it (owner's call 2026-11-15; it used to be a header button of its own).
+// Wide screens: a flyout to the right of the library list. Narrow ones have no
+// room beside it, so it opens just under its row instead.
+(function setupVideoSubmenu() {
+  const main = document.getElementById("exerciseMenuList");
+  const sub = document.getElementById("videoSubList");
+  if (!main || !sub) return;
+  sub.innerHTML = VIDEO_TUTORIALS.length
+    ? VIDEO_TUTORIALS.map((v) => `<a href="${v.url}" target="_blank" rel="noopener">${v.title}</a>`).join("")
+    : `<span class="video-menu-empty">Video drīzumā</span>`;
+  main.insertAdjacentHTML(
+    "beforeend",
+    `<div class="video-menu-group">Video</div><button type="button" class="video-submenu-trigger menu-item-timed" aria-haspopup="true" aria-expanded="false"><span>Video pamācības</span><span class="menu-time">▸</span></button>`
+  );
+  const trigger = main.querySelector(".video-submenu-trigger");
+  const setSub = (open) => {
+    sub.hidden = !open;
+    trigger.setAttribute("aria-expanded", String(open));
+    if (!open) return;
+    const t = trigger.getBoundingClientRect();
+    const m = main.getBoundingClientRect();
+    const wide = window.innerWidth >= 900;
+    const left = wide ? m.right + 6 : 8;
+    const top = wide ? t.top : t.bottom + 4;
+    placeFixed(sub, left, top);
+  };
+  trigger.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setSub(sub.hidden);
+  });
+  // Anything outside the two lists, Esc, or the library list closing shuts it.
+  document.addEventListener("click", (e) => {
+    if (!sub.hidden && !sub.contains(e.target)) setSub(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setSub(false);
+  });
+  new MutationObserver(() => { if (main.hidden) setSub(false); }).observe(main, { attributes: true, attributeFilter: ["hidden"] });
+})();
 
 document.getElementById("guideBtn")?.addEventListener("click", () => {
   window.open("pamaciba.html", "_blank", "noopener");
