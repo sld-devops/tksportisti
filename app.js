@@ -2088,7 +2088,7 @@ function todLabel(tod) {
 function extractMainPart(details) {
   if (!details) return "";
   const lines = details.split("\n").map(l => l.trim()).filter(Boolean);
-  const main = lines.filter(l => l.includes("Pamatdaļa"));
+  const main = lines.filter(l => l.includes("Pamatdaļa") || l.startsWith("Velo:"));
   return main.length ? main[0] : lines[0] || "";
 }
 
@@ -2382,7 +2382,11 @@ function formatDetailsForCard(details, calendarMode) {
     }
   }
   const result = merged.map((line) => {
-    if (!line.startsWith("Pamatdaļa:")) {
+    // In the calendar a Velo line is the main line too (bold, label dropped, so
+    // the card reads "Velo" / "1h; 130-140"). Previews and template lists keep
+    // the label, as they always did.
+    const isMainLine = line.startsWith("Pamatdaļa:") || (calendarMode && line.startsWith("Velo:"));
+    if (!isMainLine) {
       let relabeled = line;
       if (calendarMode) {
         const m = line.match(/^(Iesildīšanās|Atsildīšanās):(.*)$/su);
@@ -2393,7 +2397,7 @@ function formatDetailsForCard(details, calendarMode) {
       }
       return `<span class="task-secondary">${relabeled}</span>`;
     }
-    const text = calendarMode ? line.replace(/^Pamatdaļa:\s*/, "") : line;
+    const text = calendarMode ? line.replace(/^(?:Pamatdaļa|Velo):\s*/, "") : line;
     const cls = calendarMode === "week" ? ' class="plan-main-line"' : "";
     return `<strong${cls}>${text}</strong>`;
   });
@@ -2560,7 +2564,9 @@ function renderPlanCard(plan) {
   const movedBadge = hasMoved ? `<span class="switch-badge">⇄ no ${formatShortDate(plan.original_date)}</span>` : "";
   const planLog = logEntries.find(l => l.plan_id === plan.id);
   const planLogData = planLog?.log_data || [];
-  const hasPamatdala = plan.details && plan.details.includes("Pamatdaļa:");
+  // A Velo training has no "Pamatdaļa:" line - its one line is "Velo: 1h; 130-140" -
+  // and used to show as a bare title because only "Pamatdaļa:" was looked for.
+  const hasPamatdala = plan.details && (plan.details.includes("Pamatdaļa:") || plan.details.includes("Velo:"));
 
   const paceBoundsMap = buildPaceBoundsMap(plan.details);
   const plannedIntervalCount = getPlannedIntervalCount(plan.details);
@@ -3262,7 +3268,7 @@ function renderMonthViewInline() {
           ${p.completed === false ? '<span class="month-not-completed-icon">!</span>' : ""}
           <div class="month-plan-summary">
             ${titleHtml}
-            <span>${extractMainPart(p.details).replace(/^Pamatdaļa:\s*/, "")}</span>
+            <span>${extractMainPart(p.details).replace(/^(?:Pamatdaļa|Velo):\s*/, "")}</span>
           </div>
           <div class="month-plan-full">
             ${titleHtml}
