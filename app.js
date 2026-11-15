@@ -359,11 +359,11 @@ const STRIDES_LABEL = "Kāpinājumi";
 // written in that wording is ever left unread.
 const STRIDES_LABEL_OLD = "Kāpinājumi beigās";
 // "Sacensību uzturs" belongs to the hard sessions only: both interval kinds,
-// long runs and tempo runs (owner's call 2026-11-15). A row that already has
+// long runs, tempo runs and "Cita veida treniņš" (owner's call 2026-11-15). A row that already has
 // the box ticked stays visible whatever the type, so a saved plan that carries
 // the line from before can still be unticked rather than losing it silently.
 function supportsRaceNutrition(type) {
-  return isIntervalType(type) || type === "Garais skrējiens" || type === "Tempa skrējiens";
+  return isIntervalType(type) || type === "Garais skrējiens" || type === "Tempa skrējiens" || type === OTHER_RUN_TYPE;
 }
 
 function supportsStrides(type) {
@@ -431,6 +431,10 @@ function getGeneratedTraining() {
     const mainAdditionalText = mainAdditional.value.trim();
     if (mainAdditionalText) lines.push(`Papildus uzdevums: ${mainAdditionalText}`);
     if (cooldown) lines.push(cooldown);
+    const otherFootwear = [];
+    if (spikes.checked) otherFootwear.push("Naglenes");
+    if (raceShoes.checked) otherFootwear.push("Sacensību apavi");
+    if (otherFootwear.length) lines.push(`✓ ${otherFootwear.join(", ")}`);
     if (raceNutrition.checked) lines.push("✓ Sacensību uzturs");
     const title = customName.value.trim() || OTHER_RUN_TYPE;
     const customIcon = getSelectedIcon("customIconPicker");
@@ -528,6 +532,10 @@ function getEditPlanTraining() {
     const mainAdditionalText = getVal("epMainAdditional");
     if (mainAdditionalText) lines.push(`Papildus uzdevums: ${mainAdditionalText}`);
     if (cooldown) lines.push(cooldown);
+    const otherFootwear = [];
+    if (getBool("epSpikes")) otherFootwear.push("Naglenes");
+    if (getBool("epRaceShoes")) otherFootwear.push("Sacensību apavi");
+    if (otherFootwear.length) lines.push(`✓ ${otherFootwear.join(", ")}`);
     if (getBool("epRaceNutrition")) lines.push("✓ Sacensību uzturs");
     const title = getVal("epCustomName") || OTHER_RUN_TYPE;
     const customIcon = getSelectedIcon("epIconPicker");
@@ -1650,10 +1658,11 @@ function renderCustomBuilder() {
 
   raceNutritionRow.hidden = !(supportsRaceNutrition(type) || raceNutrition.checked);
   const isTempo = type === "Tempa skrējiens";
-  spikesRow.hidden = !isInterval;
-  if (!isInterval) spikes.checked = false;
-  raceShoesRow.hidden = !(isInterval || isTempo);
-  if (!(isInterval || isTempo)) raceShoes.checked = false;
+  // "Cita veida treniņš" offers both too (2026-11-15).
+  spikesRow.hidden = !(isInterval || isOtherRun);
+  if (!(isInterval || isOtherRun)) spikes.checked = false;
+  raceShoesRow.hidden = !(isInterval || isTempo || isOtherRun);
+  if (!(isInterval || isTempo || isOtherRun)) raceShoes.checked = false;
 
   if (isVarInterval) {
     if (!varSegmentList.children.length) addVarSegmentRow(varSegmentList);
@@ -1746,10 +1755,10 @@ function renderEditPlanBuilder() {
   const epIsTempo = type === "Tempa skrējiens";
   document.getElementById("epRaceNutritionRow").hidden =
     !(supportsRaceNutrition(type) || document.getElementById("epRaceNutrition").checked);
-  document.getElementById("epSpikesRow").hidden = !isInterval;
-  if (!isInterval) document.getElementById("epSpikes").checked = false;
-  document.getElementById("epRaceShoesRow").hidden = !(isInterval || epIsTempo);
-  if (!(isInterval || epIsTempo)) document.getElementById("epRaceShoes").checked = false;
+  document.getElementById("epSpikesRow").hidden = !(isInterval || isOtherRun);
+  if (!(isInterval || isOtherRun)) document.getElementById("epSpikes").checked = false;
+  document.getElementById("epRaceShoesRow").hidden = !(isInterval || epIsTempo || isOtherRun);
+  if (!(isInterval || epIsTempo || isOtherRun)) document.getElementById("epRaceShoes").checked = false;
 
   if (isVarInterval) {
     if (!document.getElementById("epVarSegmentList").children.length) addVarSegmentRow(document.getElementById("epVarSegmentList"));

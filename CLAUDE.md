@@ -701,3 +701,5 @@ Health journal, Diary, Restrictions, Records, the five test panels and Laktāta 
 ### "Cita veida treniņš" has the warm-up / cool-down tick boxes too (2026-11-15)
 
 Same boxes as a long run (builder and edit dialog): untick them and the fields hide and the lines are left out of the details. `isOtherRun` joins `isEasyOrLong` in the toggle-row / field-visibility branches of `renderCustomBuilder()` and `renderEditPlanBuilder()` and in the Other branches of `getGeneratedTraining()` / `getEditPlanTraining()`. Loading a template or plan already set the boxes from whether the lines exist, so old ones come back correctly; the default for a fresh one is ticked, as before.
+
+**It also offers "Sacensību uzturs", "Naglenes" and "Sacensību apavi"** (2026-11-15): `supportsRaceNutrition()` now includes `OTHER_RUN_TYPE`, and the spikes / race-shoes rows show for it in the builder and the edit dialog. In the Other branch of both generators the footwear line (`✓ Naglenes, Sacensību apavi`) goes after the cool-down and before the nutrition line; reading it back is the generic footwear-line parsing, which was already type-independent.
