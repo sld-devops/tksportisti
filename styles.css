@@ -1790,7 +1790,9 @@ h4 {
 
 #warmupAdditionalRow,
 #cooldownAdditionalRow {
-  display: block;
+  /* grid like every other label, so its 6px label-to-box gap applies (block
+     ignored the gap and the text sat tight on the box) */
+  display: grid;
 }
 
 #warmupSection #drillsRow label {
