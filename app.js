@@ -2117,6 +2117,14 @@ function todLabel(tod) {
 // was not the one the coach planned. It lives on the log's section objects
 // (log_data[].tod) - no new column, so no migration - and every reader that
 // ignores unknown fields is unaffected. Same three values as plans.time_of_day.
+// A training with no fields to fill in (free text such as "Latvijas Kontūras
+// skrējiens") has no section to hang `tod` on, so the dialog stores a bare
+// { section: "_tod", tod } entry instead. Sections starting with "_" are
+// bookkeeping, never shown - every place that draws log lines goes through this.
+function logSectionEntries(data) {
+  return (data || []).filter((e) => e && !String(e.section || "").startsWith("_"));
+}
+
 function loggedTod(log) {
   return (log?.log_data || []).find((e) => e && e.tod)?.tod || "";
 }
@@ -2368,7 +2376,7 @@ function colorPaceValue(str, bounds) {
 }
 
 function extractLogMainPartHtml(logData, paceBoundsMap, plannedIntervalCount, planDetails) {
-  const entries = logData || [];
+  const entries = logSectionEntries(logData);
   const main = entries.find(e => e.section === "Pamatdaļa") || entries[0];
   if (!main) return "";
   if (main.intervals && main.intervals.length) {
@@ -2514,7 +2522,7 @@ document.addEventListener("click", (e) => {
 function renderLogEntryLines(data, paceBoundsMap, plannedIntervalCount, planDetails, showPlannedPrefix, calendarMode) {
   const plannedMainPart = showPlannedPrefix && planDetails ? getPlannedMainPartSummary(planDetails) : "";
   const stripLabel = calendarMode === "week" || calendarMode === "month";
-  return (data || []).map(entry => {
+  return logSectionEntries(data).map(entry => {
     let line = `<div class="log-line">`;
     const isMainSection = entry.section === "Pamatdaļa";
     const mainCls = calendarMode === "week" ? ' class="plan-main-line"' : "";
@@ -5460,6 +5468,8 @@ saveLogBtn.addEventListener("click", async () => {
       });
       entries.push({ section, duration, pulse, intervals, reps, pace, ...(doneTod ? { tod: doneTod } : {}) });
     });
+    // Nothing to hang the part of the day on (see logSectionEntries): keep it anyway.
+    if (doneTod && !entries.length) entries.push({ section: "_tod", tod: doneTod });
     if (logDialogPlanId) {
       // Looked up straight from the database (not the in-memory `logEntries`
       // array, which is scoped to whatever week is currently loaded and can
