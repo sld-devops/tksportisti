@@ -715,3 +715,7 @@ Own row under Tempa skrējiens in the template lists and in "Biežāk lietotie" 
 Trail runs never offer "Naglenes" (spikes row hidden and cleared for `TRAIL_TYPE`, builder and edit dialog); "Cita veida treniņš" still does.
 
 The main part of the free-text types has no "Drills" box any more (2026-11-15); `#mainDrillsRow` / `#epMainDrillsRow` stay hidden unless an older plan or template already carries a main-part `Drill` line, so that one can still be unticked instead of silently kept.
+
+### The "Cita veida treniņš" icon row has 🌲 and the Eliptiskais image (2026-11-15)
+
+Two more buttons at the end of `#customIconPicker` / `#epIconPicker`, with 6px above the row (`.icon-picker { margin-top: 6px }`). The Eliptiskais one is an image, so its `data-icon` - and therefore the plan's `custom_icon` - holds the `<img>` markup. That is rendered raw at every `custom_icon` site and works, but it is the one place markup is stored in `plans`: if `images/eliptiskais.png` is ever renamed, old plans lose the picture; and `panels/self-log.js` still strips markup (`emojiOnlyIcon()`), which is separate.

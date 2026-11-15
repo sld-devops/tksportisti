@@ -1741,6 +1741,7 @@ h4 {
 .icon-picker {
   display: inline-flex;
   gap: 8px;
+  margin-top: 6px;
   vertical-align: middle;
 }
 .icon-btn {
