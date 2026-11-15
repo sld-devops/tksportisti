@@ -100,6 +100,14 @@ Every `[data-log-interval]` box carries its own ▲/▼ arrows (`attachIntervalS
 
 The checkbox shows for both interval kinds, long runs and tempo runs and nowhere else (owner's call 2026-11-15; before that it showed for every type). `supportsRaceNutrition()` in `app.js` decides, in both the builder (`renderCustomBuilder`) and the edit dialog (`renderEditPlanBuilder`, whose row used to be always visible). **A row that is already ticked stays visible whatever the type** - an older easy-run plan or template that carries the "✓ Sacensību uzturs" line must still be untickable; hiding it and clearing it would silently drop the line on the next save. Picking a type in the builder clears the box first (`clearCustomBuilderFields()`), so a ticked box does not follow the coach to a type that has no use for it.
 
+### The athlete says which part of the day a planned training was really done in
+
+The log dialog (`openPlanLogDialog()`, athlete only) has a "Kurā dienas daļā izpildīji?" radio group (`logTodPickerHtml()`, `name="logTod"`) under the date, preselected with the plan's `time_of_day` (or the one already logged). Added 2026-11-15: before it, an athlete who did the morning run in the evening could only say so in the comment.
+
+- **Stored as `tod` on the log's section objects** (`log_data[].tod`, written by `saveLogBtn`) - no new column (the owner cannot run migrations) and no extra marker section, because every reader that walks `log_data` ignores an unknown field but would trip over an unknown *section*. `loggedTod(log)` reads it.
+- **It never touches the plan.** The plan keeps the coach's time of day, unlike the date, which `saveLogBtn` does move (with `original_date` remembering it). The execution box shows "Izpildīts: Vakars" (`loggedTodNoteHtml()`, both roles) **only when it differs from the plan** - done as planned shows nothing extra, and so does an old log with no `tod`.
+- Only the week-view card shows the note; the month view's "Izpildīts" list does not.
+
 ### Velo and Eliptiskais are "one-line" training types (`CARDIO_LINE_TYPES`)
 
 Eliptiskais (elliptical trainer; it was called "Eliptical" for a few hours on 2026-11-15 and was renamed at the owner's request) was added next to Velo, because coaches kept typing it by hand under "Cita veida treniņš". Both write one line, `Velo: 1h; 130-140` / `Eliptiskais: 45min; 130-140` - **the label is the type's own name, not `Pamatdaļa:`** - with no warm-up, cool-down or drills.

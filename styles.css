@@ -7513,3 +7513,29 @@ body.is-dragging .session-card.is-draggable {
   vertical-align: -0.25em;
   width: 1.2em;
 }
+
+/* Execution done in another part of the day than planned: a line at the top of
+   the execution box ("Izpildīts: Vakars"), and the picker in the log dialog. */
+.log-tod-note {
+  align-items: center;
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.log-tod-note .tod-badge {
+  display: inline-block;
+  margin: 0;
+}
+
+.log-tod-picker {
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 12px;
+  padding-bottom: 4px;
+}
+
+.log-tod-picker .comment-label {
+  margin-top: 0;
+}

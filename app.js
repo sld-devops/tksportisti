@@ -2113,6 +2113,36 @@ function todLabel(tod) {
   return { morning: "Rīts", afternoon: "Pusdiena", evening: "Vakars" }[tod] || tod;
 }
 
+// The part of the day the athlete actually did a planned training in, when it
+// was not the one the coach planned. It lives on the log's section objects
+// (log_data[].tod) - no new column, so no migration - and every reader that
+// ignores unknown fields is unaffected. Same three values as plans.time_of_day.
+function loggedTod(log) {
+  return (log?.log_data || []).find((e) => e && e.tod)?.tod || "";
+}
+
+// "Izpildīts: Vakars" on the execution box - only when it differs from the
+// plan, so an execution done as planned shows nothing extra.
+function loggedTodNoteHtml(log, plan) {
+  const tod = loggedTod(log);
+  if (!tod || tod === plan?.time_of_day) return "";
+  return `<div class="log-tod-note">Izpildīts: <span class="tod-badge tod-${tod}">${todLabel(tod)}</span></div>`;
+}
+
+const LOG_TOD_OPTIONS = [
+  { value: "morning", label: "🌄 Rīts" },
+  { value: "afternoon", label: "☀️ Pusdiena" },
+  { value: "evening", label: "🌇 Vakars" },
+];
+
+function logTodPickerHtml(selected) {
+  const opts = LOG_TOD_OPTIONS.map((t) => `
+    <label class="tod-radio-label tod-${t.value}">
+      <input type="radio" name="logTod" value="${t.value}" ${t.value === selected ? "checked" : ""} /> ${t.label}
+    </label>`).join("");
+  return `<div class="log-tod-picker"><div class="comment-label">Kurā dienas daļā izpildīji?</div><div class="tod-radio-group">${opts}</div></div>`;
+}
+
 function extractMainPart(details) {
   if (!details) return "";
   const lines = details.split("\n").map(l => l.trim()).filter(Boolean);
@@ -2611,7 +2641,7 @@ function renderPlanCard(plan) {
   if (isCoach) {
     const isCopied = copiedItem?.kind === "plan" && copiedItem.planId === plan.id;
     const logBlock = planLog
-      ? `<div class="log-card log-inline">${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details, false, "week") : ""}${feelingBadge}${planLogNotes}</div>`
+      ? `<div class="log-card log-inline">${loggedTodNoteHtml(planLog, plan)}${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details, false, "week") : ""}${feelingBadge}${planLogNotes}</div>`
       : "";
 
     return `
@@ -2632,7 +2662,7 @@ function renderPlanCard(plan) {
   const logActions = planLog ? `<div class="log-actions"><button class="edit-log-btn icon-action-btn" data-log-plan="${plan.id}" type="button" title="Rediģēt">✏️</button><button class="log-delete-btn icon-action-btn is-delete" data-delete-log="${planLog.id}" type="button" title="Dzēst">✕</button></div>` : "";
 
   const logBlock = planLog
-    ? `<div class="log-card log-inline">${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details, false, "week") : ""}${feelingBadge}${planLogNotes}</div>`
+    ? `<div class="log-card log-inline">${loggedTodNoteHtml(planLog, plan)}${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details, false, "week") : ""}${feelingBadge}${planLogNotes}</div>`
     : `<button class="add-day-button log-plan-button" data-log-plan="${plan.id}" type="button">IERAKSTĪT IZPILDI</button>`;
 
   return `
@@ -5383,6 +5413,8 @@ saveLogBtn.addEventListener("click", async () => {
   const feeling = feelingEl ? feelingEl.value : null;
   const feelingTags = null;
   const notes = document.getElementById("logAthleteComment")?.value.trim() || "";
+  // Only the plan-linked dialog has this picker; "" when nothing is chosen.
+  const doneTod = document.querySelector('input[name="logTod"]:checked')?.value || "";
 
   const durationMin = 0;
   const runningKm = 0;
@@ -5426,7 +5458,7 @@ saveLogBtn.addEventListener("click", async () => {
         }
         reps.push("");
       });
-      entries.push({ section, duration, pulse, intervals, reps, pace });
+      entries.push({ section, duration, pulse, intervals, reps, pace, ...(doneTod ? { tod: doneTod } : {}) });
     });
     if (logDialogPlanId) {
       // Looked up straight from the database (not the in-memory `logEntries`
@@ -5677,6 +5709,9 @@ function openPlanLogDialog(planId) {
   let html = "";
   if (activeRole !== "coach") {
     html += `<label class="field-label">Izpildes datums (ir iespējams mainīt) <input type="date" id="logDatePicker" value="${plan.date}" /></label>`;
+    // Preselected with the planned part of the day (or the one already logged),
+    // so an execution done as planned needs no click at all.
+    html += logTodPickerHtml(loggedTod(existingLog) || plan.time_of_day || "");
   }
   html += `<div class="log-plan-block"><h3>${displayTitle(plan.title)}</h3>`;
   const lines = (plan.details || "").split("\n");
