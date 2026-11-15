@@ -96,6 +96,15 @@ Every `[data-log-interval]` box carries its own ▲/▼ arrows (`attachIntervalS
 - Warmup, cooldown and the main part all read by position via `splitDetailFields()`, matching `loadTemplateToForm`. Don't reintroduce `if (m[2]) …`-style guarded assignment here: a guard means "keep whatever was in the box", which is exactly the bug.
 - The interval branch clears pace and rest when the line has neither, and uses the `/^(\d+)x([^\s;()]+)/` length matcher rather than the old `([\d.\s]+\s*\w+)`.
 
+### Velo and Eliptical are "one-line" training types (`CARDIO_LINE_TYPES`)
+
+Eliptical (elliptical trainer) was added 2026-11-15 next to Velo, because coaches kept typing it by hand under "Cita veida treniņš". Both write one line, `Velo: 1h; 130-140` / `Eliptical: 45min; 130-140` - **the label is the type's own name, not `Pamatdaļa:`** - with no warm-up, cool-down or drills.
+
+- **The list lives in `CARDIO_LINE_TYPES` (`app.js`, above `getGeneratedTraining()`)** with `isCardioLineType()`, `cardioLineLabel(line)` and `CARDIO_LABEL_RE`. The builder, the edit dialog, `loadTemplateToForm()`, `parsePlanToForm()`, `normalizeTrainingDetails()`, the week and month cards and the log dialog all go through them; the old code compared against the literal `"Velo"` in about twenty places, and the card used to show a bare title for a Velo training because it only looked for a `Pamatdaļa:` line. A third such type = add it to the list, `TEMPLATE_GROUPS`, both type `<select>`s in `index.html` and `badgeForTitle()`.
+- The builder's local flag is still called `isVelo` in a few functions; it now means "any one-line type".
+- Like Velo, Eliptical is left out of the "Biežāk lietotie" table (`FREQUENT_GROUPS`) and its log entry keeps the default `activity_type` ("run"); only `"velo"` maps to "bike", and those per-day sums are always zero anyway (see the stats section).
+- Its icon is 🔄 (there is no elliptical emoji); change it in `badgeForTitle()` and the two `<option>`s.
+
 ### `TEMPLATE_GROUPS` is one group per training type
 
 The group list in `app.js` that headings both template dropdowns and the most-used table used to lump the three easy/medium/long runs into one "Lēnie/vidēji/garie skrējieni" group and the two interval kinds into one "Intervāli". Both were split on 2026-08-02 at the owner's request — a coach picking a template should never have to tell an equal-length interval session from a mixed-length one by reading the details. Keep it one group per type; the only remaining multi-type group is VFS/SFS. `"Intervāli"` with no suffix stays listed under the equal-length group as the legacy type name.
