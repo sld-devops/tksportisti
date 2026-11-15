@@ -725,3 +725,7 @@ The builder / edit-dialog preview of a Velo or Eliptiskais training now reads li
 ### The Iesildīšanās / Atsildīšanās tick boxes are gone (2026-11-15)
 
 Supersedes the notes above that mention them (long runs and the free-text types). `formatPart()` already returned "" for a part with no duration, so the ticks changed nothing in the details - they only hid the fields and threw away what had been typed if unticked. Now the warm-up and cool-down fields are always shown for every type except VFS/SFS/Velo/Eliptiskais, and a part is in the training only if its Garums/ilgums is filled in. The two `checkbox-row`s (`#warmupToggleRow`, `#cooldownToggleRow`, `ep…`) stay in the HTML but are always `hidden`, and `includeWarmup`/`includeCooldown` still exist because the loaders set them; nothing reads them for output. A template with no warm-up simply loads with empty fields.
+
+### The athlete dropdown scrolls by itself (2026-11-15)
+
+Opening "Sportisti" sets `#dropdownList`'s `max-height` to the room between the trigger and the bottom of `.planner-panel__scroll` (or the screen), divided by `uiZoom()`; the list has `overflow-y: auto` and `overscroll-behavior: contain`. Before, the absolutely positioned list poked out below the sidebar's scroll box, so the whole sidebar scrolled and the list ran off the screen. ~25 athletes do not fit on a normal screen, so the list itself scrolls; on a tall one it shows everything.

@@ -1093,6 +1093,8 @@ h4 {
 }
 #athleteDropdown .dropdown-list {
   background: #fff;
+  overflow-y: auto;
+  overscroll-behavior: contain; /* wheel on the list never scrolls the sidebar behind it */
 }
 #athleteDropdown.custom-dropdown.open .dropdown-list {
   gap: 0;

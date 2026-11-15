@@ -3680,7 +3680,21 @@ athleteSelect.addEventListener("change", async () => {
 
 document.getElementById("dropdownTrigger").addEventListener("click", (e) => {
   e.stopPropagation();
-  document.getElementById("athleteDropdown").classList.toggle("open");
+  const dd = document.getElementById("athleteDropdown");
+  dd.classList.toggle("open");
+  if (dd.classList.contains("open")) {
+    // The list is as tall as the screen allows below the trigger and scrolls by
+    // itself, so the sidebar behind it stays where it is (2026-11-15). Real
+    // pixels divided by the body zoom, as in placeFixed().
+    const list = document.getElementById("dropdownList");
+    // Down to the bottom of the sidebar's own scroll box (or the screen), whichever
+    // is higher - a list poking out below the box makes the sidebar scroll.
+    const box = document.querySelector(".planner-panel__scroll");
+    const floor = Math.min(window.innerHeight, box ? box.getBoundingClientRect().bottom : window.innerHeight);
+    const room = floor - document.getElementById("dropdownTrigger").getBoundingClientRect().bottom - 8;
+    list.style.maxHeight = `${Math.max(200, room) / uiZoom()}px`;
+    list.scrollTop = 0;
+  }
 });
 
 document.getElementById("dropdownList").addEventListener("click", (e) => {
