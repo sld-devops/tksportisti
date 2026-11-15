@@ -277,9 +277,10 @@ function renderLactateTests() {
   }
 
   let html = "";
-  if (lactateTests.length) {
+  const shownLactate = filterByYear(lactateTests);
+  if (shownLactate.length) {
     html += `<div class="selftest-list">`;
-    lactateTests.forEach(t => {
+    shownLactate.forEach(t => {
       const lt2 = lactateLt2Label(t);
       html += `<div class="selftest-row labtest-row-editable" data-lactatetest-id="${t.id}">
         <span class="selftest-date">${formatDateLV(t.date)}</span>
@@ -287,6 +288,8 @@ function renderLactateTests() {
       </div>`;
     });
     html += `</div>`;
+  } else {
+    html += '<p class="panel-empty">Nav veiktu ierakstu</p>';
   }
   html += `<button id="addLactateTestBtn" class="secondary-action panel-add-btn" type="button">Pievienot</button>`;
 

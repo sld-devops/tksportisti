@@ -1093,6 +1093,8 @@ h4 {
 }
 #athleteDropdown .dropdown-list {
   background: #fff;
+  overflow-y: auto;
+  overscroll-behavior: contain; /* wheel on the list never scrolls the sidebar behind it */
 }
 #athleteDropdown.custom-dropdown.open .dropdown-list {
   gap: 0;
@@ -1741,6 +1743,7 @@ h4 {
 .icon-picker {
   display: inline-flex;
   gap: 8px;
+  margin-top: 6px;
   vertical-align: middle;
 }
 .icon-btn {
@@ -1790,7 +1793,9 @@ h4 {
 
 #warmupAdditionalRow,
 #cooldownAdditionalRow {
-  display: block;
+  /* grid like every other label, so its 6px label-to-box gap applies (block
+     ignored the gap and the text sat tight on the box) */
+  display: grid;
 }
 
 #warmupSection #drillsRow label {
@@ -7596,4 +7601,112 @@ input.needs-value {
     zoom: 0.8;
     min-height: calc(100vh / 0.8);
   }
+}
+
+/* The library list is meant to be seen whole, without scrolling (owner, 2026-11-15):
+   as tall as the screen allows. The Video pamācības trigger is a button inside it
+   and the video flyout is a second list beside it. */
+#exerciseMenuList {
+  max-height: calc(100vh - 90px);
+}
+
+/* Same button as the ones in the header (.secondary-action: peach gradient,
+   edge); only its width and spacing inside the list are set here. */
+.video-menu-list .video-submenu-trigger {
+  display: block;
+  margin: 8px 4px 4px;
+  text-align: center;
+  width: calc(100% - 8px);
+}
+
+.video-sub-list {
+  z-index: 1003; /* above the library list it hangs from */
+}
+
+/* "Nav veiktu ierakstu" in a sidebar panel that has nothing in it yet. */
+.panel-empty {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 4px 0 10px;
+}
+
+/* Training-type list: white, peach only under the pointer (owner, 2026-11-15) -
+   same as the template lists. The chosen item keeps just the thin bar on its left. */
+#customTypeDropdown .dropdown-list {
+  background: #fff;
+}
+#customTypeDropdown .type-dropdown-item.selected:not(:hover) {
+  background: #fff;
+  border-color: transparent;
+}
+
+/* Year switch at the top of the sidebar (panels/year-filter.js). */
+.year-filter {
+  align-items: center;
+  /* The same card as every sidebar panel (.panel): gradient, peach left edge, glow. */
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95) 0%, rgba(253, 240, 226, 0.95) 100%);
+  border: 1px solid #e2e2e2;
+  border-left: 3px solid var(--edge);
+  border-radius: 8px;
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.2),
+    0 0 0 2px var(--edge-glow);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px;
+  position: relative;
+  z-index: 1;
+}
+.year-filter-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-right: 2px;
+}
+.year-btn {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 4px 10px;
+}
+.year-btn:hover {
+  background: var(--surface-hover);
+}
+.year-btn.active {
+  background: var(--btn-bg);
+  border-color: var(--edge);
+}
+
+/* Under the 80% body zoom a "100vh" box is drawn 20% short (it is 100vh of the
+   zoomed space), which left the sidebar ending well above the bottom of the
+   screen. Divide by the zoom so the sidebar and the library list reach the
+   bottom again. Must stay after the base rules they override. */
+@media (min-width: 1400px) {
+  .planner-panel__scroll {
+    max-height: calc(100vh / 0.8 - 28px);
+    max-height: calc(100dvh / 0.8 - 28px);
+  }
+  #exerciseMenuList {
+    max-height: calc(100vh / 0.8 - 90px);
+  }
+}
+
+/* The year switch inside the race calendar: a plain row, not a second card. */
+.year-filter-inline {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 6px;
+}
+.year-filter-inline .year-filter-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
 }

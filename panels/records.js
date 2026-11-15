@@ -106,12 +106,14 @@ function renderRecords() {
 
   const recordDistances = RECORD_DISTANCES;
 
+  // Year filter: a record counts for the year it was set in.
+  const shownRecords = filterByYear(records);
   const standardDists = new Set(recordDistances.map((d) => d.value));
-  const customRecords = records.filter((r) => !standardDists.has(r.distance));
+  const customRecords = shownRecords.filter((r) => !standardDists.has(r.distance));
 
   const recordsHtml = recordDistances
     .map((rd) => {
-      const r = records.find((rec) => rec.distance === rd.value);
+      const r = shownRecords.find((rec) => rec.distance === rd.value);
       if (!r) return "";
       return renderRecordRow(r, canEditRecords);
     })
@@ -120,7 +122,7 @@ function renderRecords() {
   document.getElementById("recordsBody").innerHTML = `
     <div class="profile-section">
       <div class="profile-records" id="profileRecords">
-        ${recordsHtml}
+        ${shownRecords.length ? recordsHtml : '<p class="panel-empty">Nav veiktu ierakstu</p>'}
         ${customRecords.map((r) => renderRecordRow(r, canEditRecords)).join("")}
       </div>
       ${canEditRecords ? '<button class="secondary-action panel-add-btn" id="addRecordEntryBtn" type="button">Pievienot</button>' : ""}

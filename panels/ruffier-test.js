@@ -90,11 +90,12 @@ function renderRuffierTests() {
   });
   html += `</div>`;
 
-  if (ruffierTests.length === 0) {
-    html += "";
+  const shownRuffier = filterByYear(ruffierTests);
+  if (shownRuffier.length === 0) {
+    html += '<p class="panel-empty">Nav veiktu ierakstu</p>';
   } else {
     html += `<div class="selftest-list">`;
-    ruffierTests.forEach(t => {
+    shownRuffier.forEach(t => {
       const ri = calcRuffierIndex(t.hr1, t.hr2, t.hr3);
       const cat = ruffierCategory(ri);
       html += `<div class="selftest-row${isAthleteView ? " labtest-row-editable" : ""}" data-ruffiertest-id="${t.id}">

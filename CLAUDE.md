@@ -131,7 +131,7 @@ The group list in `app.js` that headings both template dropdowns and the most-us
 A collapsible panel (`#frequentPanel`) in the main column just below the training builder, coach only, added 2026-08-02: one row per training type, each holding the 5 most used trainings from **every** athlete's plans over the last `FREQUENT_MONTHS` (4) months. Clicking a cell loads it into the builder via `loadTemplateToForm()`, exactly like a template. Points worth knowing before touching it:
 
 - **It started life as a dropdown and was rebuilt as a table the next day** — the owner's point was that a dropdown shows a sliver at a time. The whole value of the panel is that expanding it shows everything at once, so `.frequent-grid` must never gain a vertical scrollbar; only the ≤1040px fallback scrolls, and it scrolls sideways. Empty slots are rendered as invisible `.frequent-cell-blank` cells so the five columns stay aligned across rows.
-- **`FREQUENT_GROUPS` is `TEMPLATE_GROUPS` minus VFS/SFS** (Velo/Eliptiskais was added as the last row 2026-11-15). VFS/SFS is excluded from the table *and* not counted at all (`frequentGroupKey()` returns `null` for them, which `buildFrequentTrainings()` skips). A title matching **no** group is a coach-written name and goes to "Citi skrējieni" — don't collapse those two cases together.
+- **`FREQUENT_GROUPS` is `TEMPLATE_GROUPS` minus VFS/SFS** (Velo and Eliptiskais are the last two rows, each its own, `velo_only`/`eliptiskais_only` - in the template dropdowns they stay one group, owner's call 2026-11-15). VFS/SFS is excluded from the table *and* not counted at all (`frequentGroupKey()` returns `null` for them, which `buildFrequentTrainings()` skips). A title matching **no** group is a coach-written name and goes to "Citi skrējieni" — don't collapse those two cases together.
 
 - **Every way of writing minutes is folded into `min`.** The coach writes `60 min`, `60min`, `60'`, `60′`, `60 minūtes`, `60 min.` for one and the same session, and without this each spelling was its own entry with the count split between them (14x and 13x sitting side by side in the table). `normalizeTrainingDetails()` rewrites them all to the tight `60min`, and that is what the table shows and what gets loaded back into the builder. Other units are only space-closed, never rewritten. Two traps: **`m` is metres, never minutes** (`400m`), and `1'30s` is a compound that correctly becomes `1min30s`. This only rewrites what the table counts and displays; nothing in the database is changed, and the builder still stores whatever the coach types.
 - **Two trainings are "the same" once pace and pulse are stripped** — those are athlete-specific, so leaving them in would give every athlete their own bucket and no training would ever repeat. `isPaceOrPulseToken()` decides what counts as a bare number; anything containing real words (`caur 2min`) is content and survives.
@@ -687,3 +687,58 @@ At the owner's request (the installed app has room), `max-width: 720px` now show
 ### Wide screens are drawn at 80% (2026-11-15)
 
 From 1400px of viewport width up, `body { zoom: 0.8 }` (end of `styles.css`): the owner found 100% "too close" and the browser's 80% "how it should be". It is on `<body>`, not `<html>`, because vh units inside a zoomed element shrink too (`min-height` is compensated with `/ 0.8`). Media queries still see the real width, which is harmless: at 80% there is 25% more room than they assume. A phone pinned to the desktop view (1200px) and anything under 1400px are untouched. Checked only by screenshot at 1400px; modal dialogs (top layer) and the date picker/chart tooltips were not exercised under zoom - look there first if something sits off by 20%. To undo: delete that one media block.
+
+### "Video pamācības" moved inside the library dropdown (2026-11-15)
+
+The separate header button is gone. The library dropdown (`#exerciseMenuList`) ends with a "Video" heading and a "Video pamācības ▸" row (`.video-submenu-trigger`, a `.secondary-action` button like the header ones, added by `setupVideoSubmenu()` in `app.js`); clicking it opens `#videoSubList` (`VIDEO_TUTORIALS`) as a flyout to the right of the library list on screens >= 900px, and just under its row on narrower ones. The library list is as tall as the screen allows (`max-height: calc(100vh - 90px)`) so the whole list shows without scrolling.
+
+**Menus are placed with `placeFixed()`, which divides by `uiZoom()`**: `<body>` is drawn at `zoom: 0.8` on wide screens, `getBoundingClientRect()` is in real pixels, but `left`/`top` on a fixed element inside the zoomed body are in zoomed ones - without the division the list sat 20% up-left of its button (measured at 1400px). Any new fixed popup positioned from a rect needs the same.
+
+### Empty sidebar lists say "Nav veiktu ierakstu" (2026-11-15)
+
+Health journal, Diary, Restrictions, Records, the five test panels and Laktāta tests show `<p class="panel-empty">Nav veiktu ierakstu</p>` when the athlete has nothing in them, instead of a blank body (Restrictions says "Nav spēkā esošu ierakstu" when only past entries exist, since the past-note sits right under it). A new list panel needs the same. Interval history has had its own messages since earlier; HR zones, pace/HR and thresholds are always forms and need none.
+
+### "Cita veida treniņš" has the warm-up / cool-down tick boxes too (2026-11-15)
+
+Same boxes as a long run (builder and edit dialog): untick them and the fields hide and the lines are left out of the details. `isOtherRun` joins `isEasyOrLong` in the toggle-row / field-visibility branches of `renderCustomBuilder()` and `renderEditPlanBuilder()` and in the Other branches of `getGeneratedTraining()` / `getEditPlanTraining()`. Loading a template or plan already set the boxes from whether the lines exist, so old ones come back correctly; the default for a fresh one is ticked, as before.
+
+**It also offers "Sacensību uzturs", "Naglenes" and "Sacensību apavi"** (2026-11-15): `supportsRaceNutrition()` now includes `OTHER_RUN_TYPE`, and the spikes / race-shoes rows show for it in the builder and the edit dialog. In the Other branch of both generators the footwear line (`✓ Naglenes, Sacensību apavi`) goes after the cool-down and before the nutrition line; reading it back is the generic footwear-line parsing, which was already type-independent.
+
+### Every form label is a grid with a 6px gap - don't override its `display` (2026-11-15)
+
+The base `label` rule is `display: grid; gap: 6px`, which is what holds the caption off its box. `#warmupAdditionalRow` / `#cooldownAdditionalRow` had `display: block`, which ignores `gap`, so "Papildus uzdevums" sat tight on its input while "Garums/ilgums" beside it did not (owner spotted it). Use `display: grid` if a label needs a display override, and when adding a field, measure caption-to-box distance against a neighbour (19px).
+
+### "Taku/kalnu skrējiens" - a free-text type with a fixed name (2026-11-15)
+
+Own row under Tempa skrējiens in the template lists and in "Biežāk lietotie" (`TEMPLATE_GROUPS` key `trail`), icon 🌲 (`badgeForTitle()`; there is no forest-and-mountains emoji, so this is the closest - a drawn image like Eliptiskais's is the alternative). It uses the same form as "Cita veida treniņš" - free-text Pamatdaļa for tasks of any pace and length, warm-up/cool-down ticks, footwear and nutrition options - through `isFreeTextType()`, but has **no Nosaukums box and no icon picker** (title and icon are fixed; `requireOtherRunName()` does not apply). In the render functions `isFree` drives the shared form and `isOtherRun` only the name/icon rows. A new free-text type = add it to `isFreeTextType()`, `knownTypes` (two lists), `TEMPLATE_GROUPS`, both type `<select>`s and `badgeForTitle()`.
+
+Trail runs never offer "Naglenes" (spikes row hidden and cleared for `TRAIL_TYPE`, builder and edit dialog); "Cita veida treniņš" still does.
+
+The main part of the free-text types has no "Drills" box any more (2026-11-15); `#mainDrillsRow` / `#epMainDrillsRow` stay hidden unless an older plan or template already carries a main-part `Drill` line, so that one can still be unticked instead of silently kept.
+
+### The "Cita veida treniņš" icon row has 🌲 and the Eliptiskais image (2026-11-15)
+
+Two more buttons at the end of `#customIconPicker` / `#epIconPicker`, with 6px above the row (`.icon-picker { margin-top: 6px }`). The Eliptiskais one is an image, so its `data-icon` - and therefore the plan's `custom_icon` - holds the `<img>` markup. That is rendered raw at every `custom_icon` site and works, but it is the one place markup is stored in `plans`: if `images/eliptiskais.png` is ever renamed, old plans lose the picture; and `panels/self-log.js` still strips markup (`emojiOnlyIcon()`), which is separate.
+
+The builder / edit-dialog preview of a Velo or Eliptiskais training now reads like the card (title bold, "120min" below, no second "Velo:") - `formatDetailsForCard(details, "preview")` drops the label but keeps the other lines as they were. Template lists still keep the label.
+
+### The Iesildīšanās / Atsildīšanās tick boxes are gone (2026-11-15)
+
+Supersedes the notes above that mention them (long runs and the free-text types). `formatPart()` already returned "" for a part with no duration, so the ticks changed nothing in the details - they only hid the fields and threw away what had been typed if unticked. Now the warm-up and cool-down fields are always shown for every type except VFS/SFS/Velo/Eliptiskais, and a part is in the training only if its Garums/ilgums is filled in. The two `checkbox-row`s (`#warmupToggleRow`, `#cooldownToggleRow`, `ep…`) stay in the HTML but are always `hidden`, and `includeWarmup`/`includeCooldown` still exist because the loaders set them; nothing reads them for output. A template with no warm-up simply loads with empty fields.
+
+### The athlete dropdown scrolls by itself (2026-11-15)
+
+Opening "Sportisti" sets `#dropdownList`'s `max-height` to the room between the trigger and the bottom of `.planner-panel__scroll` (or the screen), divided by `uiZoom()`; the list has `overflow-y: auto` and `overscroll-behavior: contain`. Before, the absolutely positioned list poked out below the sidebar's scroll box, so the whole sidebar scrolled and the list ran off the screen. ~25 athletes do not fit on a normal screen, so the list itself scrolls; on a tall one it shows everything.
+
+### One year switch for the sidebar lists and the charts (`panels/year-filter.js`, 2026-11-15)
+
+"Gads 2026 | 2027 | Visi" at the top of the sidebar (`#yearFilter`), prepared for 2027 at the owner's request. State is `selectedYear` (number or `"all"`), in memory only. **Default: 2026 until 1 February 2027** (`YEAR_DEFAULT_UNTIL`, the owner may extend it), then the current calendar year. The years offered run from `YEAR_FIRST` (2026) to the current year, but never less than 2027.
+
+- **Nothing is filtered in the database.** Each panel still loads every row and filters when it draws, with `filterByYear(rows, "date")` or, for entries that span days (health journal, restrictions), `filterByYearRange()`; a row with no usable date stays visible. So adding/editing never depends on the filter, and the "unseen" badges and the restrictions count still use every row. Filtered: health journal, diary, records, self-tests, Polar, Rufjē, lab tests, lactate tests, restrictions (list only), race-calendar list (the cache `raceCalendarRaces` keeps all), interval/tempo history, and the stats charts. A new list panel must call the helper too. Left alone: the calendar, templates, "Biežāk lietotie", week boxes, the weekly review dialog (last 13 weeks).
+- **A record belongs to the year of its `date`; an entry spanning New Year (a health entry 30 Dec - 3 Jan) shows in both years.** Adding something dated in another year than the selected one makes it vanish from the list until that year is picked - expected.
+- **Stats:** `statsYearArgs()` in `panels/stats.js` turns the year into a range for `getWeeklyTrend(id, n, anchorDate)` / `getMonthlyTrend(id, n, anchorDate)` (the new third parameter ends the period on that date): a past year to 31 Dec, the current year to today, a future year shows its first month. With a year picked the 4/8/12 buttons are replaced by "2026. gads"; "Visi" brings them back with the old last-N behaviour. Note the default is now a whole year of weeks (~46 points in Nov 2026) instead of the last 8.
+- Changing the year runs `applyYearFilter()` (`app.js`): reload the two trends, `render()`, redraw the race list.
+
+Under the 80% body zoom every `100vh`-based height must be divided by 0.8 (the sidebar scroll box `.planner-panel__scroll` and `#exerciseMenuList` are, in the last `@media (min-width: 1400px)` block of `styles.css`), or the box ends 20% short of the screen. Do the same for any new viewport-height box.
+
+The year switch also appears inside the race calendar panel (`.year-filter-inline`, above the list). Every `[data-year-filter]` element is drawn by `renderYearFilter()` and clicks are delegated on the document, so the sidebar one and this one always show the same year; an empty list says "Nav sacensību".

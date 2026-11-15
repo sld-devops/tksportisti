@@ -490,8 +490,10 @@ function trendWeekMonthDays(weekStartStr) {
   return days;
 }
 
-async function getWeeklyTrend(athleteId, numWeeks) {
-  const endDate = trendMonday(new Date());
+// anchorDate: the period ends in the week of this date (default today); used by the
+// year switch to end a past year on 31 December.
+async function getWeeklyTrend(athleteId, numWeeks, anchorDate) {
+  const endDate = trendMonday(anchorDate || new Date());
   endDate.setDate(endDate.getDate() + 6);
   let startDate = new Date(endDate);
   startDate.setDate(startDate.getDate() - (numWeeks * 7) + 1);
@@ -567,8 +569,8 @@ async function getWeeklyTrend(athleteId, numWeeks) {
   return Object.values(weeks);
 }
 
-async function getMonthlyTrend(athleteId, numMonths) {
-  const endDate = new Date();
+async function getMonthlyTrend(athleteId, numMonths, anchorDate) {
+  const endDate = anchorDate ? new Date(anchorDate) : new Date();
   let startDate = new Date(endDate.getFullYear(), endDate.getMonth() - numMonths + 1, 1);
 
   // Same as getWeeklyTrend: no hardcoded floor, or the range buttons do nothing.

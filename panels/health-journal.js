@@ -87,12 +87,13 @@ function renderHealthJournal() {
   const isAthleteOwner = currentUser.id === athleteId && activeRole !== "coach";
 
   let html = "";
+  const shownHealth = filterByYearRange(healthEntries);
 
-  if (!healthEntries.length) {
-    html += "";
+  if (!shownHealth.length) {
+    html += '<p class="panel-empty">Nav veiktu ierakstu</p>';
   } else {
     html += `<div class="health-list">`;
-    healthEntries.forEach(e => {
+    shownHealth.forEach(e => {
       const dateLabel = e.end_date
         ? `${e.start_date} – ${e.end_date}`
         : e.start_date;

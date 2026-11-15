@@ -244,7 +244,7 @@ function buildIntervalHistory() {
     // The athlete's own records have no plan_id, so they can never be matched
     // to a plan — their lengths are read from their free text instead.
     if (!l.plan_id) {
-      if (isSelfLog(l)) selfLogs.push(l);
+      if (isSelfLog(l) && inSelectedYear(l.date)) selfLogs.push(l);
       return;
     }
     if (!logByPlanId.has(l.plan_id)) logByPlanId.set(l.plan_id, l);
@@ -253,6 +253,7 @@ function buildIntervalHistory() {
   const sessions = [];
   for (const plan of allPlans) {
     if (plan.date > today) continue;
+    if (!inSelectedYear(plan.date)) continue; // year switch
     const log = logByPlanId.get(plan.id);
     if (!log) continue;
     const tempo = isTempoTitle(plan.title);

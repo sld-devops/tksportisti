@@ -359,11 +359,11 @@ const STRIDES_LABEL = "Kāpinājumi";
 // written in that wording is ever left unread.
 const STRIDES_LABEL_OLD = "Kāpinājumi beigās";
 // "Sacensību uzturs" belongs to the hard sessions only: both interval kinds,
-// long runs and tempo runs (owner's call 2026-11-15). A row that already has
+// long runs, tempo runs and "Cita veida treniņš" (owner's call 2026-11-15). A row that already has
 // the box ticked stays visible whatever the type, so a saved plan that carries
 // the line from before can still be unticked rather than losing it silently.
 function supportsRaceNutrition(type) {
-  return isIntervalType(type) || type === "Garais skrējiens" || type === "Tempa skrējiens";
+  return isIntervalType(type) || type === "Garais skrējiens" || type === "Tempa skrējiens" || isFreeTextType(type);
 }
 
 function supportsStrides(type) {
@@ -417,7 +417,7 @@ document.addEventListener("input", (e) => {
 function getGeneratedTraining() {
   const type = customType.value;
 
-  if (type === OTHER_RUN_TYPE) {
+  if (isFreeTextType(type)) {
     const warmup = formatPart("Iesildīšanās", warmupDuration.value, warmupPulse.value, null, warmupAdditional.value);
     const drills = getDrillsPart();
     const cooldown = formatPart("Atsildīšanās", cooldownDuration.value, cooldownPulse.value, null, cooldownAdditional.value);
@@ -430,9 +430,13 @@ function getGeneratedTraining() {
     const mainAdditionalText = mainAdditional.value.trim();
     if (mainAdditionalText) lines.push(`Papildus uzdevums: ${mainAdditionalText}`);
     if (cooldown) lines.push(cooldown);
+    const otherFootwear = [];
+    if (spikes.checked) otherFootwear.push("Naglenes");
+    if (raceShoes.checked) otherFootwear.push("Sacensību apavi");
+    if (otherFootwear.length) lines.push(`✓ ${otherFootwear.join(", ")}`);
     if (raceNutrition.checked) lines.push("✓ Sacensību uzturs");
-    const title = customName.value.trim() || OTHER_RUN_TYPE;
-    const customIcon = getSelectedIcon("customIconPicker");
+    const title = type === TRAIL_TYPE ? TRAIL_TYPE : (customName.value.trim() || OTHER_RUN_TYPE);
+    const customIcon = type === TRAIL_TYPE ? "" : getSelectedIcon("customIconPicker");
     return { title, details: lines.join("\n"), custom_icon: customIcon };
   }
 
@@ -441,11 +445,11 @@ function getGeneratedTraining() {
   const isVelo = isCardioLineType(type);
 
   const warmup = isEasyOrLong
-    ? (includeWarmup.checked ? formatPart("Iesildīšanās", warmupDuration.value, warmupPulse.value, null, warmupAdditional.value) : "")
+    ? formatPart("Iesildīšanās", warmupDuration.value, warmupPulse.value, null, warmupAdditional.value)
     : (isSimple || isVelo) ? "" : formatPart("Iesildīšanās", warmupDuration.value, warmupPulse.value, null, warmupAdditional.value);
   const drills = (isEasyOrLong || isSimple || isVelo) ? "" : getDrillsPart();
   const cooldown = isEasyOrLong
-    ? (includeCooldown.checked ? formatPart("Atsildīšanās", cooldownDuration.value, cooldownPulse.value, null, cooldownAdditional.value) : "")
+    ? formatPart("Atsildīšanās", cooldownDuration.value, cooldownPulse.value, null, cooldownAdditional.value)
     : (isSimple || isVelo) ? "" : formatPart("Atsildīšanās", cooldownDuration.value, cooldownPulse.value, null, cooldownAdditional.value);
   const lines = [warmup, drills].filter(Boolean);
 
@@ -513,7 +517,7 @@ function epFormatPart(label, durId, pulseId, paceId, additionalId) {
 function getEditPlanTraining() {
   const type = document.getElementById("epType").value;
 
-  if (type === OTHER_RUN_TYPE) {
+  if (isFreeTextType(type)) {
     const getVal = id => document.getElementById(id).value.trim();
     const getBool = id => document.getElementById(id).checked;
 
@@ -527,9 +531,13 @@ function getEditPlanTraining() {
     const mainAdditionalText = getVal("epMainAdditional");
     if (mainAdditionalText) lines.push(`Papildus uzdevums: ${mainAdditionalText}`);
     if (cooldown) lines.push(cooldown);
+    const otherFootwear = [];
+    if (getBool("epSpikes")) otherFootwear.push("Naglenes");
+    if (getBool("epRaceShoes")) otherFootwear.push("Sacensību apavi");
+    if (otherFootwear.length) lines.push(`✓ ${otherFootwear.join(", ")}`);
     if (getBool("epRaceNutrition")) lines.push("✓ Sacensību uzturs");
-    const title = getVal("epCustomName") || OTHER_RUN_TYPE;
-    const customIcon = getSelectedIcon("epIconPicker");
+    const title = type === TRAIL_TYPE ? TRAIL_TYPE : (getVal("epCustomName") || OTHER_RUN_TYPE);
+    const customIcon = type === TRAIL_TYPE ? "" : getSelectedIcon("epIconPicker");
     return { title, details: lines.join("\n"), custom_icon: customIcon };
   }
 
@@ -541,11 +549,11 @@ function getEditPlanTraining() {
   const getBool = id => document.getElementById(id).checked;
 
   const warmup = isEasyOrLong
-    ? (getBool("epIncludeWarmup") ? epFormatPart("Iesildīšanās", "epWarmupDuration", "epWarmupPulse", null, "epWarmupAdditional") : "")
+    ? epFormatPart("Iesildīšanās", "epWarmupDuration", "epWarmupPulse", null, "epWarmupAdditional")
     : (isSimple || isVelo) ? "" : epFormatPart("Iesildīšanās", "epWarmupDuration", "epWarmupPulse", null, "epWarmupAdditional");
   const drills = (isEasyOrLong || isSimple || isVelo) ? "" : (getBool("epIncludeDrills") ? "Drill" : "");
   const cooldown = isEasyOrLong
-    ? (getBool("epIncludeCooldown") ? epFormatPart("Atsildīšanās", "epCooldownDuration", "epCooldownPulse", null, "epCooldownAdditional") : "")
+    ? epFormatPart("Atsildīšanās", "epCooldownDuration", "epCooldownPulse", null, "epCooldownAdditional")
     : (isSimple || isVelo) ? "" : epFormatPart("Atsildīšanās", "epCooldownDuration", "epCooldownPulse", null, "epCooldownAdditional");
   const lines = [warmup, drills].filter(Boolean);
 
@@ -603,6 +611,13 @@ function getEditPlanTraining() {
 const VAR_INTERVAL_TYPE = "Intervāli (dažāda garuma/ilguma)";
 const SAME_INTERVAL_TYPE = "Intervāli (vienāda garuma/ilguma)";
 const OTHER_RUN_TYPE = "Cita veida treniņš";
+// Trail / mountain run: the same free-text form as "Cita veida treniņš" (tasks of
+// any pace and length written as text) but with a fixed title and icon, so it
+// needs no Nosaukums box and is its own row in the template lists.
+const TRAIL_TYPE = "Taku/kalnu skrējiens";
+function isFreeTextType(type) {
+  return type === OTHER_RUN_TYPE || type === TRAIL_TYPE;
+}
 // Old name: trainings and templates saved under it still belong to the same group.
 const OTHER_RUN_LEGACY_TYPE = "Cita veida skrējiens";
 
@@ -611,6 +626,8 @@ function isIntervalType(type) {
 }
 
 function displayTitle(name) {
+  // "Atjaunojošais/lēnais" reads as "un", but the trail run's slash stays a slash.
+  if (name === TRAIL_TYPE) return name;
   return name ? name.replace(/\s*\(.*?\)\s*$/, "").replace(/\//g, " un ") : "";
 }
 
@@ -1004,8 +1021,8 @@ async function loadNonTemplateData() {
     safeGet(getRacesForWeek(athleteId, weekStartStr, weekEndStr), []),
     safeGet(getLogEntries(athleteId, weekStartStr, weekEndStr), []),
     safeGet(getRecords(athleteId), []),
-    safeGet(getWeeklyTrend(athleteId, trendWeeks), []),
-    safeGet(getMonthlyTrend(athleteId, trendMonths), []),
+    safeGet(loadWeeklyTrend(athleteId), []),
+    safeGet(loadMonthlyTrend(athleteId), []),
     safeGet(getDayNotes(athleteId, weekStartStr, weekEndStr), []),
     safeGet(getWeeklySummary(athleteId, weekStartStr), null),
     safeGet(getRestrictions(athleteId), []),
@@ -1285,15 +1302,20 @@ const TEMPLATE_GROUPS = [
   { key: "intervals_same", label: "Intervāli (vienāda garuma/ilguma)", types: [SAME_INTERVAL_TYPE, "Intervāli"] },
   { key: "intervals_var", label: "Intervāli (dažāda garuma/ilguma)", types: [VAR_INTERVAL_TYPE] },
   { key: "tempo", label: "Tempa skrējieni", types: ["Tempa skrējiens"] },
+  { key: "trail", label: "Taku/kalnu skrējieni", types: [TRAIL_TYPE] },
   { key: "other", label: "Citi skrējieni", types: [OTHER_RUN_TYPE, OTHER_RUN_LEGACY_TYPE] },
   { key: "vfs_sfs", label: "VFS/SFS", types: ["VFS", "SFS"] },
   { key: "velo", label: "Velo/Eliptiskais", types: ["Velo", "Eliptiskais"] },
 ];
 
 // The most-used table is every group but VFS/SFS, which is excluded from it
-// entirely and not even counted. Velo/Eliptiskais is the last row, below
-// "Citi skrējieni".
-const FREQUENT_GROUPS = TEMPLATE_GROUPS.filter((g) => g.key !== "vfs_sfs");
+// entirely and not even counted. In the template dropdowns Velo and Eliptiskais
+// are one group, but here (owner's call 2026-11-15) each has its own row, the
+// last two, below "Citi skrējieni".
+const FREQUENT_GROUPS = TEMPLATE_GROUPS.filter((g) => g.key !== "vfs_sfs" && g.key !== "velo").concat([
+  { key: "velo_only", label: "Velo", types: ["Velo"] },
+  { key: "eliptiskais_only", label: "Eliptiskais", types: ["Eliptiskais"] },
+]);
 
 function renderTemplates() {
   const athleteId = getSelectedAthleteId();
@@ -1415,7 +1437,7 @@ function frequentDetailsForDisplay(details) {
 
 function frequentGroupKey(title) {
   const base = (title || "").replace(/\s*Koptreniņš\s*$/, "").trim();
-  const group = TEMPLATE_GROUPS.find((g) => g.types.includes(base));
+  const group = FREQUENT_GROUPS.find((g) => g.types.includes(base)) || TEMPLATE_GROUPS.find((g) => g.types.includes(base));
   // No group at all means a coach-written name ("Fartleks") — that is what
   // "Citi skrējieni" is for. VFS/SFS does match a group, just not one this
   // table covers, and those are dropped rather than swept into "Citi".
@@ -1554,7 +1576,7 @@ function previewBadgeHtml(training) {
 
 function renderCustomPreview() {
   const training = getGeneratedTraining();
-  customPreview.innerHTML = `${previewBadgeHtml(training)}<strong>${displayTitle(training.title)}</strong><span>${formatDetailsForCard(training.details).replace(/\n/g, "<br>")}</span>`;
+  customPreview.innerHTML = `${previewBadgeHtml(training)}<strong>${displayTitle(training.title)}</strong><span>${formatDetailsForCard(training.details, "preview").replace(/\n/g, "<br>")}</span>`;
 }
 
 function renderSourcePicker() {
@@ -1622,18 +1644,22 @@ function renderCustomBuilder() {
   const isSimple = type === "VFS" || type === "SFS";
   const isVelo = isCardioLineType(type);
   const isOtherRun = type === OTHER_RUN_TYPE;
+  const isFree = isFreeTextType(type); // "Cita veida treniņš" and "Taku/kalnu skrējiens" share the free-text form
   const isSameInterval = type === SAME_INTERVAL_TYPE || type === "Intervāli";
   const isVarInterval = type === VAR_INTERVAL_TYPE;
   const isInterval = isSameInterval || isVarInterval;
 
   intervalFields.hidden = !isSameInterval;
   varIntervalFields.hidden = !isVarInterval;
-  mainFields.hidden = isInterval || isOtherRun;
-  freeTextRow.hidden = !isOtherRun;
+  mainFields.hidden = isInterval || isFree;
+  freeTextRow.hidden = !isFree;
   document.getElementById("customIconPicker").hidden = !isOtherRun;
   if (!isOtherRun) setSelectedIcon("customIconPicker", "");
   drillsRow.hidden = isEasyOrLong || isSimple || isVelo;
-  mainExtraSection.hidden = !isOtherRun;
+  mainExtraSection.hidden = !isFree;
+  // No Drills in the main part (owner, 2026-11-15) - the box is offered only when an older
+  // plan already carries the line, so it can still be unticked.
+  document.getElementById("mainDrillsRow").hidden = !mainDrills.checked;
 
   const koptreniņšRow = document.getElementById("koptreniņšRow");
   if (koptreniņšRow) koptreniņšRow.hidden = !isSimple;
@@ -1645,10 +1671,13 @@ function renderCustomBuilder() {
 
   raceNutritionRow.hidden = !(supportsRaceNutrition(type) || raceNutrition.checked);
   const isTempo = type === "Tempa skrējiens";
-  spikesRow.hidden = !isInterval;
-  if (!isInterval) spikes.checked = false;
-  raceShoesRow.hidden = !(isInterval || isTempo);
-  if (!(isInterval || isTempo)) raceShoes.checked = false;
+  // "Cita veida treniņš" offers both too (2026-11-15).
+  // Spikes: never on a trail / mountain run (owner's call).
+  const spikesAllowed = isInterval || (isFree && type !== TRAIL_TYPE);
+  spikesRow.hidden = !spikesAllowed;
+  if (!spikesAllowed) spikes.checked = false;
+  raceShoesRow.hidden = !(isInterval || isTempo || isFree);
+  if (!(isInterval || isTempo || isFree)) raceShoes.checked = false;
 
   if (isVarInterval) {
     if (!varSegmentList.children.length) addVarSegmentRow(varSegmentList);
@@ -1658,17 +1687,13 @@ function renderCustomBuilder() {
 
   document.getElementById("customNameRow").hidden = !isOtherRun;
 
-  warmupToggleRow.hidden = !isEasyOrLong;
-  cooldownToggleRow.hidden = !isEasyOrLong;
+  // "Cita veida treniņš" has the same warm-up / cool-down tick boxes as a long run.
+  // The Iesildīšanās / Atsildīšanās tick boxes are gone (owner, 2026-11-15): a part
+  // with no duration is left out of the details anyway, so ticking added nothing.
+  warmupToggleRow.hidden = true;
+  cooldownToggleRow.hidden = true;
 
-  if (isEasyOrLong) {
-    document.getElementById("warmupSection").hidden = false;
-    document.getElementById("cooldownSection").hidden = false;
-    warmupFields.hidden = !includeWarmup.checked;
-    cooldownFields.hidden = !includeCooldown.checked;
-    document.getElementById("warmupAdditionalRow").hidden = !includeWarmup.checked;
-    document.getElementById("cooldownAdditionalRow").hidden = !includeCooldown.checked;
-  } else if (isSimple || isVelo) {
+  if (isSimple || isVelo) {
     document.getElementById("warmupSection").hidden = true;
     document.getElementById("cooldownSection").hidden = true;
     warmupFields.hidden = true;
@@ -1713,18 +1738,20 @@ function renderEditPlanBuilder() {
   const isSimple = type === "VFS" || type === "SFS";
   const isVelo = isCardioLineType(type);
   const isOtherRun = type === OTHER_RUN_TYPE;
+  const isFree = isFreeTextType(type); // "Cita veida treniņš" and "Taku/kalnu skrējiens" share the free-text form
   const isSameInterval = type === SAME_INTERVAL_TYPE || type === "Intervāli";
   const isVarInterval = type === VAR_INTERVAL_TYPE;
   const isInterval = isSameInterval || isVarInterval;
 
   document.getElementById("epIntervalFields").hidden = !isSameInterval;
   document.getElementById("epVarIntervalFields").hidden = !isVarInterval;
-  document.getElementById("epMainFields").hidden = isInterval || isOtherRun;
-  document.getElementById("epFreeTextRow").hidden = !isOtherRun;
+  document.getElementById("epMainFields").hidden = isInterval || isFree;
+  document.getElementById("epFreeTextRow").hidden = !isFree;
   document.getElementById("epIconPicker").hidden = !isOtherRun;
   if (!isOtherRun) setSelectedIcon("epIconPicker", "");
   document.getElementById("epDrillsRow").hidden = isEasyOrLong || isSimple || isVelo;
-  document.getElementById("epMainExtraSection").hidden = !isOtherRun;
+  document.getElementById("epMainExtraSection").hidden = !isFree;
+  document.getElementById("epMainDrillsRow").hidden = !document.getElementById("epMainDrills").checked;
 
   const epKoptreniņšRow = document.getElementById("epKoptreniņšRow");
   if (epKoptreniņšRow) epKoptreniņšRow.hidden = !isSimple;
@@ -1740,10 +1767,11 @@ function renderEditPlanBuilder() {
   const epIsTempo = type === "Tempa skrējiens";
   document.getElementById("epRaceNutritionRow").hidden =
     !(supportsRaceNutrition(type) || document.getElementById("epRaceNutrition").checked);
-  document.getElementById("epSpikesRow").hidden = !isInterval;
-  if (!isInterval) document.getElementById("epSpikes").checked = false;
-  document.getElementById("epRaceShoesRow").hidden = !(isInterval || epIsTempo);
-  if (!(isInterval || epIsTempo)) document.getElementById("epRaceShoes").checked = false;
+  const epSpikesAllowed = isInterval || (isFree && type !== TRAIL_TYPE);
+  document.getElementById("epSpikesRow").hidden = !epSpikesAllowed;
+  if (!epSpikesAllowed) document.getElementById("epSpikes").checked = false;
+  document.getElementById("epRaceShoesRow").hidden = !(isInterval || epIsTempo || isFree);
+  if (!(isInterval || epIsTempo || isFree)) document.getElementById("epRaceShoes").checked = false;
 
   if (isVarInterval) {
     if (!document.getElementById("epVarSegmentList").children.length) addVarSegmentRow(document.getElementById("epVarSegmentList"));
@@ -1753,17 +1781,10 @@ function renderEditPlanBuilder() {
 
   document.getElementById("epCustomNameRow").hidden = !isOtherRun;
 
-  document.getElementById("epWarmupToggleRow").hidden = !isEasyOrLong;
-  document.getElementById("epCooldownToggleRow").hidden = !isEasyOrLong;
+  document.getElementById("epWarmupToggleRow").hidden = true;
+  document.getElementById("epCooldownToggleRow").hidden = true;
 
-  if (isEasyOrLong) {
-    document.getElementById("epWarmupSection").hidden = false;
-    document.getElementById("epCooldownSection").hidden = false;
-    document.getElementById("epWarmupFields").hidden = !document.getElementById("epIncludeWarmup").checked;
-    document.getElementById("epCooldownFields").hidden = !document.getElementById("epIncludeCooldown").checked;
-    document.getElementById("epWarmupAdditionalRow").hidden = !document.getElementById("epIncludeWarmup").checked;
-    document.getElementById("epCooldownAdditionalRow").hidden = !document.getElementById("epIncludeCooldown").checked;
-  } else if (isSimple || isVelo) {
+  if (isSimple || isVelo) {
     document.getElementById("epWarmupSection").hidden = true;
     document.getElementById("epCooldownSection").hidden = true;
     document.getElementById("epWarmupFields").hidden = true;
@@ -1799,7 +1820,7 @@ function renderEditPlanBuilder() {
 function renderEditPlanPreview() {
   const training = getEditPlanTraining();
   const preview = document.getElementById("epPreview");
-  preview.innerHTML = `${previewBadgeHtml(training)}<strong>${displayTitle(training.title)}</strong><span>${formatDetailsForCard(training.details).replace(/\n/g, "<br>")}</span>`;
+  preview.innerHTML = `${previewBadgeHtml(training)}<strong>${displayTitle(training.title)}</strong><span>${formatDetailsForCard(training.details, "preview").replace(/\n/g, "<br>")}</span>`;
 }
 // #endregion
 
@@ -1841,7 +1862,7 @@ function splitDetailFields(line) {
 }
 
 function parsePlanToForm(plan) {
-  const knownTypes = ["Atjaunojošais/lēnais skrējiens", "Vidējas intensitātes skrējiens", "Garais skrējiens", "Intervāli", SAME_INTERVAL_TYPE, VAR_INTERVAL_TYPE, "Tempa skrējiens", OTHER_RUN_TYPE, "VFS", "SFS", "Velo", "Eliptiskais", "Cits"];
+  const knownTypes = ["Atjaunojošais/lēnais skrējiens", "Vidējas intensitātes skrējiens", "Garais skrējiens", "Intervāli", SAME_INTERVAL_TYPE, VAR_INTERVAL_TYPE, "Tempa skrējiens", TRAIL_TYPE, OTHER_RUN_TYPE, "VFS", "SFS", "Velo", "Eliptiskais", "Cits"];
   const isKnownType = knownTypes.includes(plan.title);
   const resolvedType = isKnownType ? plan.title : OTHER_RUN_TYPE;
 
@@ -1919,7 +1940,7 @@ function parsePlanToForm(plan) {
       const mainContent = line.replace(CARDIO_LABEL_RE, "");
       if (cardioLabel) document.getElementById("epType").value = cardioLabel;
       if (mainContent) {
-        if (resolvedType === OTHER_RUN_TYPE) {
+        if (isFreeTextType(resolvedType)) {
           document.getElementById("epFreeText").value = mainContent;
         } else {
           const isVar = plan.title === VAR_INTERVAL_TYPE && isVarIntervalLine(line);
@@ -2019,7 +2040,7 @@ function loadTemplateToForm(template) {
 
   clearCustomBuilderFields();
 
-  const knownTypes = ["Atjaunojošais/lēnais skrējiens", "Vidējas intensitātes skrējiens", "Garais skrējiens", "Intervāli", SAME_INTERVAL_TYPE, VAR_INTERVAL_TYPE, "Tempa skrējiens", OTHER_RUN_TYPE, "VFS", "SFS", "Velo", "Eliptiskais", "Cits"];
+  const knownTypes = ["Atjaunojošais/lēnais skrējiens", "Vidējas intensitātes skrējiens", "Garais skrējiens", "Intervāli", SAME_INTERVAL_TYPE, VAR_INTERVAL_TYPE, "Tempa skrējiens", TRAIL_TYPE, OTHER_RUN_TYPE, "VFS", "SFS", "Velo", "Eliptiskais", "Cits"];
   const isKnownType = knownTypes.includes(name);
   let type = name;
   if (!isKnownType) type = OTHER_RUN_TYPE;
@@ -2079,7 +2100,7 @@ function loadTemplateToForm(template) {
       mainSeen = true;
       if (type === VAR_INTERVAL_TYPE && isVarIntervalLine(line)) {
         parseVarIntervalMain(line, varSegmentList, varLaps, varRestBetweenLaps);
-      } else if (type === OTHER_RUN_TYPE) {
+      } else if (isFreeTextType(type)) {
         setVal("customFreeText", rest);
       } else {
         // Stop the length at ";" / "(" — with no pace written, "6x400m; caur 2min"
@@ -2465,11 +2486,13 @@ function formatDetailsForCard(details, calendarMode) {
   const result = merged.map((line) => {
     // In the calendar a Velo line is the main line too (bold, label dropped, so
     // the card reads "Velo" / "1h; 130-140"). Previews and template lists keep
-    // the label, as they always did.
+    // the label, as they always did. "preview" (the builder's and the edit
+    // dialog's preview) is the card's reading of a Velo/Eliptiskais line - title
+    // bold, details below, label dropped - without the card's section relabelling.
     const isMainLine = line.startsWith("Pamatdaļa:") || (calendarMode && cardioLineLabel(line));
     if (!isMainLine) {
       let relabeled = line;
-      if (calendarMode) {
+      if (calendarMode && calendarMode !== "preview") {
         const m = line.match(/^(Iesildīšanās|Atsildīšanās):(.*)$/su);
         if (m) {
           const { first, rest } = splitFirstFieldForTick(m[2]);
@@ -2498,6 +2521,7 @@ function badgeForTitle(title) {
   if (t.includes("garais")) return "⌛";
   if (t.includes("intervāli")) return "⚡";
   if (t.includes("tempa")) return "📈";
+  if (t.includes("taku/kalnu")) return "🌲";
   if (t.includes("vfs") || t.includes("sfs")) return "💪";
   if (t.includes("velo")) return "🚴";
   if (t.includes("eliptiskais")) return ELIPTISKAIS_ICON_HTML;
@@ -3228,6 +3252,24 @@ document.getElementById("weekReviewedCheckbox")?.addEventListener("change", asyn
   await loadNonTemplateData();
 });
 
+// The sidebar's year switch (panels/year-filter.js) changed: reload the charts for
+// that year and redraw everything that lists rows. Nothing is refetched for the
+// lists - they filter what is already loaded.
+async function applyYearFilter() {
+  const athleteId = getSelectedAthleteId();
+  if (athleteId) {
+    [weeklyTrend, monthlyTrend] = await Promise.all([
+      safeGet(loadWeeklyTrend(athleteId), []),
+      safeGet(loadMonthlyTrend(athleteId), []),
+    ]);
+  }
+  render();
+  if (athleteId) {
+    const activeTab = document.querySelector("#raceCalendarPanel [data-race-tab].active");
+    renderRaceTab(activeTab ? activeTab.dataset.raceTab : "upcoming");
+  }
+}
+
 function wireWeeklySummarySave() {
   const athleteId = getSelectedAthleteId();
   const isAthleteView = (activeRole === "athlete") && currentUser.id === athleteId;
@@ -3252,7 +3294,7 @@ function wireWeeklySummarySave() {
         weeklySummary = await getWeeklySummary(athleteId, weekStart);
         renderWeekEntryBadge();
         if (isAthleteView) {
-          weeklyTrend = await getWeeklyTrend(athleteId, trendWeeks);
+          weeklyTrend = await loadWeeklyTrend(athleteId);
           renderStats();
         }
       } catch (e) {
@@ -3656,7 +3698,21 @@ athleteSelect.addEventListener("change", async () => {
 
 document.getElementById("dropdownTrigger").addEventListener("click", (e) => {
   e.stopPropagation();
-  document.getElementById("athleteDropdown").classList.toggle("open");
+  const dd = document.getElementById("athleteDropdown");
+  dd.classList.toggle("open");
+  if (dd.classList.contains("open")) {
+    // The list is as tall as the screen allows below the trigger and scrolls by
+    // itself, so the sidebar behind it stays where it is (2026-11-15). Real
+    // pixels divided by the body zoom, as in placeFixed().
+    const list = document.getElementById("dropdownList");
+    // Down to the bottom of the sidebar's own scroll box (or the screen), whichever
+    // is higher - a list poking out below the box makes the sidebar scroll.
+    const box = document.querySelector(".planner-panel__scroll");
+    const floor = Math.min(window.innerHeight, box ? box.getBoundingClientRect().bottom : window.innerHeight);
+    const room = floor - document.getElementById("dropdownTrigger").getBoundingClientRect().bottom - 8;
+    list.style.maxHeight = `${Math.max(200, room) / uiZoom()}px`;
+    list.scrollTop = 0;
+  }
 });
 
 document.getElementById("dropdownList").addEventListener("click", (e) => {
@@ -3913,9 +3969,26 @@ const VIDEO_TUTORIALS = [
   { title: "Staipīšanās – pēc treniņa", url: "https://www.youtube.com/watch?v=nd5inCvJkoU" },
 ];
 
-// A header button that drops a list under itself. Used by the video list and the
-// exercise-PDF list; opening one closes the other.
+// A header button that drops a list under itself (the exercise library; its
+// Video pamācības entry opens a second list beside it, see below).
 const headerMenuClosers = [];
+// Wide screens draw <body> at zoom 0.8 (styles.css). getBoundingClientRect() and
+// innerWidth are in real screen pixels, but top/left on a fixed element inside
+// the zoomed body are in zoomed ones, so a menu placed from a button's rect lands
+// 20% too far up-left unless the numbers are divided by the zoom.
+function uiZoom() {
+  const z = parseFloat(getComputedStyle(document.body).zoom);
+  return z > 0 ? z : 1;
+}
+// Puts a fixed element at a screen position (left/top in real pixels), kept
+// fully on screen.
+function placeFixed(el, left, top) {
+  const z = uiZoom();
+  const w = el.offsetWidth * z;
+  const h = el.offsetHeight * z;
+  el.style.left = `${Math.max(8, Math.min(left, window.innerWidth - w - 8)) / z}px`;
+  el.style.top = `${Math.max(8, Math.min(top, window.innerHeight - h - 8)) / z}px`;
+}
 function setupHeaderMenu(btn, list, html) {
   if (!btn || !list) return;
   list.innerHTML = html;
@@ -3926,8 +3999,7 @@ function setupHeaderMenu(btn, list, html) {
       // The list is fixed-position (the header clips anything hanging out of it),
       // so place it under the button by hand, after it is shown so it has a width.
       const r = btn.getBoundingClientRect();
-      list.style.top = `${r.bottom + 6}px`;
-      list.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - list.offsetWidth - 8))}px`;
+      placeFixed(list, r.left, r.bottom + 6);
     }
     btn.setAttribute("aria-expanded", String(open));
   };
@@ -3943,14 +4015,6 @@ function setupHeaderMenu(btn, list, html) {
     if (e.key === "Escape") setOpen(false);
   });
 }
-
-setupHeaderMenu(
-  document.getElementById("videoMenuBtn"),
-  document.getElementById("videoMenuList"),
-  VIDEO_TUTORIALS.length
-    ? VIDEO_TUTORIALS.map((v) => `<a href="${v.url}" target="_blank" rel="noopener">${v.title}</a>`).join("")
-    : `<span class="video-menu-empty">Video drīzumā</span>`
-);
 
 // Exercise instructions as PDFs in the pdf/ folder (made from the coach's text,
 // one shared layout). To add one: add { title, file, time } to its group; time is
@@ -3999,6 +4063,47 @@ setupHeaderMenu(
       ).join("")
     : `<span class="video-menu-empty">Instrukcijas drīzumā</span>`
 );
+
+// "Video pamācības" lives at the end of the library list and opens a second list
+// beside it (owner's call 2026-11-15; it used to be a header button of its own).
+// Wide screens: a flyout to the right of the library list. Narrow ones have no
+// room beside it, so it opens just under its row instead.
+(function setupVideoSubmenu() {
+  const main = document.getElementById("exerciseMenuList");
+  const sub = document.getElementById("videoSubList");
+  if (!main || !sub) return;
+  sub.innerHTML = VIDEO_TUTORIALS.length
+    ? VIDEO_TUTORIALS.map((v) => `<a href="${v.url}" target="_blank" rel="noopener">${v.title}</a>`).join("")
+    : `<span class="video-menu-empty">Video drīzumā</span>`;
+  main.insertAdjacentHTML(
+    "beforeend",
+    `<button type="button" class="video-submenu-trigger secondary-action" aria-haspopup="true" aria-expanded="false">Video pamācības ▸</button>`
+  );
+  const trigger = main.querySelector(".video-submenu-trigger");
+  const setSub = (open) => {
+    sub.hidden = !open;
+    trigger.setAttribute("aria-expanded", String(open));
+    if (!open) return;
+    const t = trigger.getBoundingClientRect();
+    const m = main.getBoundingClientRect();
+    const wide = window.innerWidth >= 900;
+    const left = wide ? m.right + 6 : 8;
+    const top = wide ? t.top : t.bottom + 4;
+    placeFixed(sub, left, top);
+  };
+  trigger.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setSub(sub.hidden);
+  });
+  // Anything outside the two lists, Esc, or the library list closing shuts it.
+  document.addEventListener("click", (e) => {
+    if (!sub.hidden && !sub.contains(e.target)) setSub(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setSub(false);
+  });
+  new MutationObserver(() => { if (main.hidden) setSub(false); }).observe(main, { attributes: true, attributeFilter: ["hidden"] });
+})();
 
 document.getElementById("guideBtn")?.addEventListener("click", () => {
   window.open("pamaciba.html", "_blank", "noopener");
