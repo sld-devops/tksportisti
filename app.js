@@ -1658,6 +1658,9 @@ function renderCustomBuilder() {
   if (!isOtherRun) setSelectedIcon("customIconPicker", "");
   drillsRow.hidden = isEasyOrLong || isSimple || isVelo;
   mainExtraSection.hidden = !isFree;
+  // No Drills in the main part (owner, 2026-11-15) - the box is offered only when an older
+  // plan already carries the line, so it can still be unticked.
+  document.getElementById("mainDrillsRow").hidden = !mainDrills.checked;
 
   const koptreniņšRow = document.getElementById("koptreniņšRow");
   if (koptreniņšRow) koptreniņšRow.hidden = !isSimple;
@@ -1754,6 +1757,7 @@ function renderEditPlanBuilder() {
   if (!isOtherRun) setSelectedIcon("epIconPicker", "");
   document.getElementById("epDrillsRow").hidden = isEasyOrLong || isSimple || isVelo;
   document.getElementById("epMainExtraSection").hidden = !isFree;
+  document.getElementById("epMainDrillsRow").hidden = !document.getElementById("epMainDrills").checked;
 
   const epKoptreniņšRow = document.getElementById("epKoptreniņšRow");
   if (epKoptreniņšRow) epKoptreniņšRow.hidden = !isSimple;
