@@ -7617,3 +7617,10 @@ input.needs-value {
 .video-sub-list {
   z-index: 1003; /* above the library list it hangs from */
 }
+
+/* "Nav veiktu ierakstu" in a sidebar panel that has nothing in it yet. */
+.panel-empty {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 4px 0 10px;
+}

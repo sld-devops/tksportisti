@@ -693,3 +693,7 @@ From 1400px of viewport width up, `body { zoom: 0.8 }` (end of `styles.css`): th
 The separate header button is gone. The library dropdown (`#exerciseMenuList`) ends with a "Video" heading and a "Video pamācības ▸" row (`.video-submenu-trigger`, a `.secondary-action` button like the header ones, added by `setupVideoSubmenu()` in `app.js`); clicking it opens `#videoSubList` (`VIDEO_TUTORIALS`) as a flyout to the right of the library list on screens >= 900px, and just under its row on narrower ones. The library list is as tall as the screen allows (`max-height: calc(100vh - 90px)`) so the whole list shows without scrolling.
 
 **Menus are placed with `placeFixed()`, which divides by `uiZoom()`**: `<body>` is drawn at `zoom: 0.8` on wide screens, `getBoundingClientRect()` is in real pixels, but `left`/`top` on a fixed element inside the zoomed body are in zoomed ones - without the division the list sat 20% up-left of its button (measured at 1400px). Any new fixed popup positioned from a rect needs the same.
+
+### Empty sidebar lists say "Nav veiktu ierakstu" (2026-11-15)
+
+Health journal, Diary, Restrictions, Records, the five test panels and Laktāta tests show `<p class="panel-empty">Nav veiktu ierakstu</p>` when the athlete has nothing in them, instead of a blank body (Restrictions says "Nav spēkā esošu ierakstu" when only past entries exist, since the past-note sits right under it). A new list panel needs the same. Interval history has had its own messages since earlier; HR zones, pace/HR and thresholds are always forms and need none.

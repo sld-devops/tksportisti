@@ -120,7 +120,7 @@ function renderRecords() {
   document.getElementById("recordsBody").innerHTML = `
     <div class="profile-section">
       <div class="profile-records" id="profileRecords">
-        ${recordsHtml}
+        ${records.length ? recordsHtml : '<p class="panel-empty">Nav veiktu ierakstu</p>'}
         ${customRecords.map((r) => renderRecordRow(r, canEditRecords)).join("")}
       </div>
       ${canEditRecords ? '<button class="secondary-action panel-add-btn" id="addRecordEntryBtn" type="button">Pievienot</button>' : ""}

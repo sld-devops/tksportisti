@@ -113,7 +113,7 @@ function renderDiary() {
             </div>
           </div>
         `).join("")
-      : "";
+      : '<p class="panel-empty">Nav veiktu ierakstu</p>';
     watchDiaryOverflow(body);
     return;
   }
@@ -133,7 +133,7 @@ function renderDiary() {
           </div>
         </div>
       `).join("")
-    : "";
+    : '<p class="panel-empty">Nav veiktu ierakstu</p>';
 
   const form = canEdit ? `
     <div class="diary-form">

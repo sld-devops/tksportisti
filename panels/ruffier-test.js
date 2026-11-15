@@ -91,7 +91,7 @@ function renderRuffierTests() {
   html += `</div>`;
 
   if (ruffierTests.length === 0) {
-    html += "";
+    html += '<p class="panel-empty">Nav veiktu ierakstu</p>';
   } else {
     html += `<div class="selftest-list">`;
     ruffierTests.forEach(t => {

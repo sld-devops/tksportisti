@@ -59,7 +59,7 @@ function renderSelfTests() {
           <span class="selftest-date">${formatDateLV(s.date)}</span>
         </div>
       `).join("")
-    : "";
+    : '<p class="panel-empty">Nav veiktu ierakstu</p>';
 
   const addBtn = isAthleteView
     ? '<button id="addSelfTestBtn" class="secondary-action panel-add-btn" type="button">Pievienot</button>'

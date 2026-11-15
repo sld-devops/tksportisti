@@ -333,7 +333,7 @@ function renderRestrictionCards() {
           </div>
         `;
       }).join("")
-    : "";
+    : `<p class="panel-empty">${pastCount ? "Nav spēkā esošu ierakstu" : "Nav veiktu ierakstu"}</p>`;
 
   const pastNote = pastCount
     ? `<div class="restriction-past-note">Pagājušie ierobežojumi (${pastCount}) šeit vairs netiek rādīti — tie paliek redzami nedēļas un mēneša skatā.</div>`

@@ -89,7 +89,7 @@ function renderHealthJournal() {
   let html = "";
 
   if (!healthEntries.length) {
-    html += "";
+    html += '<p class="panel-empty">Nav veiktu ierakstu</p>';
   } else {
     html += `<div class="health-list">`;
     healthEntries.forEach(e => {

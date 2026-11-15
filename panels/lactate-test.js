@@ -287,6 +287,8 @@ function renderLactateTests() {
       </div>`;
     });
     html += `</div>`;
+  } else {
+    html += '<p class="panel-empty">Nav veiktu ierakstu</p>';
   }
   html += `<button id="addLactateTestBtn" class="secondary-action panel-add-btn" type="button">Pievienot</button>`;
 
