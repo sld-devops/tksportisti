@@ -1668,8 +1668,10 @@ function renderCustomBuilder() {
   raceNutritionRow.hidden = !(supportsRaceNutrition(type) || raceNutrition.checked);
   const isTempo = type === "Tempa skrējiens";
   // "Cita veida treniņš" offers both too (2026-11-15).
-  spikesRow.hidden = !(isInterval || isFree);
-  if (!(isInterval || isFree)) spikes.checked = false;
+  // Spikes: never on a trail / mountain run (owner's call).
+  const spikesAllowed = isInterval || (isFree && type !== TRAIL_TYPE);
+  spikesRow.hidden = !spikesAllowed;
+  if (!spikesAllowed) spikes.checked = false;
   raceShoesRow.hidden = !(isInterval || isTempo || isFree);
   if (!(isInterval || isTempo || isFree)) raceShoes.checked = false;
 
@@ -1765,8 +1767,9 @@ function renderEditPlanBuilder() {
   const epIsTempo = type === "Tempa skrējiens";
   document.getElementById("epRaceNutritionRow").hidden =
     !(supportsRaceNutrition(type) || document.getElementById("epRaceNutrition").checked);
-  document.getElementById("epSpikesRow").hidden = !(isInterval || isFree);
-  if (!(isInterval || isFree)) document.getElementById("epSpikes").checked = false;
+  const epSpikesAllowed = isInterval || (isFree && type !== TRAIL_TYPE);
+  document.getElementById("epSpikesRow").hidden = !epSpikesAllowed;
+  if (!epSpikesAllowed) document.getElementById("epSpikes").checked = false;
   document.getElementById("epRaceShoesRow").hidden = !(isInterval || epIsTempo || isFree);
   if (!(isInterval || epIsTempo || isFree)) document.getElementById("epRaceShoes").checked = false;
 
