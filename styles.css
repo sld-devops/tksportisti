@@ -7501,3 +7501,12 @@ body.is-dragging .session-card.is-draggable {
   margin: 0 0 10px;
   padding: 8px 12px;
 }
+
+/* A drawn type icon (images/eliptiskais.svg) standing where an emoji would: it
+   takes the size of the text around it. */
+.type-icon {
+  display: inline-block;
+  height: 1.2em;
+  vertical-align: -0.25em;
+  width: 1.2em;
+}

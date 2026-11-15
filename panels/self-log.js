@@ -140,6 +140,13 @@ function renderSelfLogForm(dateStr) {
 // textarea — a restriction, a health entry, a rest day, a race, or simply an
 // earlier self-log card — so this card must not render a second one bound to the
 // same date. Two of them would be two boxes writing over each other's text.
+// badgeForTitle() returns markup for a drawn icon (Eliptiskais); only a plain
+// emoji may be stored in the log - an empty icon falls back to badgeForTitle()
+// when the card is drawn.
+function emojiOnlyIcon(icon) {
+  return typeof icon === "string" && icon.startsWith("<") ? "" : icon;
+}
+
 function renderSelfLogCard(log, dayCommentTaken) {
   const d = getSelfLogData(log);
   const title = d.title || "";
@@ -222,7 +229,7 @@ async function saveSelfLogForm() {
       athlete_id: athleteId,
       date: dateStr,
       activity_type: getActivityType(title),
-      log_data: [{ section: SELF_LOG_SECTION, title, icon: badgeForTitle(title), tod, text }],
+      log_data: [{ section: SELF_LOG_SECTION, title, icon: emojiOnlyIcon(badgeForTitle(title)), tod, text }],
       feeling,
       feeling_tags: null,
       notes,

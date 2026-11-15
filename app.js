@@ -1543,12 +1543,18 @@ function renderCustomBuilder() {
   const type = customType.value;
   const customTypeTrigger = document.querySelector("#customTypeDropdown .dropdown-selected");
   if (customTypeTrigger) {
-    const optionText = customType.options[customType.selectedIndex]?.textContent || "Izvēlies treniņa tipu";
+    const selectedOption = customType.options[customType.selectedIndex];
+    const optionText = selectedOption?.textContent || "Izvēlies treniņa tipu";
     // Once an icon has been picked, the trigger shows that icon instead of the
     // type's default one, so the choice is visible without opening anything.
     // The list itself keeps the default - there the icon labels the type.
     const pickedIcon = getSelectedIcon("customIconPicker");
-    customTypeTrigger.textContent = pickedIcon ? pickedIcon + " " + type : optionText;
+    if (!pickedIcon && selectedOption?.dataset.iconImg) {
+      // A type whose icon is a drawn image (Eliptiskais) - text alone would lose it.
+      customTypeTrigger.innerHTML = `<span>${ELIPTISKAIS_ICON_HTML} ${escapeHtml(optionText)}</span>`;
+    } else {
+      customTypeTrigger.textContent = pickedIcon ? pickedIcon + " " + type : optionText;
+    }
   }
   document.querySelectorAll("#customTypeDropdown .type-dropdown-item").forEach((item) => {
     item.classList.toggle("selected", item.dataset.value === type);
@@ -2416,6 +2422,12 @@ function formatDetailsForCard(details, calendarMode) {
   return result.join("\n");
 }
 
+// There is no elliptical-trainer emoji, so this type's icon is a drawn image
+// (images/eliptiskais.svg), sized like an emoji by .type-icon. Because the
+// result is markup rather than a character, never store badgeForTitle()'s
+// return value in the database (see panels/self-log.js) - store emoji only.
+const ELIPTISKAIS_ICON_HTML = '<img class="type-icon" src="images/eliptiskais.svg" alt="" width="16" height="16">';
+
 function badgeForTitle(title) {
   const t = (title || "").toLowerCase();
   if (t.includes("vieglais") || t.includes("atjaunojošais") || t.includes("lēnais")) return "🐢";
@@ -2425,7 +2437,7 @@ function badgeForTitle(title) {
   if (t.includes("tempa")) return "📈";
   if (t.includes("vfs") || t.includes("sfs")) return "💪";
   if (t.includes("velo")) return "🚴";
-  if (t.includes("eliptiskais")) return "🔄";
+  if (t.includes("eliptiskais")) return ELIPTISKAIS_ICON_HTML;
   return "🎲";
 }
 
@@ -4404,7 +4416,7 @@ document.addEventListener("click", () => {
 const customTypeDropdownList = document.querySelector("#customTypeDropdown .dropdown-list");
 customTypeDropdownList.innerHTML = Array.from(customType.options)
   .filter(opt => opt.value)
-  .map(opt => `<div class="type-dropdown-item" data-value="${opt.value}">${opt.textContent}</div>`)
+  .map(opt => `<div class="type-dropdown-item" data-value="${opt.value}">${opt.dataset.iconImg ? `<span>${ELIPTISKAIS_ICON_HTML} ${opt.textContent}</span>` : opt.textContent}</div>`)
   .join("");
 
 customTypeDropdownList.addEventListener("click", (e) => {
