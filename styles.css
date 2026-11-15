@@ -6088,7 +6088,8 @@ textarea:disabled {
 }
 
 /* Header buttons carry a short alternative label for phones. */
-.label-short {
+.label-short,
+.label-mid {
   display: none;
 }
 
@@ -6122,11 +6123,22 @@ textarea:disabled {
    even started. This block has to stay after the base rule above, which is the
    same specificity. */
 @media (max-width: 720px) {
-  .label-full {
+  /* 2026-11-15: the owner has room for explanatory labels on a phone (and in
+     the installed app), so the full wording is back; only the library, whose
+     full name is a whole line, gets a middle-length one (.label-mid). */
+  .label-short {
     display: none;
   }
 
-  .label-short {
+  .label-full {
+    display: inline;
+  }
+
+  #exerciseLibraryBtn .label-full {
+    display: none;
+  }
+
+  #exerciseLibraryBtn .label-mid {
     display: inline;
   }
 
