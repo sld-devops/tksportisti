@@ -3839,6 +3839,7 @@ label {
 .chart-series-2 { --series: #eb6834; }
 .chart-series-3 { --series: #1baf7a; }
 .chart-series-4 { --series: #eda100; }
+.chart-series-5 { --series: #8a5cc7; }
 
 .chart-facets {
   margin-top: 10px;

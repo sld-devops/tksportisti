@@ -664,3 +664,10 @@ Added 2026-11-14, in the week navigation row next to "Nokopēt plānu" (`#clearW
 - **The confirmation lists counts, not sentences with a number in them** ("Tiks dzēsti treniņi: 4") — Latvian declension (1 treniņš / 2 treniņi) is not something to get wrong in a dialog that cannot be undone. There is no undo.
 - **Each deleted plan goes through `queuePlanDeleteNotification()`**, exactly like the single ✕: one digest email to the athlete after 10 quiet minutes. The week stops being "full" by itself — `refreshWeekStatuses()` cancels a pending "Nedēļas plāns gatavs" email when the week no longer is.
 - Verified headless against a stubbed database: coach sees the button, athlete and month view do not; cancelling changes nothing; confirming leaves the logged plan, other weeks and other athletes alone and clears the rest days.
+
+### "Eliptiskais" is the fifth figure and the fifth chart (2026-11-15)
+
+The weekly figures ("Paveiktā statistika") got a fifth box, `wsElipt` ("Eliptiskais (h)"), and `STATS_METRICS` a fifth facet below Velo (`elipt_min`, `chart-series-5`, violet `#8a5cc7` - **not** run through the colourblind check the first four passed; identity does not rest on colour because every facet is titled). It follows Velo exactly: a real column, `weekly_summaries.elipt_min`.
+
+- **The column needs `supabase/weekly_summaries_elipt.sql` run once** in the Supabase SQL editor. Until then the code degrades instead of failing: the trend queries use `select("*")`, and `upsertWeeklySummary()` retries without `elipt_min` if the database rejects it, so everything else still saves - only the Eliptiskais number is lost.
+- It counts in `isWeekEntryFilled()` and in the "auto upsert" emptiness check, like the other four.

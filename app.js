@@ -1058,7 +1058,7 @@ async function loadNonTemplateData() {
     await safeGet(refreshAthleteDiarySet(), undefined);
   }
 
-  if (logEntries.length && (!weeklySummary || (!weeklySummary.run_km && !weeklySummary.run_min && !weeklySummary.vfs_sfs_min && !weeklySummary.velo_min))) {
+  if (logEntries.length && (!weeklySummary || (!weeklySummary.run_km && !weeklySummary.run_min && !weeklySummary.vfs_sfs_min && !weeklySummary.velo_min && !weeklySummary.elipt_min))) {
     const autoRunKm = logEntries.reduce((s, e) => s + (e.distance_km || 0), 0);
     const autoTotalMin = logEntries.reduce((s, e) => s + (e.duration_min || 0), 0);
     const autoGymMin = logEntries.filter(e => e.activity_type === "gym").reduce((s, e) => s + (e.duration_min || 0), 0);
@@ -3100,12 +3100,12 @@ function renderWeeklySummary() {
 // athlete types, and falls back to the stored row otherwise (coach view, or
 // before the week has been rendered).
 function isWeekEntryFilled() {
-  const inputs = ["wsRunKm", "wsRunMin", "wsVfsSfs", "wsVelo"].map((id) => document.getElementById(id));
+  const inputs = ["wsRunKm", "wsRunMin", "wsVfsSfs", "wsVelo", "wsElipt"].map((id) => document.getElementById(id));
   if (inputs.every(Boolean)) {
     return inputs.some((el) => parseHoursMinutesInput(el.value) > 0);
   }
   const s = weeklySummary || {};
-  return [s.run_km, s.run_min, s.vfs_sfs_min, s.velo_min].some((v) => Number(v) > 0);
+  return [s.run_km, s.run_min, s.vfs_sfs_min, s.velo_min, s.elipt_min].some((v) => Number(v) > 0);
 }
 
 // Athlete-only reminder (2026-09-12): the coach isn't the one filling this in,
@@ -3130,6 +3130,7 @@ function renderWeekNumbers() {
   const runMin = s.run_min || "";
   const vfsSfs = s.vfs_sfs_min || "";
   const velo = s.velo_min || "";
+  const elipt = s.elipt_min || "";
 
   box.innerHTML = `
     <div class="ws-fields">
@@ -3137,6 +3138,7 @@ function renderWeekNumbers() {
       <label>Kopējais laiks visos treniņos (h) <input id="wsRunMin" class="ws-time" type="text" value="${runMin}" ${isAthleteView ? "" : "disabled"} ${isAthleteView ? 'placeholder="piem. 10h45m"' : ""} /></label>
       <label>VFS/SFS (h) <input id="wsVfsSfs" class="ws-time" type="text" value="${vfsSfs}" ${isAthleteView ? "" : "disabled"} ${isAthleteView ? 'placeholder="piem. 1h30m"' : ""} /></label>
       <label>Velo (h) <input id="wsVelo" class="ws-time" type="text" value="${velo}" ${isAthleteView ? "" : "disabled"} ${isAthleteView ? 'placeholder="piem. 0h45m"' : ""} /></label>
+      <label>Eliptiskais (h) <input id="wsElipt" class="ws-time" type="text" value="${elipt}" ${isAthleteView ? "" : "disabled"} ${isAthleteView ? 'placeholder="piem. 0h45m"' : ""} /></label>
     </div>
   `;
 
@@ -3242,6 +3244,7 @@ function wireWeeklySummarySave() {
         updates.run_min = parseHoursMinutesInput(document.getElementById("wsRunMin").value);
         updates.vfs_sfs_min = parseHoursMinutesInput(document.getElementById("wsVfsSfs").value);
         updates.velo_min = parseHoursMinutesInput(document.getElementById("wsVelo").value);
+        updates.elipt_min = parseHoursMinutesInput(document.getElementById("wsElipt").value);
         updates.athlete_comment = document.getElementById("wsAthleteComment").value.trim();
       }
       try {
