@@ -2433,10 +2433,10 @@ function formatDetailsForCard(details, calendarMode) {
 }
 
 // There is no elliptical-trainer emoji, so this type's icon is a drawn image
-// (images/eliptiskais.svg), sized like an emoji by .type-icon. Because the
+// (images/eliptiskais.png), sized like an emoji by .type-icon. Because the
 // result is markup rather than a character, never store badgeForTitle()'s
 // return value in the database (see panels/self-log.js) - store emoji only.
-const ELIPTISKAIS_ICON_HTML = '<img class="type-icon" src="images/eliptiskais.svg" alt="" width="16" height="16">';
+const ELIPTISKAIS_ICON_HTML = '<img class="type-icon" src="images/eliptiskais.png" alt="" width="16" height="16">';
 
 function badgeForTitle(title) {
   const t = (title || "").toLowerCase();
