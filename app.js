@@ -381,11 +381,11 @@ function stridesDetailOf(line) {
 // like a Python `dict`, except the keys are written without quotes and read
 // with a dot (`obj.title`, not `obj["title"]`).
 // Training types whose whole session is one line, "<Type>: duration; pulse" -
-// Velo and Eliptical (the elliptical trainer). They have no warm-up, cool-down
+// Velo and Eliptiskais (the elliptical trainer). They have no warm-up, cool-down
 // or drills, and the main line carries the type's own name instead of
 // "Pamatdaļa:". Adding another such type means adding it here, to
 // TEMPLATE_GROUPS, to the two type <select>s in index.html and to badgeForTitle.
-const CARDIO_LINE_TYPES = ["Velo", "Eliptical"];
+const CARDIO_LINE_TYPES = ["Velo", "Eliptiskais"];
 const isCardioLineType = (t) => CARDIO_LINE_TYPES.includes(t);
 // "Velo: 1h; 130-140" -> the label, or "" for any other line.
 const cardioLineLabel = (line) => CARDIO_LINE_TYPES.find((t) => (line || "").startsWith(t + ":")) || "";
@@ -1264,13 +1264,13 @@ const TEMPLATE_GROUPS = [
   { key: "tempo", label: "Tempa skrējieni", types: ["Tempa skrējiens"] },
   { key: "other", label: "Citi skrējieni", types: [OTHER_RUN_TYPE, OTHER_RUN_LEGACY_TYPE] },
   { key: "vfs_sfs", label: "VFS/SFS", types: ["VFS", "SFS"] },
-  { key: "velo", label: "Velo", types: ["Velo"] },
-  { key: "eliptical", label: "Eliptical", types: ["Eliptical"] },
+  { key: "velo", label: "Velo/Eliptiskais", types: ["Velo", "Eliptiskais"] },
 ];
 
-// The most-used table covers running only — VFS/SFS/Velo are excluded from it
-// entirely, and are not even counted.
-const FREQUENT_GROUPS = TEMPLATE_GROUPS.filter((g) => g.key !== "vfs_sfs" && g.key !== "velo" && g.key !== "eliptical");
+// The most-used table is every group but VFS/SFS, which is excluded from it
+// entirely and not even counted. Velo/Eliptiskais is the last row, below
+// "Citi skrējieni".
+const FREQUENT_GROUPS = TEMPLATE_GROUPS.filter((g) => g.key !== "vfs_sfs");
 
 function renderTemplates() {
   const athleteId = getSelectedAthleteId();
@@ -1394,7 +1394,7 @@ function frequentGroupKey(title) {
   const base = (title || "").replace(/\s*Koptreniņš\s*$/, "").trim();
   const group = TEMPLATE_GROUPS.find((g) => g.types.includes(base));
   // No group at all means a coach-written name ("Fartleks") — that is what
-  // "Citi skrējieni" is for. VFS/SFS/Velo do match a group, just not one this
+  // "Citi skrējieni" is for. VFS/SFS does match a group, just not one this
   // table covers, and those are dropped rather than swept into "Citi".
   if (!group) return "other";
   return FREQUENT_GROUPS.some((g) => g.key === group.key) ? group.key : null;
@@ -1810,7 +1810,7 @@ function splitDetailFields(line) {
 }
 
 function parsePlanToForm(plan) {
-  const knownTypes = ["Atjaunojošais/lēnais skrējiens", "Vidējas intensitātes skrējiens", "Garais skrējiens", "Intervāli", SAME_INTERVAL_TYPE, VAR_INTERVAL_TYPE, "Tempa skrējiens", OTHER_RUN_TYPE, "VFS", "SFS", "Velo", "Eliptical", "Cits"];
+  const knownTypes = ["Atjaunojošais/lēnais skrējiens", "Vidējas intensitātes skrējiens", "Garais skrējiens", "Intervāli", SAME_INTERVAL_TYPE, VAR_INTERVAL_TYPE, "Tempa skrējiens", OTHER_RUN_TYPE, "VFS", "SFS", "Velo", "Eliptiskais", "Cits"];
   const isKnownType = knownTypes.includes(plan.title);
   const resolvedType = isKnownType ? plan.title : OTHER_RUN_TYPE;
 
@@ -1988,7 +1988,7 @@ function loadTemplateToForm(template) {
 
   clearCustomBuilderFields();
 
-  const knownTypes = ["Atjaunojošais/lēnais skrējiens", "Vidējas intensitātes skrējiens", "Garais skrējiens", "Intervāli", SAME_INTERVAL_TYPE, VAR_INTERVAL_TYPE, "Tempa skrējiens", OTHER_RUN_TYPE, "VFS", "SFS", "Velo", "Eliptical", "Cits"];
+  const knownTypes = ["Atjaunojošais/lēnais skrējiens", "Vidējas intensitātes skrējiens", "Garais skrējiens", "Intervāli", SAME_INTERVAL_TYPE, VAR_INTERVAL_TYPE, "Tempa skrējiens", OTHER_RUN_TYPE, "VFS", "SFS", "Velo", "Eliptiskais", "Cits"];
   const isKnownType = knownTypes.includes(name);
   let type = name;
   if (!isKnownType) type = OTHER_RUN_TYPE;
@@ -2425,7 +2425,7 @@ function badgeForTitle(title) {
   if (t.includes("tempa")) return "📈";
   if (t.includes("vfs") || t.includes("sfs")) return "💪";
   if (t.includes("velo")) return "🚴";
-  if (t.includes("eliptical")) return "🔄";
+  if (t.includes("eliptiskais")) return "🔄";
   return "🎲";
 }
 
