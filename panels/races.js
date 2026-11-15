@@ -170,8 +170,10 @@ function getUpcomingRaces(allRaces) {
 
 function renderRaceTabFromRaces(allRaces, tab) {
   const athleteId = getSelectedAthleteId();
-  const upcoming = getUpcomingRaces(allRaces).sort((a, b) => a.date < b.date ? -1 : 1);
-  const past = allRaces.filter((r) => !!r.result_time).sort((a, b) => a.date < b.date ? 1 : -1);
+  // Year filter: the list shows one season; raceCalendarRaces below keeps every race.
+  const yearRaces = filterByYear(allRaces);
+  const upcoming = getUpcomingRaces(yearRaces).sort((a, b) => a.date < b.date ? -1 : 1);
+  const past = yearRaces.filter((r) => !!r.result_time).sort((a, b) => a.date < b.date ? 1 : -1);
   const races = tab === "upcoming" ? upcoming : past;
   raceCalendarRaces = allRaces;
   const content = document.getElementById("raceCalendarContent");

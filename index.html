@@ -47,7 +47,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=241" />
+    <link rel="stylesheet" href="styles.css?v=242" />
   </head>
   <body>
     <div id="authView">
@@ -108,6 +108,8 @@
       <div class="app-body">
       <aside class="planner-panel">
           <div class="planner-panel__scroll">
+          <!-- One year switch for every sidebar list and the statistics; see panels/year-filter.js. -->
+          <div class="year-filter" id="yearFilter" role="group" aria-label="Gads"></div>
           <section class="panel collapsible collapsed" id="adminPanel" hidden>
             <div class="panel-header">
               <h2>Sportistu pārvaldība</h2>
@@ -1103,27 +1105,28 @@
     <div id="loadingOverlay" class="loading-overlay" hidden><div class="loading-spinner"></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="db.js?v=15" defer></script>
+    <script src="db.js?v=16" defer></script>
     <script src="auth.js?v=6" defer></script>
     <!-- Before the panels: it converts every date field the moment one appears. -->
     <script src="date-picker.js?v=2" defer></script>
-    <script src="panels/self-tests.js?v=2" defer></script>
-    <script src="panels/polar-tests.js?v=2" defer></script>
-    <script src="panels/health-journal.js?v=7" defer></script>
-    <script src="panels/lab-tests.js?v=3" defer></script>
-    <script src="panels/restrictions.js?v=8" defer></script>
-    <script src="panels/races.js?v=3" defer></script>
+    <script src="panels/self-tests.js?v=3" defer></script>
+    <script src="panels/polar-tests.js?v=3" defer></script>
+    <script src="panels/year-filter.js?v=1" defer></script>
+    <script src="panels/health-journal.js?v=8" defer></script>
+    <script src="panels/lab-tests.js?v=4" defer></script>
+    <script src="panels/restrictions.js?v=9" defer></script>
+    <script src="panels/races.js?v=4" defer></script>
     <script src="panels/profile.js?v=10" defer></script>
     <script src="panels/calendar-link.js?v=3" defer></script>
-    <script src="panels/stats.js?v=14" defer></script>
-    <script src="panels/interval-history.js?v=10" defer></script>
-    <script src="panels/diary.js?v=4" defer></script>
-    <script src="panels/records.js?v=3" defer></script>
+    <script src="panels/stats.js?v=15" defer></script>
+    <script src="panels/interval-history.js?v=11" defer></script>
+    <script src="panels/diary.js?v=5" defer></script>
+    <script src="panels/records.js?v=4" defer></script>
     <script src="panels/admin.js?v=2" defer></script>
     <script src="panels/weekly-review.js?v=2" defer></script>
-    <script src="panels/ruffier-test.js?v=4" defer></script>
-    <script src="panels/lactate-test.js?v=2" defer></script>
+    <script src="panels/ruffier-test.js?v=5" defer></script>
+    <script src="panels/lactate-test.js?v=3" defer></script>
     <script src="panels/self-log.js?v=9" defer></script>
-    <script src="app.js?v=126" defer></script>
+    <script src="app.js?v=127" defer></script>
   </body>
 </html>

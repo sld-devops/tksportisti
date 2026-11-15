@@ -217,8 +217,34 @@ function buildAxisLabels(data, plotBottom, withYear) {
 
 // #endregion
 
+// With a year picked in the sidebar the charts show that year (weeks of it, or
+// Jan-Dec); the 4/8/12 buttons only mean something for "Visi". A past year runs to
+// 31 December, the current one to today, a future one shows its first month.
+function statsYearArgs(kind) {
+  if (selectedYear === "all") return { n: kind === "week" ? trendWeeks : trendMonths, anchor: null };
+  const now = new Date();
+  let end = new Date(selectedYear, 11, 31);
+  if (end > now) end = now;
+  if (selectedYear > now.getFullYear()) end = new Date(selectedYear, 0, 31);
+  if (kind === "month") return { n: end.getMonth() + 1, anchor: end };
+  const start = trendMonday(new Date(selectedYear, 0, 1));
+  const weeks = Math.round((trendMonday(end) - start) / (7 * 24 * 60 * 60 * 1000)) + 1;
+  return { n: Math.max(weeks, 1), anchor: end };
+}
+function loadWeeklyTrend(athleteId) {
+  const a = statsYearArgs("week");
+  return getWeeklyTrend(athleteId, a.n, a.anchor);
+}
+function loadMonthlyTrend(athleteId) {
+  const a = statsYearArgs("month");
+  return getMonthlyTrend(athleteId, a.n, a.anchor);
+}
+
 // #region Perioda/diapazona pogas
 function buildStatsRangeHtml() {
+  if (selectedYear !== "all") {
+    return `<div class="stats-range"><span class="muted">${selectedYear}. gads</span></div>`;
+  }
   const isWeek = statsPeriod === "week";
   const ranges = isWeek
     ? [{ val: 4, label: "4 nedēļas" }, { val: 8, label: "8 nedēļas" }, { val: 12, label: "12 nedēļas" }]
@@ -403,14 +429,14 @@ async function attachStatsRangeHandlers() {
       if (statsPeriod === "week") {
         trendWeeks = val;
         try {
-          weeklyTrend = await getWeeklyTrend(athleteId, trendWeeks);
+          weeklyTrend = await loadWeeklyTrend(athleteId);
         } catch (e) {
           weeklyTrend = [];
         }
       } else {
         trendMonths = val;
         try {
-          monthlyTrend = await getMonthlyTrend(athleteId, trendMonths);
+          monthlyTrend = await loadMonthlyTrend(athleteId);
         } catch (e) {
           monthlyTrend = [];
         }

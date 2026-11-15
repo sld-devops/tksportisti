@@ -7639,3 +7639,39 @@ input.needs-value {
   background: #fff;
   border-color: transparent;
 }
+
+/* Year switch at the top of the sidebar (panels/year-filter.js). */
+.year-filter {
+  align-items: center;
+  background: var(--surface);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px;
+}
+.year-filter-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-right: 2px;
+}
+.year-btn {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 4px 10px;
+}
+.year-btn:hover {
+  background: var(--surface-hover);
+}
+.year-btn.active {
+  background: var(--btn-bg);
+  border-color: var(--edge);
+}

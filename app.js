@@ -1021,8 +1021,8 @@ async function loadNonTemplateData() {
     safeGet(getRacesForWeek(athleteId, weekStartStr, weekEndStr), []),
     safeGet(getLogEntries(athleteId, weekStartStr, weekEndStr), []),
     safeGet(getRecords(athleteId), []),
-    safeGet(getWeeklyTrend(athleteId, trendWeeks), []),
-    safeGet(getMonthlyTrend(athleteId, trendMonths), []),
+    safeGet(loadWeeklyTrend(athleteId), []),
+    safeGet(loadMonthlyTrend(athleteId), []),
     safeGet(getDayNotes(athleteId, weekStartStr, weekEndStr), []),
     safeGet(getWeeklySummary(athleteId, weekStartStr), null),
     safeGet(getRestrictions(athleteId), []),
@@ -3252,6 +3252,24 @@ document.getElementById("weekReviewedCheckbox")?.addEventListener("change", asyn
   await loadNonTemplateData();
 });
 
+// The sidebar's year switch (panels/year-filter.js) changed: reload the charts for
+// that year and redraw everything that lists rows. Nothing is refetched for the
+// lists - they filter what is already loaded.
+async function applyYearFilter() {
+  const athleteId = getSelectedAthleteId();
+  if (athleteId) {
+    [weeklyTrend, monthlyTrend] = await Promise.all([
+      safeGet(loadWeeklyTrend(athleteId), []),
+      safeGet(loadMonthlyTrend(athleteId), []),
+    ]);
+  }
+  render();
+  if (athleteId) {
+    const activeTab = document.querySelector("#raceCalendarPanel [data-race-tab].active");
+    renderRaceTab(activeTab ? activeTab.dataset.raceTab : "upcoming");
+  }
+}
+
 function wireWeeklySummarySave() {
   const athleteId = getSelectedAthleteId();
   const isAthleteView = (activeRole === "athlete") && currentUser.id === athleteId;
@@ -3276,7 +3294,7 @@ function wireWeeklySummarySave() {
         weeklySummary = await getWeeklySummary(athleteId, weekStart);
         renderWeekEntryBadge();
         if (isAthleteView) {
-          weeklyTrend = await getWeeklyTrend(athleteId, trendWeeks);
+          weeklyTrend = await loadWeeklyTrend(athleteId);
           renderStats();
         }
       } catch (e) {

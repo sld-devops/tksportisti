@@ -53,8 +53,9 @@ function renderSelfTests() {
     return;
   }
 
-  const list = selfTests.length
-    ? selfTests.map(s => `
+  const shownSelf = filterByYear(selfTests);
+  const list = shownSelf.length
+    ? shownSelf.map(s => `
         <div class="selftest-row" data-selftest-id="${s.id}">
           <span class="selftest-date">${formatDateLV(s.date)}</span>
         </div>

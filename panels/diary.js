@@ -80,6 +80,7 @@ function watchDiaryOverflow(body) {
 function renderDiary() {
   const body = document.getElementById("diaryBody");
   if (!body) return;
+  const shownDiary = filterByYear(diaryEntries);
   const athleteId = getSelectedAthleteId();
   const isAthleteOwner = currentUser.id === athleteId && activeRole !== "coach";
   const canEdit = isAthleteOwner;
@@ -102,8 +103,8 @@ function renderDiary() {
   }
 
   if (!isAthleteOwner) {
-    body.innerHTML = diaryEntries.length
-      ? diaryEntries.map(e => `
+    body.innerHTML = shownDiary.length
+      ? shownDiary.map(e => `
           <div class="diary-entry" data-entry-id="${e.id}">
             <div class="diary-entry-header">
               <span class="diary-entry-date">${formatDateLV(e.date)}</span>
@@ -118,8 +119,8 @@ function renderDiary() {
     return;
   }
 
-  const list = diaryEntries.length
-    ? diaryEntries.map(e => `
+  const list = shownDiary.length
+    ? shownDiary.map(e => `
         <div class="diary-entry${canEdit ? " diary-entry-editable" : ""}" data-entry-id="${e.id}">
           ${canEdit ? `<div class="diary-entry-actions">
             <button class="diary-edit-btn icon-action-btn" data-edit-diary="${e.id}" type="button" title="Rediģēt">✏️</button>

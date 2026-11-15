@@ -302,7 +302,8 @@ function renderRestrictionCards() {
   // that group's day-part badges side by side.
   const TOD_ORDER = ["", "morning", "afternoon", "evening"];
   const groups = new Map();
-  activeRestrictions.forEach(r => {
+  // Year filter applies to the list only; the badge and the past-count above use every row.
+  filterByYearRange(activeRestrictions).forEach(r => {
     const key = `${r.start_date}|${r.end_date || ""}|${r.reason}`;
     if (!groups.has(key)) groups.set(key, { start_date: r.start_date, end_date: r.end_date, reason: r.reason, rows: [] });
     groups.get(key).rows.push(r);

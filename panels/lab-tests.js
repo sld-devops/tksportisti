@@ -85,11 +85,12 @@ function renderLabTests() {
 
   let html = "";
 
-  if (labTests.length === 0) {
+  const shownLab = filterByYear(labTests);
+  if (shownLab.length === 0) {
     html += '<p class="panel-empty">Nav veiktu ierakstu</p>';
   } else {
     html += `<div class="labtest-list">`;
-    labTests.forEach(t => {
+    shownLab.forEach(t => {
       const izvertetsBadge = t.izvertets && isAthleteView
         ? `<span class="labtest-izvertets-badge">Izvērtēts</span>`
         : "";

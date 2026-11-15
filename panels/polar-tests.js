@@ -44,8 +44,9 @@ function renderPolarTests() {
     return;
   }
 
-  const list = polarTests.length
-    ? polarTests.map(p => `
+  const shownPolar = filterByYear(polarTests);
+  const list = shownPolar.length
+    ? shownPolar.map(p => `
         <div class="selftest-row" data-polartest-id="${p.id}">
           <span class="selftest-date">${formatDateLV(p.date)}</span>
           ${p.mas_pace ? `<span class="selftest-mas">${escapeHtml(p.mas_pace)}</span>` : ""}
