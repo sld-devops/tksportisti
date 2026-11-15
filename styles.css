@@ -3313,17 +3313,20 @@ label {
   padding: 4px 8px;
 }
 
+/* Save buttons are the same peach gradient as the header buttons (owner's call
+   2026-11-15 - they were dark brown, which read as heavy blocks). The peach
+   edge is what tells the confirming button from a plain .secondary-action. */
 .primary-action {
-  background: var(--brand);
-  border: 1px solid var(--brand);
-  color: #fff;
+  background: var(--btn-bg);
+  border: 1px solid var(--edge);
+  color: var(--ink);
   transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 
 .primary-action:hover {
-  background: var(--brand-dark);
+  background: var(--btn-bg-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 42, 34, 0.3);
+  box-shadow: 0 4px 12px rgba(21, 23, 26, 0.18);
 }
 
 .primary-action:active {
@@ -3355,15 +3358,15 @@ label {
   box-sizing: border-box;
 }
 #updateTemplateBtn:hover {
-  background: var(--brand-dark);
-  box-shadow: 0 4px 12px rgba(59, 42, 34, 0.3);
+  background: var(--btn-bg-hover);
+  box-shadow: 0 4px 12px rgba(21, 23, 26, 0.18);
   transform: translateY(-1px);
 }
 
 .save-template-athlete-btn {
-  background: var(--brand);
-  border: 3px solid #000000;
-  color: #fff;
+  background: var(--btn-bg);
+  border: 1px solid var(--edge);
+  color: var(--ink);
 }
 
 .btn-keyword {
@@ -3372,8 +3375,8 @@ label {
 }
 
 .save-template-athlete-btn:hover {
-  background: var(--brand-dark);
-  box-shadow: 0 4px 12px rgba(59, 42, 34, 0.3);
+  background: var(--btn-bg-hover);
+  box-shadow: 0 4px 12px rgba(21, 23, 26, 0.18);
 }
 
 .template-actions {
@@ -3836,6 +3839,7 @@ label {
 .chart-series-2 { --series: #eb6834; }
 .chart-series-3 { --series: #1baf7a; }
 .chart-series-4 { --series: #eda100; }
+.chart-series-5 { --series: #8a5cc7; }
 
 .chart-facets {
   margin-top: 10px;
@@ -6088,6 +6092,30 @@ textarea:disabled {
   display: none;
 }
 
+/* A desktop window narrower than ~1460px - and a phone showing the desktop view,
+   which is pinned to 1200px - cannot fit the full header labels: for a coach
+   with the "Sportista skats" and "Datora skats" buttons showing, the row needed
+   ~1425px and "Mainīt paroli" / "Iziet" were cut off at the right edge, down to
+   a 1366px laptop. Short labels from the phone layout, measured to fit at 1100
+   and up. 1041 is where the phone layout's own rules take over. */
+@media (min-width: 1041px) and (max-width: 1460px) {
+  .label-full {
+    display: none;
+  }
+
+  .label-short {
+    display: inline;
+  }
+}
+
+/* Below ~1300px the label is squeezed so far that the ▾ wraps under it
+   ("Bibliotēka" / "▾"); hidden, as the phone layout already does. */
+@media (min-width: 1041px) and (max-width: 1300px) {
+  .video-arrow {
+    display: none;
+  }
+}
+
 /* Every phone, not only the narrowest (it was max-width: 380px until 2026-11-14):
    at 390-414px the full labels put each button on a row of its own and the
    header stood 260px tall - twice what a 360px phone got - before the calendar
@@ -6845,14 +6873,14 @@ body.is-dragging .session-card.is-draggable {
 /* Save is the primary action here, so it gets the colour the app uses for
    saves; Atcelt stays the shared grey .cancel-action beside it. */
 .self-log-form-actions .self-log-save-btn {
-  background: var(--brand);
-  border-color: var(--brand);
-  color: #fff;
+  background: var(--btn-bg);
+  border-color: var(--edge);
+  color: var(--ink);
 }
 
 .self-log-form-actions .self-log-save-btn:hover {
-  background: var(--brand-dark);
-  color: #fff;
+  background: var(--btn-bg-hover);
+  color: var(--ink);
 }
 
 /* A self-logged training is a plain white card, like any other. What marks it
@@ -7500,4 +7528,45 @@ body.is-dragging .session-card.is-draggable {
   justify-content: space-between;
   margin: 0 0 10px;
   padding: 8px 12px;
+}
+
+/* A drawn type icon (images/eliptiskais.svg) standing where an emoji would: it
+   takes the size of the text around it. */
+.type-icon {
+  display: inline-block;
+  height: 1.2em;
+  vertical-align: -0.25em;
+  width: 1.2em;
+}
+
+/* Execution done in another part of the day than planned: a line at the top of
+   the execution box ("Izpildīts: Vakars"), and the picker in the log dialog. */
+.log-tod-note {
+  align-items: center;
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.log-tod-note .tod-badge {
+  display: inline-block;
+  margin: 0;
+}
+
+.log-tod-picker {
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 12px;
+  padding-bottom: 4px;
+}
+
+.log-tod-picker .comment-label {
+  margin-top: 0;
+}
+
+/* A required name left empty (requireOtherRunName in app.js): red until typed in. */
+input.needs-value {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(201, 31, 47, 0.25);
 }

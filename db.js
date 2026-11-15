@@ -518,7 +518,7 @@ async function getWeeklyTrend(athleteId, numWeeks) {
     m.setDate(m.getDate() + i * 7);
     const mon = trendMonday(m);
     const key = trendDateISO(mon);
-    weeks[key] = { week_start: key, run_km: 0, run_min: 0, vfs_sfs_min: 0, velo_min: 0 };
+    weeks[key] = { week_start: key, run_km: 0, run_min: 0, vfs_sfs_min: 0, velo_min: 0, elipt_min: 0 };
   }
 
   if (logs) {
@@ -546,7 +546,7 @@ async function getWeeklyTrend(athleteId, numWeeks) {
   if (weekKeys.length) {
     const { data: summaries } = await supabase
       .from("weekly_summaries")
-      .select("week_start, run_km, run_min, vfs_sfs_min, velo_min")
+      .select("*") // "*": still works before the elipt_min column has been added
       .eq("athlete_id", athleteId)
       .gte("week_start", weekKeys[0])
       .lte("week_start", weekKeys[weekKeys.length - 1]);
@@ -558,6 +558,7 @@ async function getWeeklyTrend(athleteId, numWeeks) {
           if (s.run_min) weeks[wk].run_min = s.run_min;
           if (s.vfs_sfs_min) weeks[wk].vfs_sfs_min = s.vfs_sfs_min;
           if (s.velo_min) weeks[wk].velo_min = s.velo_min;
+          if (s.elipt_min) weeks[wk].elipt_min = s.elipt_min;
         }
       }
     }
@@ -585,7 +586,7 @@ async function getMonthlyTrend(athleteId, numMonths) {
   const cursor = new Date(startDate);
   while (cursor <= endDate) {
     const key = trendDateISO(cursor);
-    months[key] = { month_start: key, run_km: 0, run_min: 0, vfs_sfs_min: 0, velo_min: 0 };
+    months[key] = { month_start: key, run_km: 0, run_min: 0, vfs_sfs_min: 0, velo_min: 0, elipt_min: 0 };
     cursor.setMonth(cursor.getMonth() + 1);
   }
 
@@ -613,7 +614,7 @@ async function getMonthlyTrend(athleteId, numMonths) {
   summaryFrom.setDate(summaryFrom.getDate() - 6);
   const { data: summaries } = await supabase
     .from("weekly_summaries")
-    .select("week_start, run_km, run_min, vfs_sfs_min, velo_min")
+    .select("*") // "*": still works before the elipt_min column has been added
     .eq("athlete_id", athleteId)
     .gte("week_start", trendDateISO(summaryFrom))
     .lte("week_start", endStr);
@@ -629,6 +630,7 @@ async function getMonthlyTrend(athleteId, numMonths) {
         if (s.run_min) months[monthKey].run_min += s.run_min * share;
         if (s.vfs_sfs_min) months[monthKey].vfs_sfs_min += s.vfs_sfs_min * share;
         if (s.velo_min) months[monthKey].velo_min += s.velo_min * share;
+        if (s.elipt_min) months[monthKey].elipt_min += s.elipt_min * share;
       }
     }
   }
@@ -704,11 +706,21 @@ async function getWeeklySummary(athleteId, weekStart) {
 }
 
 async function upsertWeeklySummary(data) {
-  const { error } = await supabase
+  let { error } = await supabase
     .from("weekly_summaries")
     .upsert(data, { onConflict: "athlete_id,week_start" })
     .select()
     .single();
+  // The elipt_min column comes from supabase/weekly_summaries_elipt.sql. Until
+  // that has been run, save everything else instead of failing the whole row.
+  if (error && "elipt_min" in data && /elipt_min/.test(error.message || "")) {
+    const { elipt_min, ...rest } = data;
+    ({ error } = await supabase
+      .from("weekly_summaries")
+      .upsert(rest, { onConflict: "athlete_id,week_start" })
+      .select()
+      .single());
+  }
   if (error) throw error;
 }
 // #endregion

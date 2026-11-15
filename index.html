@@ -5,6 +5,13 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Toma Komasa Sportistu Portāls</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#3b2a22" />
+    <link rel="icon" type="image/png" href="images/app/icon-192.png" />
+    <link rel="apple-touch-icon" href="images/app/icon-180.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="TK Portāls" />
     <script>
       // "Desktop view on a phone" — opt in, per device. Pinning the layout viewport
       // to a fixed width makes a phone lay the page out like a monitor and scale it
@@ -40,7 +47,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=224" />
+    <link rel="stylesheet" href="styles.css?v=232" />
   </head>
   <body>
     <div id="authView">
@@ -88,6 +95,8 @@
           <button id="guideBtn" class="secondary-action video-menu" type="button"><span class="label-full">Portāla lietošanas instrukcija</span><span class="label-short">Lietošanas instrukcija</span></button>
         </div>
         <div class="header-right">
+          <!-- Coach's install button (the athlete's sits in #calendarLinkBox). Shown by refreshInstallButtons(). -->
+          <button id="installAppBtnCoach" class="secondary-action install-app-btn" type="button" hidden><span class="label-full">Instalēt lietotni</span><span class="label-short">Instalēt</span></button>
           <button id="screenViewBtn" class="secondary-action" type="button" hidden><span class="label-full"></span><span class="label-short"></span></button>
           <button id="accountSwitchBtn" class="secondary-action" type="button" hidden><span class="label-full"></span><span class="label-short"></span></button>
           <button id="notifyEmailBtn" class="secondary-action" type="button"><span class="label-full">Paziņojumu e-pasts</span><span class="label-short">E-pasts</span></button>
@@ -158,6 +167,8 @@
                      the header while this is shown); it just opens the same
                      dialog as the header button the coach still uses. -->
                 <button class="secondary-action panel-add-btn" id="notifyEmailSideBtn" type="button">Pievienot e-pastu paziņojumiem</button>
+                <!-- Shown by setupInstallBtn() in app.js, only where installing is possible. -->
+                <button class="secondary-action panel-add-btn install-app-btn" id="installAppBtn" type="button" hidden>Instalēt lietotni telefonā</button>
                 <div class="calendar-link-panel" id="calendarLinkPanel" hidden>
                   <p class="calendar-link-error" id="calendarLinkError" hidden></p>
                   <div id="calendarLinkReady" hidden>
@@ -348,6 +359,7 @@
                     <option value="VFS">💪 VFS</option>
                     <option value="SFS">💪 SFS</option>
                     <option value="Velo">🚴 Velo</option>
+                    <option value="Eliptiskais" data-icon-img="1">Eliptiskais</option>
                   </select>
                   <div class="custom-dropdown template-dropdown" id="customTypeDropdown">
                     <div class="dropdown-trigger">
@@ -368,8 +380,8 @@
                 </div>
                 <div class="builder-form">
                   <label id="customNameRow" hidden>
-                    Nosaukums
-                    <input id="customName" type="text" placeholder="Fartleks, Progresīvais, u.c." />
+                    Nosaukums (obligāts)
+                    <input id="customName" type="text" placeholder="Fartleks, Latvijas Kontūras skrējiens, u.c." />
                   </label>
                   <div class="builder-sections-row">
                     <div id="warmupSection">
@@ -649,6 +661,7 @@
             <option value="VFS">💪 VFS</option>
             <option value="SFS">💪 SFS</option>
             <option value="Velo">🚴 Velo</option>
+            <option value="Eliptiskais">Eliptiskais</option>
           </select>
           <span class="icon-picker" id="epIconPicker" hidden>
             <button type="button" class="icon-btn" data-icon="🐢" title="Lēnais">🐢</button>
@@ -763,8 +776,8 @@
         </div>
 
         <label id="epCustomNameRow" hidden>
-          Nosaukums
-          <input id="epCustomName" type="text" placeholder="Fartleks, Progresīvais, u.c." />
+          Nosaukums (obligāts)
+          <input id="epCustomName" type="text" placeholder="Fartleks, Latvijas Kontūras skrējiens, u.c." />
         </label>
         </div>
 
@@ -1087,7 +1100,7 @@
     <div id="loadingOverlay" class="loading-overlay" hidden><div class="loading-spinner"></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="db.js?v=14" defer></script>
+    <script src="db.js?v=15" defer></script>
     <script src="auth.js?v=6" defer></script>
     <!-- Before the panels: it converts every date field the moment one appears. -->
     <script src="date-picker.js?v=2" defer></script>
@@ -1099,7 +1112,7 @@
     <script src="panels/races.js?v=3" defer></script>
     <script src="panels/profile.js?v=10" defer></script>
     <script src="panels/calendar-link.js?v=3" defer></script>
-    <script src="panels/stats.js?v=13" defer></script>
+    <script src="panels/stats.js?v=14" defer></script>
     <script src="panels/interval-history.js?v=10" defer></script>
     <script src="panels/diary.js?v=3" defer></script>
     <script src="panels/records.js?v=2" defer></script>
@@ -1107,7 +1120,7 @@
     <script src="panels/weekly-review.js?v=2" defer></script>
     <script src="panels/ruffier-test.js?v=3" defer></script>
     <script src="panels/lactate-test.js?v=1" defer></script>
-    <script src="panels/self-log.js?v=8" defer></script>
-    <script src="app.js?v=96" defer></script>
+    <script src="panels/self-log.js?v=9" defer></script>
+    <script src="app.js?v=111" defer></script>
   </body>
 </html>

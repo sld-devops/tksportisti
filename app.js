@@ -358,6 +358,14 @@ const STRIDES_LABEL = "Kāpinājumi";
 // The first version wrote "Kāpinājumi beigās"; still recognised, so nothing
 // written in that wording is ever left unread.
 const STRIDES_LABEL_OLD = "Kāpinājumi beigās";
+// "Sacensību uzturs" belongs to the hard sessions only: both interval kinds,
+// long runs and tempo runs (owner's call 2026-11-15). A row that already has
+// the box ticked stays visible whatever the type, so a saved plan that carries
+// the line from before can still be unticked rather than losing it silently.
+function supportsRaceNutrition(type) {
+  return isIntervalType(type) || type === "Garais skrējiens" || type === "Tempa skrējiens";
+}
+
 function supportsStrides(type) {
   return type === "Atjaunojošais/lēnais skrējiens" || type === "Vidējas intensitātes skrējiens";
 }
@@ -380,6 +388,32 @@ function stridesDetailOf(line) {
 // { title, details, ... } - `{ a, b }` here is an "object literal", roughly
 // like a Python `dict`, except the keys are written without quotes and read
 // with a dot (`obj.title`, not `obj["title"]`).
+// Training types whose whole session is one line, "<Type>: duration; pulse" -
+// Velo and Eliptiskais (the elliptical trainer). They have no warm-up, cool-down
+// or drills, and the main line carries the type's own name instead of
+// "Pamatdaļa:". Adding another such type means adding it here, to
+// TEMPLATE_GROUPS, to the two type <select>s in index.html and to badgeForTitle.
+const CARDIO_LINE_TYPES = ["Velo", "Eliptiskais"];
+const isCardioLineType = (t) => CARDIO_LINE_TYPES.includes(t);
+// "Velo: 1h; 130-140" -> the label, or "" for any other line.
+const cardioLineLabel = (line) => CARDIO_LINE_TYPES.find((t) => (line || "").startsWith(t + ":")) || "";
+const CARDIO_LABEL_RE = new RegExp("^(?:Pamatdaļa|" + CARDIO_LINE_TYPES.join("|") + "):\\s*");
+
+// "Cita veida treniņš" used to fall back to that generic title when the name box
+// was left empty, so the coach typed the real name ("Latvijas Kontūras
+// skrējiens") into the comment instead. The name is now required: nothing is
+// added, saved or applied until it is filled in. Returns true when it is fine.
+function requireOtherRunName(typeValue, nameInput) {
+  if (typeValue !== OTHER_RUN_TYPE || !nameInput || nameInput.value.trim()) return true;
+  nameInput.classList.add("needs-value");
+  nameInput.focus();
+  alert("Ieraksti treniņa nosaukumu, piemēram, „Latvijas Kontūras skrējiens”. Komentārs ir piezīmēm, nevis nosaukumam.");
+  return false;
+}
+document.addEventListener("input", (e) => {
+  if (e.target.matches?.("#customName, #epCustomName")) e.target.classList.remove("needs-value");
+});
+
 function getGeneratedTraining() {
   const type = customType.value;
 
@@ -404,7 +438,7 @@ function getGeneratedTraining() {
 
   const isEasyOrLong = type === "Atjaunojošais/lēnais skrējiens" || type === "Garais skrējiens" || type === "Vidējas intensitātes skrējiens";
   const isSimple = type === "VFS" || type === "SFS";
-  const isVelo = type === "Velo";
+  const isVelo = isCardioLineType(type);
 
   const warmup = isEasyOrLong
     ? (includeWarmup.checked ? formatPart("Iesildīšanās", warmupDuration.value, warmupPulse.value, null, warmupAdditional.value) : "")
@@ -429,7 +463,7 @@ function getGeneratedTraining() {
     if (rest) main += `; caur ${rest}`;
     lines.push(main);
   } else {
-    const mainLabel = isVelo ? "Velo" : "Pamatdaļa";
+    const mainLabel = isVelo ? type : "Pamatdaļa";
     let main = "";
     if (isSimple) {
       main = mainDuration.value.trim() ? `${mainLabel}: ${mainDuration.value.trim()}` : "";
@@ -501,7 +535,7 @@ function getEditPlanTraining() {
 
   const isEasyOrLong = type === "Atjaunojošais/lēnais skrējiens" || type === "Garais skrējiens" || type === "Vidējas intensitātes skrējiens";
   const isSimple = type === "VFS" || type === "SFS";
-  const isVelo = type === "Velo";
+  const isVelo = isCardioLineType(type);
 
   const getVal = id => document.getElementById(id).value.trim();
   const getBool = id => document.getElementById(id).checked;
@@ -533,7 +567,7 @@ function getEditPlanTraining() {
     if (rest) main += `; caur ${rest}`;
     lines.push(main);
   } else {
-    const mainLabel = isVelo ? "Velo" : "Pamatdaļa";
+    const mainLabel = isVelo ? type : "Pamatdaļa";
     let main = "";
     if (isSimple) {
       main = getVal("epMainDuration") ? `${mainLabel}: ${getVal("epMainDuration")}` : "";
@@ -1024,7 +1058,7 @@ async function loadNonTemplateData() {
     await safeGet(refreshAthleteDiarySet(), undefined);
   }
 
-  if (logEntries.length && (!weeklySummary || (!weeklySummary.run_km && !weeklySummary.run_min && !weeklySummary.vfs_sfs_min && !weeklySummary.velo_min))) {
+  if (logEntries.length && (!weeklySummary || (!weeklySummary.run_km && !weeklySummary.run_min && !weeklySummary.vfs_sfs_min && !weeklySummary.velo_min && !weeklySummary.elipt_min))) {
     const autoRunKm = logEntries.reduce((s, e) => s + (e.distance_km || 0), 0);
     const autoTotalMin = logEntries.reduce((s, e) => s + (e.duration_min || 0), 0);
     const autoGymMin = logEntries.filter(e => e.activity_type === "gym").reduce((s, e) => s + (e.duration_min || 0), 0);
@@ -1253,12 +1287,13 @@ const TEMPLATE_GROUPS = [
   { key: "tempo", label: "Tempa skrējieni", types: ["Tempa skrējiens"] },
   { key: "other", label: "Citi skrējieni", types: [OTHER_RUN_TYPE, OTHER_RUN_LEGACY_TYPE] },
   { key: "vfs_sfs", label: "VFS/SFS", types: ["VFS", "SFS"] },
-  { key: "velo", label: "Velo", types: ["Velo"] },
+  { key: "velo", label: "Velo/Eliptiskais", types: ["Velo", "Eliptiskais"] },
 ];
 
-// The most-used table covers running only — VFS/SFS/Velo are excluded from it
-// entirely, and are not even counted.
-const FREQUENT_GROUPS = TEMPLATE_GROUPS.filter((g) => g.key !== "vfs_sfs" && g.key !== "velo");
+// The most-used table is every group but VFS/SFS, which is excluded from it
+// entirely and not even counted. Velo/Eliptiskais is the last row, below
+// "Citi skrējieni".
+const FREQUENT_GROUPS = TEMPLATE_GROUPS.filter((g) => g.key !== "vfs_sfs");
 
 function renderTemplates() {
   const athleteId = getSelectedAthleteId();
@@ -1327,7 +1362,7 @@ function isPaceOrPulseToken(str) {
 // than shifting the field after it, because loadTemplateToForm() reads
 // "Iesildīšanās: <duration>; <pulse>; <extra>" positionally.
 function normalizeTrainingDetails(details) {
-  const FIELD_LINES = ["Iesildīšanās", "Atsildīšanās", "Pamatdaļa", "Velo"];
+  const FIELD_LINES = ["Iesildīšanās", "Atsildīšanās", "Pamatdaļa", ...CARDIO_LINE_TYPES];
   return (details || "")
     .split("\n")
     .map((raw) => {
@@ -1382,7 +1417,7 @@ function frequentGroupKey(title) {
   const base = (title || "").replace(/\s*Koptreniņš\s*$/, "").trim();
   const group = TEMPLATE_GROUPS.find((g) => g.types.includes(base));
   // No group at all means a coach-written name ("Fartleks") — that is what
-  // "Citi skrējieni" is for. VFS/SFS/Velo do match a group, just not one this
+  // "Citi skrējieni" is for. VFS/SFS does match a group, just not one this
   // table covers, and those are dropped rather than swept into "Citi".
   if (!group) return "other";
   return FREQUENT_GROUPS.some((g) => g.key === group.key) ? group.key : null;
@@ -1531,12 +1566,18 @@ function renderCustomBuilder() {
   const type = customType.value;
   const customTypeTrigger = document.querySelector("#customTypeDropdown .dropdown-selected");
   if (customTypeTrigger) {
-    const optionText = customType.options[customType.selectedIndex]?.textContent || "Izvēlies treniņa tipu";
+    const selectedOption = customType.options[customType.selectedIndex];
+    const optionText = selectedOption?.textContent || "Izvēlies treniņa tipu";
     // Once an icon has been picked, the trigger shows that icon instead of the
     // type's default one, so the choice is visible without opening anything.
     // The list itself keeps the default - there the icon labels the type.
     const pickedIcon = getSelectedIcon("customIconPicker");
-    customTypeTrigger.textContent = pickedIcon ? pickedIcon + " " + type : optionText;
+    if (!pickedIcon && selectedOption?.dataset.iconImg) {
+      // A type whose icon is a drawn image (Eliptiskais) - text alone would lose it.
+      customTypeTrigger.innerHTML = `<span>${ELIPTISKAIS_ICON_HTML} ${escapeHtml(optionText)}</span>`;
+    } else {
+      customTypeTrigger.textContent = pickedIcon ? pickedIcon + " " + type : optionText;
+    }
   }
   document.querySelectorAll("#customTypeDropdown .type-dropdown-item").forEach((item) => {
     item.classList.toggle("selected", item.dataset.value === type);
@@ -1579,7 +1620,7 @@ function renderCustomBuilder() {
   document.getElementById("saveTemplateForAthleteBtn").hidden = false;
   const isEasyOrLong = type === "Atjaunojošais/lēnais skrējiens" || type === "Garais skrējiens" || type === "Vidējas intensitātes skrējiens";
   const isSimple = type === "VFS" || type === "SFS";
-  const isVelo = type === "Velo";
+  const isVelo = isCardioLineType(type);
   const isOtherRun = type === OTHER_RUN_TYPE;
   const isSameInterval = type === SAME_INTERVAL_TYPE || type === "Intervāli";
   const isVarInterval = type === VAR_INTERVAL_TYPE;
@@ -1602,7 +1643,7 @@ function renderCustomBuilder() {
   if (!stridesAllowed) { includeStrides.checked = false; stridesDetail.value = ""; }
   document.getElementById("stridesDetailRow").hidden = !includeStrides.checked;
 
-  raceNutritionRow.hidden = false;
+  raceNutritionRow.hidden = !(supportsRaceNutrition(type) || raceNutrition.checked);
   const isTempo = type === "Tempa skrējiens";
   spikesRow.hidden = !isInterval;
   if (!isInterval) spikes.checked = false;
@@ -1660,7 +1701,7 @@ function renderCustomBuilder() {
 
   const mainSectionLabel = document.getElementById("mainSectionLabel");
   if (isVelo && mainSectionLabel) {
-    mainSectionLabel.textContent = "Velo";
+    mainSectionLabel.textContent = type;
   } else if (mainSectionLabel) {
     mainSectionLabel.textContent = "Pamatdaļa";
   }
@@ -1670,7 +1711,7 @@ function renderEditPlanBuilder() {
   const type = document.getElementById("epType").value;
   const isEasyOrLong = type === "Atjaunojošais/lēnais skrējiens" || type === "Garais skrējiens" || type === "Vidējas intensitātes skrējiens";
   const isSimple = type === "VFS" || type === "SFS";
-  const isVelo = type === "Velo";
+  const isVelo = isCardioLineType(type);
   const isOtherRun = type === OTHER_RUN_TYPE;
   const isSameInterval = type === SAME_INTERVAL_TYPE || type === "Intervāli";
   const isVarInterval = type === VAR_INTERVAL_TYPE;
@@ -1697,6 +1738,8 @@ function renderEditPlanBuilder() {
   document.getElementById("epStridesDetailRow").hidden = !document.getElementById("epIncludeStrides").checked;
 
   const epIsTempo = type === "Tempa skrējiens";
+  document.getElementById("epRaceNutritionRow").hidden =
+    !(supportsRaceNutrition(type) || document.getElementById("epRaceNutrition").checked);
   document.getElementById("epSpikesRow").hidden = !isInterval;
   if (!isInterval) document.getElementById("epSpikes").checked = false;
   document.getElementById("epRaceShoesRow").hidden = !(isInterval || epIsTempo);
@@ -1745,7 +1788,7 @@ function renderEditPlanBuilder() {
 
   const mainSectionLabel = document.getElementById("epMainSectionLabel");
   if (isVelo && mainSectionLabel) {
-    mainSectionLabel.textContent = "Velo";
+    mainSectionLabel.textContent = type;
   } else if (mainSectionLabel) {
     mainSectionLabel.textContent = "Pamatdaļa";
   }
@@ -1798,7 +1841,7 @@ function splitDetailFields(line) {
 }
 
 function parsePlanToForm(plan) {
-  const knownTypes = ["Atjaunojošais/lēnais skrējiens", "Vidējas intensitātes skrējiens", "Garais skrējiens", "Intervāli", SAME_INTERVAL_TYPE, VAR_INTERVAL_TYPE, "Tempa skrējiens", OTHER_RUN_TYPE, "VFS", "SFS", "Velo", "Cits"];
+  const knownTypes = ["Atjaunojošais/lēnais skrējiens", "Vidējas intensitātes skrējiens", "Garais skrējiens", "Intervāli", SAME_INTERVAL_TYPE, VAR_INTERVAL_TYPE, "Tempa skrējiens", OTHER_RUN_TYPE, "VFS", "SFS", "Velo", "Eliptiskais", "Cits"];
   const isKnownType = knownTypes.includes(plan.title);
   const resolvedType = isKnownType ? plan.title : OTHER_RUN_TYPE;
 
@@ -1870,11 +1913,11 @@ function parsePlanToForm(plan) {
       document.getElementById("epRaceShoes").checked = footwearText.includes("Sacensību apavi");
     } else if (line.startsWith("Papildus uzdevums:")) {
       document.getElementById("epMainAdditional").value = line.slice("Papildus uzdevums:".length).trim();
-    } else if (line.startsWith("Pamatdaļa:") || line.startsWith("Velo:")) {
+    } else if (line.startsWith("Pamatdaļa:") || cardioLineLabel(line)) {
       epMainSeen = true;
-      const isVelo = line.startsWith("Velo:");
-      const mainContent = line.replace(/^(Pamatdaļa|Velo):\s*/, "");
-      if (isVelo) document.getElementById("epType").value = "Velo";
+      const cardioLabel = cardioLineLabel(line);
+      const mainContent = line.replace(CARDIO_LABEL_RE, "");
+      if (cardioLabel) document.getElementById("epType").value = cardioLabel;
       if (mainContent) {
         if (resolvedType === OTHER_RUN_TYPE) {
           document.getElementById("epFreeText").value = mainContent;
@@ -1976,7 +2019,7 @@ function loadTemplateToForm(template) {
 
   clearCustomBuilderFields();
 
-  const knownTypes = ["Atjaunojošais/lēnais skrējiens", "Vidējas intensitātes skrējiens", "Garais skrējiens", "Intervāli", SAME_INTERVAL_TYPE, VAR_INTERVAL_TYPE, "Tempa skrējiens", OTHER_RUN_TYPE, "VFS", "SFS", "Velo", "Cits"];
+  const knownTypes = ["Atjaunojošais/lēnais skrējiens", "Vidējas intensitātes skrējiens", "Garais skrējiens", "Intervāli", SAME_INTERVAL_TYPE, VAR_INTERVAL_TYPE, "Tempa skrējiens", OTHER_RUN_TYPE, "VFS", "SFS", "Velo", "Eliptiskais", "Cits"];
   const isKnownType = knownTypes.includes(name);
   let type = name;
   if (!isKnownType) type = OTHER_RUN_TYPE;
@@ -2032,7 +2075,7 @@ function loadTemplateToForm(template) {
       setChecked("raceShoes", footwearText.includes("Sacensību apavi"));
     } else if (label === "Papildus uzdevums") {
       setVal("mainAdditional", rest);
-    } else if (label === "Pamatdaļa" || label === "Velo") {
+    } else if (label === "Pamatdaļa" || isCardioLineType(label)) {
       mainSeen = true;
       if (type === VAR_INTERVAL_TYPE && isVarIntervalLine(line)) {
         parseVarIntervalMain(line, varSegmentList, varLaps, varRestBetweenLaps);
@@ -2085,10 +2128,48 @@ function todLabel(tod) {
   return { morning: "Rīts", afternoon: "Pusdiena", evening: "Vakars" }[tod] || tod;
 }
 
+// The part of the day the athlete actually did a planned training in, when it
+// was not the one the coach planned. It lives on the log's section objects
+// (log_data[].tod) - no new column, so no migration - and every reader that
+// ignores unknown fields is unaffected. Same three values as plans.time_of_day.
+// A training with no fields to fill in (free text such as "Latvijas Kontūras
+// skrējiens") has no section to hang `tod` on, so the dialog stores a bare
+// { section: "_tod", tod } entry instead. Sections starting with "_" are
+// bookkeeping, never shown - every place that draws log lines goes through this.
+function logSectionEntries(data) {
+  return (data || []).filter((e) => e && !String(e.section || "").startsWith("_"));
+}
+
+function loggedTod(log) {
+  return (log?.log_data || []).find((e) => e && e.tod)?.tod || "";
+}
+
+// "Izpildīts: Vakars" on the execution box - only when it differs from the
+// plan, so an execution done as planned shows nothing extra.
+function loggedTodNoteHtml(log, plan) {
+  const tod = loggedTod(log);
+  if (!tod || tod === plan?.time_of_day) return "";
+  return `<div class="log-tod-note">Izpildīts: <span class="tod-badge tod-${tod}">${todLabel(tod)}</span></div>`;
+}
+
+const LOG_TOD_OPTIONS = [
+  { value: "morning", label: "🌄 Rīts" },
+  { value: "afternoon", label: "☀️ Pusdiena" },
+  { value: "evening", label: "🌇 Vakars" },
+];
+
+function logTodPickerHtml(selected) {
+  const opts = LOG_TOD_OPTIONS.map((t) => `
+    <label class="tod-radio-label tod-${t.value}">
+      <input type="radio" name="logTod" value="${t.value}" ${t.value === selected ? "checked" : ""} /> ${t.label}
+    </label>`).join("");
+  return `<div class="log-tod-picker"><div class="comment-label">Kurā dienas daļā izpildīji?</div><div class="tod-radio-group">${opts}</div></div>`;
+}
+
 function extractMainPart(details) {
   if (!details) return "";
   const lines = details.split("\n").map(l => l.trim()).filter(Boolean);
-  const main = lines.filter(l => l.includes("Pamatdaļa"));
+  const main = lines.filter(l => l.includes("Pamatdaļa") || cardioLineLabel(l));
   return main.length ? main[0] : lines[0] || "";
 }
 
@@ -2310,7 +2391,7 @@ function colorPaceValue(str, bounds) {
 }
 
 function extractLogMainPartHtml(logData, paceBoundsMap, plannedIntervalCount, planDetails) {
-  const entries = logData || [];
+  const entries = logSectionEntries(logData);
   const main = entries.find(e => e.section === "Pamatdaļa") || entries[0];
   if (!main) return "";
   if (main.intervals && main.intervals.length) {
@@ -2382,7 +2463,11 @@ function formatDetailsForCard(details, calendarMode) {
     }
   }
   const result = merged.map((line) => {
-    if (!line.startsWith("Pamatdaļa:")) {
+    // In the calendar a Velo line is the main line too (bold, label dropped, so
+    // the card reads "Velo" / "1h; 130-140"). Previews and template lists keep
+    // the label, as they always did.
+    const isMainLine = line.startsWith("Pamatdaļa:") || (calendarMode && cardioLineLabel(line));
+    if (!isMainLine) {
       let relabeled = line;
       if (calendarMode) {
         const m = line.match(/^(Iesildīšanās|Atsildīšanās):(.*)$/su);
@@ -2393,12 +2478,18 @@ function formatDetailsForCard(details, calendarMode) {
       }
       return `<span class="task-secondary">${relabeled}</span>`;
     }
-    const text = calendarMode ? line.replace(/^Pamatdaļa:\s*/, "") : line;
+    const text = calendarMode ? line.replace(CARDIO_LABEL_RE, "") : line;
     const cls = calendarMode === "week" ? ' class="plan-main-line"' : "";
     return `<strong${cls}>${text}</strong>`;
   });
   return result.join("\n");
 }
+
+// There is no elliptical-trainer emoji, so this type's icon is a drawn image
+// (images/eliptiskais.png), sized like an emoji by .type-icon. Because the
+// result is markup rather than a character, never store badgeForTitle()'s
+// return value in the database (see panels/self-log.js) - store emoji only.
+const ELIPTISKAIS_ICON_HTML = '<img class="type-icon" src="images/eliptiskais.png" alt="" width="16" height="16">';
 
 function badgeForTitle(title) {
   const t = (title || "").toLowerCase();
@@ -2409,6 +2500,7 @@ function badgeForTitle(title) {
   if (t.includes("tempa")) return "📈";
   if (t.includes("vfs") || t.includes("sfs")) return "💪";
   if (t.includes("velo")) return "🚴";
+  if (t.includes("eliptiskais")) return ELIPTISKAIS_ICON_HTML;
   return "🎲";
 }
 
@@ -2445,7 +2537,7 @@ document.addEventListener("click", (e) => {
 function renderLogEntryLines(data, paceBoundsMap, plannedIntervalCount, planDetails, showPlannedPrefix, calendarMode) {
   const plannedMainPart = showPlannedPrefix && planDetails ? getPlannedMainPartSummary(planDetails) : "";
   const stripLabel = calendarMode === "week" || calendarMode === "month";
-  return (data || []).map(entry => {
+  return logSectionEntries(data).map(entry => {
     let line = `<div class="log-line">`;
     const isMainSection = entry.section === "Pamatdaļa";
     const mainCls = calendarMode === "week" ? ' class="plan-main-line"' : "";
@@ -2560,7 +2652,9 @@ function renderPlanCard(plan) {
   const movedBadge = hasMoved ? `<span class="switch-badge">⇄ no ${formatShortDate(plan.original_date)}</span>` : "";
   const planLog = logEntries.find(l => l.plan_id === plan.id);
   const planLogData = planLog?.log_data || [];
-  const hasPamatdala = plan.details && plan.details.includes("Pamatdaļa:");
+  // A Velo training has no "Pamatdaļa:" line - its one line is "Velo: 1h; 130-140" -
+  // and used to show as a bare title because only "Pamatdaļa:" was looked for.
+  const hasPamatdala = plan.details && (plan.details.includes("Pamatdaļa:") || plan.details.split("\n").some(cardioLineLabel));
 
   const paceBoundsMap = buildPaceBoundsMap(plan.details);
   const plannedIntervalCount = getPlannedIntervalCount(plan.details);
@@ -2570,7 +2664,7 @@ function renderPlanCard(plan) {
   if (isCoach) {
     const isCopied = copiedItem?.kind === "plan" && copiedItem.planId === plan.id;
     const logBlock = planLog
-      ? `<div class="log-card log-inline">${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details, false, "week") : ""}${feelingBadge}${planLogNotes}</div>`
+      ? `<div class="log-card log-inline">${loggedTodNoteHtml(planLog, plan)}${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details, false, "week") : ""}${feelingBadge}${planLogNotes}</div>`
       : "";
 
     return `
@@ -2591,7 +2685,7 @@ function renderPlanCard(plan) {
   const logActions = planLog ? `<div class="log-actions"><button class="edit-log-btn icon-action-btn" data-log-plan="${plan.id}" type="button" title="Rediģēt">✏️</button><button class="log-delete-btn icon-action-btn is-delete" data-delete-log="${planLog.id}" type="button" title="Dzēst">✕</button></div>` : "";
 
   const logBlock = planLog
-    ? `<div class="log-card log-inline">${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details, false, "week") : ""}${feelingBadge}${planLogNotes}</div>`
+    ? `<div class="log-card log-inline">${loggedTodNoteHtml(planLog, plan)}${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details, false, "week") : ""}${feelingBadge}${planLogNotes}</div>`
     : `<button class="add-day-button log-plan-button" data-log-plan="${plan.id}" type="button">IERAKSTĪT IZPILDI</button>`;
 
   return `
@@ -3006,12 +3100,12 @@ function renderWeeklySummary() {
 // athlete types, and falls back to the stored row otherwise (coach view, or
 // before the week has been rendered).
 function isWeekEntryFilled() {
-  const inputs = ["wsRunKm", "wsRunMin", "wsVfsSfs", "wsVelo"].map((id) => document.getElementById(id));
+  const inputs = ["wsRunKm", "wsRunMin", "wsVfsSfs", "wsVelo", "wsElipt"].map((id) => document.getElementById(id));
   if (inputs.every(Boolean)) {
     return inputs.some((el) => parseHoursMinutesInput(el.value) > 0);
   }
   const s = weeklySummary || {};
-  return [s.run_km, s.run_min, s.vfs_sfs_min, s.velo_min].some((v) => Number(v) > 0);
+  return [s.run_km, s.run_min, s.vfs_sfs_min, s.velo_min, s.elipt_min].some((v) => Number(v) > 0);
 }
 
 // Athlete-only reminder (2026-09-12): the coach isn't the one filling this in,
@@ -3036,6 +3130,7 @@ function renderWeekNumbers() {
   const runMin = s.run_min || "";
   const vfsSfs = s.vfs_sfs_min || "";
   const velo = s.velo_min || "";
+  const elipt = s.elipt_min || "";
 
   box.innerHTML = `
     <div class="ws-fields">
@@ -3043,6 +3138,7 @@ function renderWeekNumbers() {
       <label>Kopējais laiks visos treniņos (h) <input id="wsRunMin" class="ws-time" type="text" value="${runMin}" ${isAthleteView ? "" : "disabled"} ${isAthleteView ? 'placeholder="piem. 10h45m"' : ""} /></label>
       <label>VFS/SFS (h) <input id="wsVfsSfs" class="ws-time" type="text" value="${vfsSfs}" ${isAthleteView ? "" : "disabled"} ${isAthleteView ? 'placeholder="piem. 1h30m"' : ""} /></label>
       <label>Velo (h) <input id="wsVelo" class="ws-time" type="text" value="${velo}" ${isAthleteView ? "" : "disabled"} ${isAthleteView ? 'placeholder="piem. 0h45m"' : ""} /></label>
+      <label>Eliptiskais (h) <input id="wsElipt" class="ws-time" type="text" value="${elipt}" ${isAthleteView ? "" : "disabled"} ${isAthleteView ? 'placeholder="piem. 0h45m"' : ""} /></label>
     </div>
   `;
 
@@ -3148,6 +3244,7 @@ function wireWeeklySummarySave() {
         updates.run_min = parseHoursMinutesInput(document.getElementById("wsRunMin").value);
         updates.vfs_sfs_min = parseHoursMinutesInput(document.getElementById("wsVfsSfs").value);
         updates.velo_min = parseHoursMinutesInput(document.getElementById("wsVelo").value);
+        updates.elipt_min = parseHoursMinutesInput(document.getElementById("wsElipt").value);
         updates.athlete_comment = document.getElementById("wsAthleteComment").value.trim();
       }
       try {
@@ -3262,7 +3359,7 @@ function renderMonthViewInline() {
           ${p.completed === false ? '<span class="month-not-completed-icon">!</span>' : ""}
           <div class="month-plan-summary">
             ${titleHtml}
-            <span>${extractMainPart(p.details).replace(/^Pamatdaļa:\s*/, "")}</span>
+            <span>${extractMainPart(p.details).replace(CARDIO_LABEL_RE, "")}</span>
           </div>
           <div class="month-plan-full">
             ${titleHtml}
@@ -3508,6 +3605,7 @@ function render() {
   document.getElementById("lactateTestsPanel").hidden = !hasAthletes;
   renderCopyModeBar();
   updateSidebarPanelLock();
+  refreshInstallButtons();
 }
 
 // Every sidebar panel except athlete management shows one athlete's data, so
@@ -4272,6 +4370,49 @@ function setupScreenViewBtn() {
 }
 setupScreenViewBtn();
 
+// "Instalēt lietotni": the portal as an app (own icon, no browser bar).
+// Android Chrome hands over an install prompt (beforeinstallprompt) which the
+// button fires; iPhone has no such prompt, so the button explains the
+// Share -> Add to Home Screen steps. Hidden once running as an installed app.
+let installAvailable = false;
+// Both install buttons (athlete: sidebar box, coach: bottom of the sidebar) are
+// only shown where installing is possible; the coach's one only to a coach,
+// because the athlete's already has its own.
+function refreshInstallButtons() {
+  const a = document.getElementById("installAppBtn");
+  const c = document.getElementById("installAppBtnCoach");
+  if (a) a.hidden = !installAvailable;
+  if (c) c.hidden = !(installAvailable && isCoach());
+}
+(function setupInstallBtn() {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  if (standalone) return;
+  let deferred = null;
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferred = e;
+    installAvailable = true;
+    refreshInstallButtons();
+  });
+  window.addEventListener("appinstalled", () => { installAvailable = false; deferred = null; refreshInstallButtons(); });
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && isTouchDevice();
+  if (isIos) { installAvailable = true; refreshInstallButtons(); }
+  document.querySelectorAll(".install-app-btn").forEach((btn) => btn.addEventListener("click", async () => {
+    if (deferred) {
+      deferred.prompt();
+      await deferred.userChoice.catch(() => {});
+      deferred = null;
+      installAvailable = false;
+      refreshInstallButtons();
+    } else if (isIos) {
+      alert("iPhone: apakšā nospied Dalīties (kvadrāts ar bultiņu), tad \"Pievienot sākuma ekrānam\". Portāls atvērsies kā lietotne bez pārlūka.");
+    }
+  }));
+})();
+
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     const panel = document.querySelector(".planner-panel");
@@ -4385,7 +4526,7 @@ document.addEventListener("click", () => {
 const customTypeDropdownList = document.querySelector("#customTypeDropdown .dropdown-list");
 customTypeDropdownList.innerHTML = Array.from(customType.options)
   .filter(opt => opt.value)
-  .map(opt => `<div class="type-dropdown-item" data-value="${opt.value}">${opt.textContent}</div>`)
+  .map(opt => `<div class="type-dropdown-item" data-value="${opt.value}">${opt.dataset.iconImg ? `<span>${ELIPTISKAIS_ICON_HTML} ${opt.textContent}</span>` : opt.textContent}</div>`)
   .join("");
 
 customTypeDropdownList.addEventListener("click", (e) => {
@@ -4423,6 +4564,7 @@ document.addEventListener("click", async (event) => {
 
   const updateBtn = event.target.closest("#updateTemplateBtn");
   if (updateBtn && selectedTemplateId) {
+    if (!requireOtherRunName(customType.value, customName)) return;
     const training = getGeneratedTraining();
     const name = document.getElementById("customName").value.trim() || training.title;
     const details = training.details;
@@ -4563,6 +4705,7 @@ calendarGrid.addEventListener("click", async (event) => {
     const day = dayButton.dataset.day;
     const tod = dayButton.dataset.tod || "";
     if (isTimeSlotRestricted(day, tod || null)) return;
+    if (!requireOtherRunName(customType.value, customName)) return;
     const training = getGeneratedTraining();
     if (training) {
       await insertTrainingToDay(day, training, tod);
@@ -4980,6 +5123,7 @@ calendarGrid.addEventListener("change", async (event) => {
 });
 
 async function saveNewTemplate(forAthlete) {
+  if (!requireOtherRunName(customType.value, customName)) return;
   const training = getGeneratedTraining();
   try {
     const saved = await insertTemplate({
@@ -5002,6 +5146,7 @@ document.getElementById("saveTemplateForAthleteBtn")?.addEventListener("click", 
 document.getElementById("saveEditPlanBtn")?.addEventListener("click", async () => {
   const id = editPlanDialog.dataset.editId;
   if (!id) return;
+  if (!requireOtherRunName(document.getElementById("epType").value, document.getElementById("epCustomName"))) return;
   const training = getEditPlanTraining();
   if (!training.title) return;
   const beforeEdit = plans.find(p => p.id === id);
@@ -5079,6 +5224,7 @@ const bulkApplyAthleteListEl = document.getElementById("bulkApplyAthleteList");
 let bulkApplyTraining = null;
 
 function openBulkApplyDialog() {
+  if (!requireOtherRunName(customType.value, customName)) return;
   const training = getGeneratedTraining();
   if (!training) {
     alert("Vispirms izveido treniņu (izvēlies tipu un aizpildi laukus).");
@@ -5342,6 +5488,8 @@ saveLogBtn.addEventListener("click", async () => {
   const feeling = feelingEl ? feelingEl.value : null;
   const feelingTags = null;
   const notes = document.getElementById("logAthleteComment")?.value.trim() || "";
+  // Only the plan-linked dialog has this picker; "" when nothing is chosen.
+  const doneTod = document.querySelector('input[name="logTod"]:checked')?.value || "";
 
   const durationMin = 0;
   const runningKm = 0;
@@ -5385,8 +5533,10 @@ saveLogBtn.addEventListener("click", async () => {
         }
         reps.push("");
       });
-      entries.push({ section, duration, pulse, intervals, reps, pace });
+      entries.push({ section, duration, pulse, intervals, reps, pace, ...(doneTod ? { tod: doneTod } : {}) });
     });
+    // Nothing to hang the part of the day on (see logSectionEntries): keep it anyway.
+    if (doneTod && !entries.length) entries.push({ section: "_tod", tod: doneTod });
     if (logDialogPlanId) {
       // Looked up straight from the database (not the in-memory `logEntries`
       // array, which is scoped to whatever week is currently loaded and can
@@ -5636,6 +5786,9 @@ function openPlanLogDialog(planId) {
   let html = "";
   if (activeRole !== "coach") {
     html += `<label class="field-label">Izpildes datums (ir iespējams mainīt) <input type="date" id="logDatePicker" value="${plan.date}" /></label>`;
+    // Preselected with the planned part of the day (or the one already logged),
+    // so an execution done as planned needs no click at all.
+    html += logTodPickerHtml(loggedTod(existingLog) || plan.time_of_day || "");
   }
   html += `<div class="log-plan-block"><h3>${displayTitle(plan.title)}</h3>`;
   const lines = (plan.details || "").split("\n");
@@ -5734,7 +5887,7 @@ function openPlanLogDialog(planId) {
       </div>`;
         }
     } else {
-      const sectionName = line.startsWith("Velo:") ? "Velo" : "Pamatdaļa";
+      const sectionName = cardioLineLabel(line) || "Pamatdaļa";
       html += `<div class="log-section-row" data-log-section="${sectionName}">
         <div class="log-target">${line}</div><div class="field-grid">
           <label>Garums/ilgums <input class="log-actual-duration" /></label>

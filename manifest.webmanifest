@@ -1,0 +1,14 @@
+{
+  "name": "Toma Komasa Sportistu Portāls",
+  "short_name": "TK Portāls",
+  "lang": "lv",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fcf2e7",
+  "theme_color": "#3b2a22",
+  "icons": [
+    { "src": "images/app/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "images/app/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

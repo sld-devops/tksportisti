@@ -31,6 +31,7 @@ const STATS_METRICS = [
   { key: "run_min", label: "Laiks", unit: "h", color: "chart-series-2" },
   { key: "vfs_sfs_min", label: "VFS/SFS", unit: "h", color: "chart-series-3" },
   { key: "velo_min", label: "Velo", unit: "h", color: "chart-series-4" },
+  { key: "elipt_min", label: "Eliptiskais", unit: "h", color: "chart-series-5" },
 ];
 
 // #endregion
