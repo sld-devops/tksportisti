@@ -1291,9 +1291,13 @@ const TEMPLATE_GROUPS = [
 ];
 
 // The most-used table is every group but VFS/SFS, which is excluded from it
-// entirely and not even counted. Velo/Eliptiskais is the last row, below
-// "Citi skrējieni".
-const FREQUENT_GROUPS = TEMPLATE_GROUPS.filter((g) => g.key !== "vfs_sfs");
+// entirely and not even counted. In the template dropdowns Velo and Eliptiskais
+// are one group, but here (owner's call 2026-11-15) each has its own row, the
+// last two, below "Citi skrējieni".
+const FREQUENT_GROUPS = TEMPLATE_GROUPS.filter((g) => g.key !== "vfs_sfs" && g.key !== "velo").concat([
+  { key: "velo_only", label: "Velo", types: ["Velo"] },
+  { key: "eliptiskais_only", label: "Eliptiskais", types: ["Eliptiskais"] },
+]);
 
 function renderTemplates() {
   const athleteId = getSelectedAthleteId();
@@ -1415,7 +1419,7 @@ function frequentDetailsForDisplay(details) {
 
 function frequentGroupKey(title) {
   const base = (title || "").replace(/\s*Koptreniņš\s*$/, "").trim();
-  const group = TEMPLATE_GROUPS.find((g) => g.types.includes(base));
+  const group = FREQUENT_GROUPS.find((g) => g.types.includes(base)) || TEMPLATE_GROUPS.find((g) => g.types.includes(base));
   // No group at all means a coach-written name ("Fartleks") — that is what
   // "Citi skrējieni" is for. VFS/SFS does match a group, just not one this
   // table covers, and those are dropped rather than swept into "Citi".
