@@ -4025,7 +4025,7 @@ setupHeaderMenu(
     : `<span class="video-menu-empty">Video drīzumā</span>`;
   main.insertAdjacentHTML(
     "beforeend",
-    `<div class="video-menu-group">Video</div><button type="button" class="video-submenu-trigger menu-item-timed" aria-haspopup="true" aria-expanded="false"><span>Video pamācības</span><span class="menu-time">▸</span></button>`
+    `<button type="button" class="video-submenu-trigger secondary-action" aria-haspopup="true" aria-expanded="false">Video pamācības ▸</button>`
   );
   const trigger = main.querySelector(".video-submenu-trigger");
   const setSub = (open) => {

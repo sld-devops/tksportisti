@@ -348,7 +348,6 @@ button {
 }
 
 .video-menu-list a,
-.video-submenu-trigger,
 .video-menu-empty {
   border-radius: 6px;
   color: var(--ink);
@@ -357,9 +356,7 @@ button {
   text-decoration: none;
 }
 
-.video-menu-list a:hover,
-.video-submenu-trigger:hover,
-.video-submenu-trigger[aria-expanded="true"] {
+.video-menu-list a:hover {
   background: var(--panel-row-hover);
 }
 
@@ -7608,13 +7605,13 @@ input.needs-value {
   max-height: calc(100vh - 90px);
 }
 
-.video-submenu-trigger {
-  background: none;
-  border: 0;
-  cursor: pointer;
-  font-family: inherit;
-  text-align: left;
-  width: 100%;
+/* Same button as the ones in the header (.secondary-action: peach gradient,
+   edge); only its width and spacing inside the list are set here. */
+.video-menu-list .video-submenu-trigger {
+  display: block;
+  margin: 8px 4px 4px;
+  text-align: center;
+  width: calc(100% - 8px);
 }
 
 .video-sub-list {
