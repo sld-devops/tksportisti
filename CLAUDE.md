@@ -707,3 +707,7 @@ Same boxes as a long run (builder and edit dialog): untick them and the fields h
 ### Every form label is a grid with a 6px gap - don't override its `display` (2026-11-15)
 
 The base `label` rule is `display: grid; gap: 6px`, which is what holds the caption off its box. `#warmupAdditionalRow` / `#cooldownAdditionalRow` had `display: block`, which ignores `gap`, so "Papildus uzdevums" sat tight on its input while "Garums/ilgums" beside it did not (owner spotted it). Use `display: grid` if a label needs a display override, and when adding a field, measure caption-to-box distance against a neighbour (19px).
+
+### "Taku/kalnu skrējiens" - a free-text type with a fixed name (2026-11-15)
+
+Own row under Tempa skrējiens in the template lists and in "Biežāk lietotie" (`TEMPLATE_GROUPS` key `trail`), icon 🏞️ (`badgeForTitle()`; there is no forest-and-mountains emoji, so this is the closest - a drawn image like Eliptiskais's is the alternative). It uses the same form as "Cita veida treniņš" - free-text Pamatdaļa for tasks of any pace and length, warm-up/cool-down ticks, footwear and nutrition options - through `isFreeTextType()`, but has **no Nosaukums box and no icon picker** (title and icon are fixed; `requireOtherRunName()` does not apply). In the render functions `isFree` drives the shared form and `isOtherRun` only the name/icon rows. A new free-text type = add it to `isFreeTextType()`, `knownTypes` (two lists), `TEMPLATE_GROUPS`, both type `<select>`s and `badgeForTitle()`.
