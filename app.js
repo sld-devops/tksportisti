@@ -1577,7 +1577,7 @@ function previewBadgeHtml(training) {
 
 function renderCustomPreview() {
   const training = getGeneratedTraining();
-  customPreview.innerHTML = `${previewBadgeHtml(training)}<strong>${displayTitle(training.title)}</strong><span>${formatDetailsForCard(training.details).replace(/\n/g, "<br>")}</span>`;
+  customPreview.innerHTML = `${previewBadgeHtml(training)}<strong>${displayTitle(training.title)}</strong><span>${formatDetailsForCard(training.details, "preview").replace(/\n/g, "<br>")}</span>`;
 }
 
 function renderSourcePicker() {
@@ -1833,7 +1833,7 @@ function renderEditPlanBuilder() {
 function renderEditPlanPreview() {
   const training = getEditPlanTraining();
   const preview = document.getElementById("epPreview");
-  preview.innerHTML = `${previewBadgeHtml(training)}<strong>${displayTitle(training.title)}</strong><span>${formatDetailsForCard(training.details).replace(/\n/g, "<br>")}</span>`;
+  preview.innerHTML = `${previewBadgeHtml(training)}<strong>${displayTitle(training.title)}</strong><span>${formatDetailsForCard(training.details, "preview").replace(/\n/g, "<br>")}</span>`;
 }
 // #endregion
 
@@ -2499,11 +2499,13 @@ function formatDetailsForCard(details, calendarMode) {
   const result = merged.map((line) => {
     // In the calendar a Velo line is the main line too (bold, label dropped, so
     // the card reads "Velo" / "1h; 130-140"). Previews and template lists keep
-    // the label, as they always did.
+    // the label, as they always did. "preview" (the builder's and the edit
+    // dialog's preview) is the card's reading of a Velo/Eliptiskais line - title
+    // bold, details below, label dropped - without the card's section relabelling.
     const isMainLine = line.startsWith("Pamatdaļa:") || (calendarMode && cardioLineLabel(line));
     if (!isMainLine) {
       let relabeled = line;
-      if (calendarMode) {
+      if (calendarMode && calendarMode !== "preview") {
         const m = line.match(/^(Iesildīšanās|Atsildīšanās):(.*)$/su);
         if (m) {
           const { first, rest } = splitFirstFieldForTick(m[2]);

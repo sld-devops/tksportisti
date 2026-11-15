@@ -719,3 +719,5 @@ The main part of the free-text types has no "Drills" box any more (2026-11-15); 
 ### The "Cita veida treniņš" icon row has 🌲 and the Eliptiskais image (2026-11-15)
 
 Two more buttons at the end of `#customIconPicker` / `#epIconPicker`, with 6px above the row (`.icon-picker { margin-top: 6px }`). The Eliptiskais one is an image, so its `data-icon` - and therefore the plan's `custom_icon` - holds the `<img>` markup. That is rendered raw at every `custom_icon` site and works, but it is the one place markup is stored in `plans`: if `images/eliptiskais.png` is ever renamed, old plans lose the picture; and `panels/self-log.js` still strips markup (`emojiOnlyIcon()`), which is separate.
+
+The builder / edit-dialog preview of a Velo or Eliptiskais training now reads like the card (title bold, "120min" below, no second "Velo:") - `formatDetailsForCard(details, "preview")` drops the label but keeps the other lines as they were. Template lists still keep the label.
