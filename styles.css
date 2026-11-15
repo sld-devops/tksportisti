@@ -6091,6 +6091,30 @@ textarea:disabled {
   display: none;
 }
 
+/* A desktop window narrower than ~1460px - and a phone showing the desktop view,
+   which is pinned to 1200px - cannot fit the full header labels: for a coach
+   with the "Sportista skats" and "Datora skats" buttons showing, the row needed
+   ~1425px and "Mainīt paroli" / "Iziet" were cut off at the right edge, down to
+   a 1366px laptop. Short labels from the phone layout, measured to fit at 1100
+   and up. 1041 is where the phone layout's own rules take over. */
+@media (min-width: 1041px) and (max-width: 1460px) {
+  .label-full {
+    display: none;
+  }
+
+  .label-short {
+    display: inline;
+  }
+}
+
+/* Below ~1300px the label is squeezed so far that the ▾ wraps under it
+   ("Bibliotēka" / "▾"); hidden, as the phone layout already does. */
+@media (min-width: 1041px) and (max-width: 1300px) {
+  .video-arrow {
+    display: none;
+  }
+}
+
 /* Every phone, not only the narrowest (it was max-width: 380px until 2026-11-14):
    at 390-414px the full labels put each button on a row of its own and the
    header stood 260px tall - twice what a 360px phone got - before the calendar

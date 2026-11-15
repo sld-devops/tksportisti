@@ -225,6 +225,14 @@ The owner found the lime green glaring across the whole portal and chose this ou
 - **`--lime`, `--lime-dark`, `--lime-bg` still exist and are still green on purpose**: they are the "excellent" status colour, read from JS (`panels/ruffier-test.js` "Teicami", the top feeling rating in `app.js`). Don't delete them and don't use them for UI chrome again.
 - Left as they were: the red accent, plan/execution card fills (`--card-plan-bg`, `--card-done-bg`), time-of-day, HR zones, week boxes, feeling scale.
 
+### The header fits from 1100px up (2026-11-15)
+
+Reported from a phone showing the desktop view (pinned to 1200px): "Paziņojumu e-pasts" and the buttons after it were cut off. The header is `overflow: hidden` and does not wrap, and for a coach who also has the "Sportista skats" and "Datora skats" buttons the full-label row needed ~1425px - so it clipped down to a 1366px laptop, not just on phones. Measured with iframes at 1100/1200/1280/1366/1440.
+
+- **Short labels (`.label-short`) are used from 1041px to 1460px**, as on the phone layout (`Bibliotēka`, `Video`, `Lietošanas instrukcija`, `E-pasts`, `Dators`, `Sportists`); the ▾ is hidden below 1300px because it wrapped under the word. Nothing is clipped at 1100px and up.
+- **Don't "fix" this with `flex-wrap: wrap` on `.app-header`.** Tried and reverted the same day: it works at narrow widths, but on a wide screen the items no longer shrink, so the title and the buttons stop wrapping their own text and the right-hand group drops to a second row - the wide desktop screenshot changed. Short labels leave the wide layout pixel-identical (verified at 1779px).
+- The calendar in the pinned desktop view still shows 5 of 7 days with a sideways scroll until the sidebar is collapsed; the owner chose to leave that as it is.
+
 ### Phone overflow pass (2026-11-14)
 
 Three phone-only fixes in `styles.css`, found by measuring the page at 320/360/390/414/768px rather than by eye; the desktop screenshot is pixel-identical before and after.
