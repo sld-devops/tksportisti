@@ -4369,6 +4369,39 @@ function setupScreenViewBtn() {
 }
 setupScreenViewBtn();
 
+// "Instalēt lietotni": the portal as an app (own icon, no browser bar).
+// Android Chrome hands over an install prompt (beforeinstallprompt) which the
+// button fires; iPhone has no such prompt, so the button explains the
+// Share -> Add to Home Screen steps. Hidden once running as an installed app.
+(function setupInstallBtn() {
+  const btn = document.getElementById("installAppBtn");
+  if (!btn) return;
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  if (standalone) return;
+  let deferred = null;
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferred = e;
+    btn.hidden = false;
+  });
+  window.addEventListener("appinstalled", () => { btn.hidden = true; deferred = null; });
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && isTouchDevice();
+  if (isIos) btn.hidden = false;
+  btn.addEventListener("click", async () => {
+    if (deferred) {
+      deferred.prompt();
+      await deferred.userChoice.catch(() => {});
+      deferred = null;
+      btn.hidden = true;
+    } else if (isIos) {
+      alert("iPhone: apakšā nospied Dalīties (kvadrāts ar bultiņu), tad \"Pievienot sākuma ekrānam\". Portāls atvērsies kā lietotne bez pārlūka.");
+    }
+  });
+})();
+
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     const panel = document.querySelector(".planner-panel");

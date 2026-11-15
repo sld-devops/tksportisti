@@ -671,3 +671,11 @@ The weekly figures ("Paveiktā statistika") got a fifth box, `wsElipt` ("Eliptis
 
 - **The column needs `supabase/weekly_summaries_elipt.sql` run once** in the Supabase SQL editor. Until then the code degrades instead of failing: the trend queries use `select("*")`, and `upsertWeeklySummary()` retries without `elipt_min` if the database rejects it, so everything else still saves - only the Eliptiskais number is lost.
 - It counts in `isWeekEntryFilled()` and in the "auto upsert" emptiness check, like the other four.
+
+### The portal can be installed as an app (2026-11-15)
+
+`manifest.webmanifest` + `sw.js` + icons in `images/app/` (192/512 for Android, 180 for iPhone; a dark-brown square with a peach "TK", drawn with PIL - replace with a real logo if the owner has one). Installed, it opens full screen with no browser bar.
+
+- **`sw.js` caches nothing, on purpose.** It exists only so Android Chrome offers "Install"; every request still goes to the network, so the `?v=` cache-busting and a fresh deploy behave exactly as before. Don't add caching without thinking about stale code staying on phones.
+- **`#installAppBtn` in the header** (`setupInstallBtn()` in `app.js`, next to `setupScreenViewBtn()`): shown on Android only after the browser fires `beforeinstallprompt`, on iPhone always (an alert explains Share -> Add to Home Screen, there is no install prompt on iOS), never when already running standalone.
+- Not verifiable headless: the real install flow. The owner has to try it on a phone after deploy. No offline mode and no push notifications.
