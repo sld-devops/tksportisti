@@ -53,16 +53,17 @@ function filterByYearRange(rows, startField = "start_date", endField = "end_date
   return (rows || []).filter((r) => overlapsSelectedYear(r[startField], r[endField]));
 }
 
+// Every element marked data-year-filter shows the same switch (the sidebar's, and
+// the one inside the race calendar), so they always agree.
 function renderYearFilter() {
-  const box = document.getElementById("yearFilter");
-  if (!box) return;
   const btn = (value, label) =>
     `<button type="button" class="year-btn${String(selectedYear) === String(value) ? " active" : ""}" data-year="${value}">${label}</button>`;
-  box.innerHTML = `<span class="year-filter-label">Gads</span>${yearFilterYears().map((y) => btn(y, y)).join("")}${btn("all", "Visi")}`;
+  const html = `<span class="year-filter-label">Gads</span>${yearFilterYears().map((y) => btn(y, y)).join("")}${btn("all", "Visi")}`;
+  document.querySelectorAll("[data-year-filter]").forEach((box) => { box.innerHTML = html; });
 }
 
-document.getElementById("yearFilter")?.addEventListener("click", async (e) => {
-  const b = e.target.closest(".year-btn");
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-year-filter] .year-btn");
   if (!b) return;
   selectedYear = b.dataset.year === "all" ? "all" : parseInt(b.dataset.year, 10);
   renderYearFilter();

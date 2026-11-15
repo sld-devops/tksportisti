@@ -47,7 +47,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=244" />
+    <link rel="stylesheet" href="styles.css?v=245" />
   </head>
   <body>
     <div id="authView">
@@ -109,7 +109,7 @@
       <aside class="planner-panel">
           <div class="planner-panel__scroll">
           <!-- One year switch for every sidebar list and the statistics; see panels/year-filter.js. -->
-          <div class="year-filter" id="yearFilter" role="group" aria-label="Gads"></div>
+          <div class="year-filter" id="yearFilter" data-year-filter role="group" aria-label="Gads"></div>
           <section class="panel collapsible collapsed" id="adminPanel" hidden>
             <div class="panel-header">
               <h2>Sportistu pārvaldība</h2>
@@ -527,6 +527,8 @@
                 <button class="active" data-race-tab="upcoming" type="button">Gaidāmās</button>
                 <button data-race-tab="past" type="button">Notikušās</button>
               </div>
+              <!-- The same year switch as the sidebar's (shared state, see panels/year-filter.js). -->
+              <div class="year-filter-inline" data-year-filter role="group" aria-label="Gads"></div>
               <div id="raceCalendarContent"></div>
             </div>
           </div>
@@ -1111,11 +1113,11 @@
     <script src="date-picker.js?v=2" defer></script>
     <script src="panels/self-tests.js?v=3" defer></script>
     <script src="panels/polar-tests.js?v=3" defer></script>
-    <script src="panels/year-filter.js?v=1" defer></script>
+    <script src="panels/year-filter.js?v=2" defer></script>
     <script src="panels/health-journal.js?v=8" defer></script>
     <script src="panels/lab-tests.js?v=4" defer></script>
     <script src="panels/restrictions.js?v=9" defer></script>
-    <script src="panels/races.js?v=4" defer></script>
+    <script src="panels/races.js?v=5" defer></script>
     <script src="panels/profile.js?v=10" defer></script>
     <script src="panels/calendar-link.js?v=3" defer></script>
     <script src="panels/stats.js?v=15" defer></script>

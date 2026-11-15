@@ -178,7 +178,7 @@ function renderRaceTabFromRaces(allRaces, tab) {
   raceCalendarRaces = allRaces;
   const content = document.getElementById("raceCalendarContent");
   if (!races.length) {
-    content.innerHTML = "";
+    content.innerHTML = '<p class="panel-empty">Nav sacensību</p>';
     return;
   }
   const isAthleteOwner = (activeRole === "athlete") && currentUser.id === athleteId;

@@ -740,3 +740,5 @@ Opening "Sportisti" sets `#dropdownList`'s `max-height` to the room between the 
 - Changing the year runs `applyYearFilter()` (`app.js`): reload the two trends, `render()`, redraw the race list.
 
 Under the 80% body zoom every `100vh`-based height must be divided by 0.8 (the sidebar scroll box `.planner-panel__scroll` and `#exerciseMenuList` are, in the last `@media (min-width: 1400px)` block of `styles.css`), or the box ends 20% short of the screen. Do the same for any new viewport-height box.
+
+The year switch also appears inside the race calendar panel (`.year-filter-inline`, above the list). Every `[data-year-filter]` element is drawn by `renderYearFilter()` and clicks are delegated on the document, so the sidebar one and this one always show the same year; an empty list says "Nav sacensību".

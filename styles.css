@@ -7696,3 +7696,17 @@ input.needs-value {
     max-height: calc(100vh / 0.8 - 90px);
   }
 }
+
+/* The year switch inside the race calendar: a plain row, not a second card. */
+.year-filter-inline {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 6px;
+}
+.year-filter-inline .year-filter-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
