@@ -697,3 +697,7 @@ The separate header button is gone. The library dropdown (`#exerciseMenuList`) e
 ### Empty sidebar lists say "Nav veiktu ierakstu" (2026-11-15)
 
 Health journal, Diary, Restrictions, Records, the five test panels and Laktāta tests show `<p class="panel-empty">Nav veiktu ierakstu</p>` when the athlete has nothing in them, instead of a blank body (Restrictions says "Nav spēkā esošu ierakstu" when only past entries exist, since the past-note sits right under it). A new list panel needs the same. Interval history has had its own messages since earlier; HR zones, pace/HR and thresholds are always forms and need none.
+
+### "Cita veida treniņš" has the warm-up / cool-down tick boxes too (2026-11-15)
+
+Same boxes as a long run (builder and edit dialog): untick them and the fields hide and the lines are left out of the details. `isOtherRun` joins `isEasyOrLong` in the toggle-row / field-visibility branches of `renderCustomBuilder()` and `renderEditPlanBuilder()` and in the Other branches of `getGeneratedTraining()` / `getEditPlanTraining()`. Loading a template or plan already set the boxes from whether the lines exist, so old ones come back correctly; the default for a fresh one is ticked, as before.

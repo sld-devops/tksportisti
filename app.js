@@ -418,9 +418,10 @@ function getGeneratedTraining() {
   const type = customType.value;
 
   if (type === OTHER_RUN_TYPE) {
-    const warmup = formatPart("Iesildīšanās", warmupDuration.value, warmupPulse.value, null, warmupAdditional.value);
+    // Warm-up and cool-down can be ticked off, as for a long run (2026-11-15).
+    const warmup = includeWarmup.checked ? formatPart("Iesildīšanās", warmupDuration.value, warmupPulse.value, null, warmupAdditional.value) : "";
     const drills = getDrillsPart();
-    const cooldown = formatPart("Atsildīšanās", cooldownDuration.value, cooldownPulse.value, null, cooldownAdditional.value);
+    const cooldown = includeCooldown.checked ? formatPart("Atsildīšanās", cooldownDuration.value, cooldownPulse.value, null, cooldownAdditional.value) : "";
     // [a, b].filter(Boolean) drops every "empty" element (empty text, null,
     // undefined) - a short way to write Python's `[x for x in [a,b] if x]`.
     const lines = [warmup, drills].filter(Boolean);
@@ -517,9 +518,9 @@ function getEditPlanTraining() {
     const getVal = id => document.getElementById(id).value.trim();
     const getBool = id => document.getElementById(id).checked;
 
-    const warmup = epFormatPart("Iesildīšanās", "epWarmupDuration", "epWarmupPulse", null, "epWarmupAdditional");
+    const warmup = getBool("epIncludeWarmup") ? epFormatPart("Iesildīšanās", "epWarmupDuration", "epWarmupPulse", null, "epWarmupAdditional") : "";
     const drills = getBool("epIncludeDrills") ? "Drill" : "";
-    const cooldown = epFormatPart("Atsildīšanās", "epCooldownDuration", "epCooldownPulse", null, "epCooldownAdditional");
+    const cooldown = getBool("epIncludeCooldown") ? epFormatPart("Atsildīšanās", "epCooldownDuration", "epCooldownPulse", null, "epCooldownAdditional") : "";
     const lines = [warmup, drills].filter(Boolean);
     const mainText = getVal("epFreeText");
     if (mainText) lines.push(`Pamatdaļa: ${mainText}`);
@@ -1662,10 +1663,11 @@ function renderCustomBuilder() {
 
   document.getElementById("customNameRow").hidden = !isOtherRun;
 
-  warmupToggleRow.hidden = !isEasyOrLong;
-  cooldownToggleRow.hidden = !isEasyOrLong;
+  // "Cita veida treniņš" has the same warm-up / cool-down tick boxes as a long run.
+  warmupToggleRow.hidden = !(isEasyOrLong || isOtherRun);
+  cooldownToggleRow.hidden = !(isEasyOrLong || isOtherRun);
 
-  if (isEasyOrLong) {
+  if (isEasyOrLong || isOtherRun) {
     document.getElementById("warmupSection").hidden = false;
     document.getElementById("cooldownSection").hidden = false;
     warmupFields.hidden = !includeWarmup.checked;
@@ -1757,10 +1759,10 @@ function renderEditPlanBuilder() {
 
   document.getElementById("epCustomNameRow").hidden = !isOtherRun;
 
-  document.getElementById("epWarmupToggleRow").hidden = !isEasyOrLong;
-  document.getElementById("epCooldownToggleRow").hidden = !isEasyOrLong;
+  document.getElementById("epWarmupToggleRow").hidden = !(isEasyOrLong || isOtherRun);
+  document.getElementById("epCooldownToggleRow").hidden = !(isEasyOrLong || isOtherRun);
 
-  if (isEasyOrLong) {
+  if (isEasyOrLong || isOtherRun) {
     document.getElementById("epWarmupSection").hidden = false;
     document.getElementById("epCooldownSection").hidden = false;
     document.getElementById("epWarmupFields").hidden = !document.getElementById("epIncludeWarmup").checked;
