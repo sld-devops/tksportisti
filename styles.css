@@ -2652,6 +2652,11 @@ label {
   border-right: 1px solid var(--line);
   padding-right: 10px;
 }
+.race-list-main .race-terrain {
+  border-left: 1px solid var(--line);
+  margin-left: 10px;
+  padding-left: 10px;
+}
 .race-list-main .race-loc {
   border-left: 1px solid var(--line);
   padding-left: 10px;
