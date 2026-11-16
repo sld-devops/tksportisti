@@ -2646,6 +2646,13 @@ label {
   align-items: baseline;
 }
 
+/* A faint straight line between the race name and its date (owner, 2026-11-16),
+   like the dividers in the week-navigation row. */
+.race-list-main > strong:first-child {
+  border-right: 1px solid var(--line);
+  padding-right: 10px;
+}
+
 .race-distance {
   font-weight: 700;
   color: var(--ink);
