@@ -7725,6 +7725,7 @@ input.needs-value {
 #epTypeDropdown .type-dropdown-item.selected:not(:hover) {
   background: #fff;
   border-color: transparent;
+}
 
 /* A coach's plan card has three icons (pencil, cross, copy). On a touch screen each
    was at least 44px wide with a 12px gap = 156px, and a day column in the phone's
@@ -7739,5 +7740,42 @@ input.needs-value {
     min-width: 0;
     padding-left: 0;
     padding-right: 0;
+  }
+}
+
+/* Edit-training dialog on a wide screen: wider, with Iesildīšanās | Pamatdaļa |
+   Atsildīšanās side by side like the builder, so it fits without scrolling down
+   (owner, 2026-11-16). Narrower screens keep the single column and its scroll. */
+@media (min-width: 1000px) {
+  #editPlanDialog {
+    max-width: min(1180px, calc(100% - 48px));
+  }
+  #editPlanDialog form {
+    align-items: start;
+    column-gap: 22px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr);
+    row-gap: 14px;
+  }
+  #editPlanDialog form > * {
+    grid-column: 1 / -1;
+  }
+  #editPlanDialog #epWarmupSection {
+    grid-column: 1;
+  }
+  #editPlanDialog .ep-main-column {
+    grid-column: 2;
+  }
+  #editPlanDialog #epCooldownSection {
+    grid-column: 3;
+  }
+}
+@media (min-width: 1400px) {
+  /* Under the 80% body zoom a vh-based height is 20% short. */
+  .edit-dialog {
+    max-height: calc(90vh / 0.8);
+  }
+  .edit-dialog form {
+    max-height: calc(90vh / 0.8 - 40px);
   }
 }

@@ -750,3 +750,7 @@ The year switch also appears inside the race calendar panel (`.year-filter-inlin
 ### A coach's plan card must fit its three icons on a touch screen (2026-11-16)
 
 In the phone's desktop view a day column leaves a card ~92px of row; the pencil, cross and copy icons each had `min-width: 44px` and a 12px gap under `(pointer: coarse)`, so the copy icon fell outside the card. The last `@media (pointer: coarse)` block of `styles.css` now lets the three share the row (`flex: 1 1 0`, 6px gap, ~27px wide, still 40px tall). Measured by injecting the rules into a 115px box (headless cannot emulate a coarse pointer). If a fourth icon is ever added to `.card-actions`, this will not fit either.
+
+### The edit-training dialog is wide on big screens (2026-11-16)
+
+From 1000px of viewport width `#editPlanDialog` is up to 1180px wide and its form is a 3-column grid: Iesildīšanās | Pamatdaļa (`.ep-main-column`) | Atsildīšanās side by side, like the builder, with the type picker, nutrition row, preview and buttons spanning the full width. Measured at 1400px: no vertical scrolling for the Other, variable-interval and long-run types. Narrower screens keep the single column and its scroll. From 1400px the dialog's vh-based `max-height` is divided by 0.8 (the body zoom). Other dialogs (log, race, ...) were not touched.
