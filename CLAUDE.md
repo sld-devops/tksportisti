@@ -742,3 +742,7 @@ Opening "Sportisti" sets `#dropdownList`'s `max-height` to the room between the 
 Under the 80% body zoom every `100vh`-based height must be divided by 0.8 (the sidebar scroll box `.planner-panel__scroll` and `#exerciseMenuList` are, in the last `@media (min-width: 1400px)` block of `styles.css`), or the box ends 20% short of the screen. Do the same for any new viewport-height box.
 
 The year switch also appears inside the race calendar panel (`.year-filter-inline`, above the list). Every `[data-year-filter]` element is drawn by `renderYearFilter()` and clicks are delegated on the document, so the sidebar one and this one always show the same year; an empty list says "Nav sacensību".
+
+### A coach's plan card must fit its three icons on a touch screen (2026-11-16)
+
+In the phone's desktop view a day column leaves a card ~92px of row; the pencil, cross and copy icons each had `min-width: 44px` and a 12px gap under `(pointer: coarse)`, so the copy icon fell outside the card. The last `@media (pointer: coarse)` block of `styles.css` now lets the three share the row (`flex: 1 1 0`, 6px gap, ~27px wide, still 40px tall). Measured by injecting the rules into a 115px box (headless cannot emulate a coarse pointer). If a fourth icon is ever added to `.card-actions`, this will not fit either.
