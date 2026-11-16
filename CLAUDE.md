@@ -742,3 +742,7 @@ Opening "Sportisti" sets `#dropdownList`'s `max-height` to the room between the 
 Under the 80% body zoom every `100vh`-based height must be divided by 0.8 (the sidebar scroll box `.planner-panel__scroll` and `#exerciseMenuList` are, in the last `@media (min-width: 1400px)` block of `styles.css`), or the box ends 20% short of the screen. Do the same for any new viewport-height box.
 
 The year switch also appears inside the race calendar panel (`.year-filter-inline`, above the list). Every `[data-year-filter]` element is drawn by `renderYearFilter()` and clicks are delegated on the document, so the sidebar one and this one always show the same year; an empty list says "Nav sacensību".
+
+### The edit dialog's type picker is the custom dropdown too (2026-11-16)
+
+`#epType` is now a hidden value holder; the visible control is `#epTypeDropdown` (same `.type-dropdown-item` list as the builder, built from `#epType`'s options in `app.js`, kept in step by `syncEpTypeDropdown()` at the top of `renderEditPlanBuilder()`). A native `<select>` cannot show the Eliptiskais picture, which is why the edit dialog had no icon for it. Every `epType.value` read/write and the `change` listener are unchanged. It sits in a `div.field-like`, **not a `<label>`**: a click on a dropdown inside a label is forwarded to the hidden select and closes the list again. A new type must be added to this select's options too (it already was in the list of places).

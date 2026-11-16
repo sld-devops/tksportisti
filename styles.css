@@ -7710,3 +7710,19 @@ input.needs-value {
   font-size: 0.8rem;
   font-weight: 700;
 }
+
+/* The label look (grid, 6px gap) on a div, for a field that holds a custom dropdown. */
+.field-like {
+  color: var(--ink);
+  display: grid;
+  font-size: 0.88rem;
+  font-weight: 600;
+  gap: 6px;
+}
+#epTypeDropdown .dropdown-list {
+  background: #fff;
+}
+#epTypeDropdown .type-dropdown-item.selected:not(:hover) {
+  background: #fff;
+  border-color: transparent;
+}

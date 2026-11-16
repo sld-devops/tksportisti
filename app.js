@@ -1734,6 +1734,7 @@ function renderCustomBuilder() {
 
 function renderEditPlanBuilder() {
   const type = document.getElementById("epType").value;
+  syncEpTypeDropdown();
   const isEasyOrLong = type === "Atjaunojošais/lēnais skrējiens" || type === "Garais skrējiens" || type === "Vidējas intensitātes skrējiens";
   const isSimple = type === "VFS" || type === "SFS";
   const isVelo = isCardioLineType(type);
@@ -4633,6 +4634,34 @@ customTypeDropdownList.innerHTML = Array.from(customType.options)
   .filter(opt => opt.value)
   .map(opt => `<div class="type-dropdown-item" data-value="${opt.value}">${opt.dataset.iconImg ? `<span>${ELIPTISKAIS_ICON_HTML} ${opt.textContent}</span>` : opt.textContent}</div>`)
   .join("");
+
+// The edit dialog's type picker is the same custom list (a native <select> cannot
+// show the Eliptiskais picture). #epType stays as the hidden value holder, so
+// every `epType.value` read and write elsewhere is unchanged.
+const epTypeDropdownList = document.querySelector("#epTypeDropdown .dropdown-list");
+epTypeDropdownList.innerHTML = Array.from(document.getElementById("epType").options)
+  .map(opt => `<div class="type-dropdown-item" data-value="${opt.value}">${opt.dataset.iconImg ? `<span>${ELIPTISKAIS_ICON_HTML} ${opt.textContent}</span>` : opt.textContent}</div>`)
+  .join("");
+epTypeDropdownList.addEventListener("click", (e) => {
+  const item = e.target.closest(".type-dropdown-item");
+  if (!item) return;
+  document.getElementById("epType").value = item.dataset.value;
+  document.getElementById("epTypeDropdown").classList.remove("open");
+  document.getElementById("epType").dispatchEvent(new Event("change"));
+});
+// Shows the current epType in the trigger and marks it in the list; called from
+// renderEditPlanBuilder(), which runs on every change and after a plan is loaded.
+function syncEpTypeDropdown() {
+  const sel = document.getElementById("epType");
+  const trigger = document.querySelector("#epTypeDropdown .dropdown-selected");
+  if (!sel || !trigger) return;
+  const opt = sel.options[sel.selectedIndex];
+  if (opt?.dataset.iconImg) trigger.innerHTML = `<span>${ELIPTISKAIS_ICON_HTML} ${opt.textContent}</span>`;
+  else trigger.textContent = opt ? opt.textContent : "Izvēlies treniņa tipu";
+  document.querySelectorAll("#epTypeDropdown .type-dropdown-item").forEach((item) => {
+    item.classList.toggle("selected", item.dataset.value === sel.value);
+  });
+}
 
 customTypeDropdownList.addEventListener("click", (e) => {
   const item = e.target.closest(".type-dropdown-item");
