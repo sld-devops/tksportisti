@@ -746,3 +746,7 @@ The year switch also appears inside the race calendar panel (`.year-filter-inlin
 ### The edit dialog's type picker is the custom dropdown too (2026-11-16)
 
 `#epType` is now a hidden value holder; the visible control is `#epTypeDropdown` (same `.type-dropdown-item` list as the builder, built from `#epType`'s options in `app.js`, kept in step by `syncEpTypeDropdown()` at the top of `renderEditPlanBuilder()`). A native `<select>` cannot show the Eliptiskais picture, which is why the edit dialog had no icon for it. Every `epType.value` read/write and the `change` listener are unchanged. It sits in a `div.field-like`, **not a `<label>`**: a click on a dropdown inside a label is forwarded to the hidden select and closes the list again. A new type must be added to this select's options too (it already was in the list of places).
+
+### A coach's plan card must fit its three icons on a touch screen (2026-11-16)
+
+In the phone's desktop view a day column leaves a card ~92px of row; the pencil, cross and copy icons each had `min-width: 44px` and a 12px gap under `(pointer: coarse)`, so the copy icon fell outside the card. The last `@media (pointer: coarse)` block of `styles.css` now lets the three share the row (`flex: 1 1 0`, 6px gap, ~27px wide, still 40px tall). Measured by injecting the rules into a 115px box (headless cannot emulate a coarse pointer). If a fourth icon is ever added to `.card-actions`, this will not fit either.
