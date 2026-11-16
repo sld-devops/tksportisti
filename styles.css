@@ -7710,3 +7710,13 @@ input.needs-value {
   font-size: 0.8rem;
   font-weight: 700;
 }
+
+/* "🏆 Rekords" next to a race result: the race the current personal record was set in. */
+.chip-record {
+  background: #fff1c2;
+  border-radius: 4px;
+  color: #6b4e00;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 2px 6px;
+}

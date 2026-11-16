@@ -742,3 +742,7 @@ Opening "Sportisti" sets `#dropdownList`'s `max-height` to the room between the 
 Under the 80% body zoom every `100vh`-based height must be divided by 0.8 (the sidebar scroll box `.planner-panel__scroll` and `#exerciseMenuList` are, in the last `@media (min-width: 1400px)` block of `styles.css`), or the box ends 20% short of the screen. Do the same for any new viewport-height box.
 
 The year switch also appears inside the race calendar panel (`.year-filter-inline`, above the list). Every `[data-year-filter]` element is drawn by `renderYearFilter()` and clicks are delegated on the document, so the sidebar one and this one always show the same year; an empty list says "Nav sacensību".
+
+### The race that holds a personal record is marked 🏆 (2026-11-16)
+
+In the race calendar's "Notikušās" list, a race gets a "🏆 Rekords" chip beside its result when `isRaceCurrentRecord()` (`panels/races.js`) finds a record with the **same date, the same distance (compared as metres) and the same time** as the race - which is exactly what "Saglabāt kā rekordu" writes, so it also marks old records saved that way. A record typed in by hand with a different date does not match, and a better record set later replaces the row, so the mark moves. A marked race no longer offers "Saglabāt kā rekordu" (it is already one), and saving a record redraws the list so the mark appears at once.
