@@ -202,7 +202,7 @@ function renderRaceTabFromRaces(allRaces, tab) {
       <div class="race-list-item">
         <div class="race-list-main">
           <strong>${escapeHtml(r.name)}</strong>
-          <span class="muted">${formatDateLV(r.date)}${r.location ? " · " + escapeHtml(r.location) : ""}</span>
+          <span class="muted">${formatDateLV(r.date)}</span>${r.location ? `<span class="muted race-loc">${escapeHtml(r.location)}</span>` : ""}
           ${r.distance ? `<span class="race-dist-line"><strong class="race-distance">${escapeHtml(r.distance)}</strong>${r.terrain ? ` · ${escapeHtml(capitalize(r.terrain))}` : ""}</span>` : r.terrain ? `<span class="race-dist-line"><span class="race-distance">${escapeHtml(capitalize(r.terrain))}</span></span>` : ""}
         </div>
         <div class="race-list-details">
