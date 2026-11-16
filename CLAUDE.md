@@ -754,3 +754,5 @@ In the phone's desktop view a day column leaves a card ~92px of row; the pencil,
 ### The edit-training dialog is wide on big screens (2026-11-16)
 
 From 1000px of viewport width `#editPlanDialog` is up to 1180px wide and its form is a 3-column grid: Iesildīšanās | Pamatdaļa (`.ep-main-column`) | Atsildīšanās side by side, like the builder, with the type picker, nutrition row, preview and buttons spanning the full width. Measured at 1400px: no vertical scrolling for the Other, variable-interval and long-run types. Narrower screens keep the single column and its scroll. From 1400px the dialog's vh-based `max-height` is divided by 0.8 (the body zoom). Other dialogs (log, race, ...) were not touched.
+
+The heading-to-fields gap under "PAMATDAĻA" in the interval blocks (`#intervalFields`, `#varIntervalFields` and their `ep…` twins) is set by its own rule next to the sibling-margin rule: those blocks wrap their heading and fields, so the "every sibling after the first gets 12px" rule never reached them. Measured equal to the Iesildīšanās gap (edit dialog, same-length intervals).

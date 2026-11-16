@@ -1713,6 +1713,13 @@ h4 {
   margin-top: 12px;
 }
 
+/* The interval blocks keep their heading and fields inside a wrapper of their own,
+   so the sibling rule above never reached them: the gap under "PAMATDAĻA" was
+   smaller than under "IESILDĪŠANĀS" (owner, 2026-11-16). */
+:is(#intervalFields, #varIntervalFields, #epIntervalFields, #epVarIntervalFields) > .section-label + * {
+  margin-top: 12px;
+}
+
 #customNameRow {
   margin-bottom: 16px;
 }
