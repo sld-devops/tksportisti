@@ -2374,7 +2374,7 @@ label {
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(155px, 1fr));
+  grid-template-columns: repeat(7, minmax(180px, 1fr));
   min-height: 580px;
   overflow-x: auto;
 }
@@ -2407,7 +2407,7 @@ label {
 .day-column {
   border-right: 2px solid var(--muted);
   box-shadow: 2px 0 3px rgba(0, 0, 0, 0.1);
-  min-width: 155px;
+  min-width: 180px;
   padding: 14px;
 }
 
