@@ -7710,3 +7710,52 @@ input.needs-value {
   font-size: 0.8rem;
   font-weight: 700;
 }
+
+/* Week toolbar in the narrow desktop view (1041-1460px, which includes a phone in
+   the desktop view): two rows instead of three (owner, 2026-11-16).
+   Row 1: date + Slodze/Sacensības/Atpūta + Nedēļas/Mēneša plāns; row 2: the week
+   buttons. The Horizontāls/Vertikāls switch is hidden here (the vertical layout is
+   for phones), the dividers inside the block-type group go, and the date, type
+   and tab buttons get smaller. Wider screens are untouched. */
+@media (min-width: 1041px) and (max-width: 1460px) {
+  .week-label-row {
+    gap: 6px 8px;
+  }
+  #weekLabel {
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+  #layoutModeTabs {
+    display: none;
+  }
+  #weekBlockTypeSelect .week-nav-divider {
+    display: none;
+  }
+  #weekBlockTypeSelect {
+    gap: 4px;
+  }
+  .wbt-option {
+    font-size: 0.8rem;
+    padding: 3px 6px;
+  }
+  .view-mode-tabs-group {
+    gap: 6px;
+  }
+  .view-mode-tabs-group .view-tabs button {
+    font-size: 0.8rem;
+    padding: 5px 8px;
+  }
+  /* The week buttons and the athlete's name share row 2. */
+  .week-nav-row .week-nav-divider {
+    display: none;
+  }
+  .week-nav-row button,
+  #copyPrevWeekBtn {
+    font-size: 0.8rem;
+    padding: 5px 8px;
+  }
+  #activeAthleteName {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+  }
+}

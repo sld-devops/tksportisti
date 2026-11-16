@@ -742,3 +742,7 @@ Opening "Sportisti" sets `#dropdownList`'s `max-height` to the room between the 
 Under the 80% body zoom every `100vh`-based height must be divided by 0.8 (the sidebar scroll box `.planner-panel__scroll` and `#exerciseMenuList` are, in the last `@media (min-width: 1400px)` block of `styles.css`), or the box ends 20% short of the screen. Do the same for any new viewport-height box.
 
 The year switch also appears inside the race calendar panel (`.year-filter-inline`, above the list). Every `[data-year-filter]` element is drawn by `renderYearFilter()` and clicks are delegated on the document, so the sidebar one and this one always show the same year; an empty list says "Nav sacensību".
+
+### The week toolbar is two rows in the narrow desktop view (2026-11-16)
+
+At 1041-1460px (a phone in the desktop view is 1200px) the toolbar above the calendar was three rows: date + Slodze/Sacensības/Atpūta, then Horizontāls/Vertikāls + Nedēļas/Mēneša plāns, then the week buttons. The last block of `styles.css` now makes it two: the Horizontāls/Vertikāls switch (`#layoutModeTabs`) is **hidden** in this range (the owner agreed; the vertical layout is a phone thing), the dividers inside the block-type group and the week-button row go, and date, type and tab buttons are smaller. Measured at 1200px with Ubuntu Sans (the nearest installed font to Inter; DejaVu is much wider and still wraps): one line for the label row and one for the week buttons, coach and athlete. At 1100px it still wraps; wider than 1460px is untouched. The coach's name tag stays.
