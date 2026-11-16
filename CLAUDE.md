@@ -743,6 +743,8 @@ Under the 80% body zoom every `100vh`-based height must be divided by 0.8 (the s
 
 The year switch also appears inside the race calendar panel (`.year-filter-inline`, above the list). Every `[data-year-filter]` element is drawn by `renderYearFilter()` and clicks are delegated on the document, so the sidebar one and this one always show the same year; an empty list says "Nav sacensību".
 
-### The race that holds a personal record is marked 🏆 (2026-11-16)
+### The race that holds a personal record is marked 🏆 PB (2026-11-16)
 
-In the race calendar's "Notikušās" list, a race gets a "🏆 Rekords" chip beside its result when `isRaceCurrentRecord()` (`panels/races.js`) finds a record with the **same date, the same distance (compared as metres) and the same time** as the race - which is exactly what "Saglabāt kā rekordu" writes, so it also marks old records saved that way. A record typed in by hand with a different date does not match, and a better record set later replaces the row, so the mark moves. A marked race no longer offers "Saglabāt kā rekordu" (it is already one), and saving a record redraws the list so the mark appears at once.
+In the race calendar's "Notikušās" list, a race gets a "🏆 PB" chip beside its result when `isRaceCurrentRecord()` (`panels/races.js`) finds a record with the **same date, the same distance (compared as metres) and the same time** as the race - which is exactly what "Saglabāt kā rekordu" writes, so it also marks old records saved that way. A record typed in by hand with a different date does not match, and a better record set later replaces the row, so the mark moves. A marked race no longer offers "Saglabāt kā rekordu" (it is already one), and saving a record redraws the list so the mark appears at once.
+
+Race results (the list chip, the week-calendar race chip, the month "Izpildīts" line) no longer carry a ✅ or a green fill: plain peach (`--surface-hover`, `--edge-soft` border), ink text - the same peach as the rest of the UI (owner, 2026-11-16).

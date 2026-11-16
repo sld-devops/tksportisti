@@ -211,7 +211,7 @@ function renderRaceTabFromRaces(allRaces, tab) {
               ? `<span class="chip-target">Mērķis: ${escapeHtml(r.target_time)}${r.target_pace ? " (" + escapeHtml(r.target_pace.replace(/\/km\s*$/i, "")) + "/km)" : ""}</span>`
               : `<span class="muted">— Nav mērķa</span>`)
             : (hasResult
-              ? `<span class="chip-result">✅ ${escapeHtml(r.result_time)}${r.result_pace ? " (" + escapeHtml(r.result_pace.replace(/\/km\s*$/i, "")) + "/km)" : ""}</span>${isRecord ? ' <span class="chip-record" title="Šeit uzstādīts pašreizējais personīgais rekords">🏆 Rekords</span>' : ""}`
+              ? `<span class="chip-result">${escapeHtml(r.result_time)}${r.result_pace ? " (" + escapeHtml(r.result_pace.replace(/\/km\s*$/i, "")) + "/km)" : ""}</span>${isRecord ? ' <span class="chip-record" title="Šeit uzstādīts pašreizējais personīgais rekords">🏆 PB</span>' : ""}`
               : `<span class="muted">— Nav rezultāta</span>`)
           }
         </div>

@@ -2563,8 +2563,8 @@ label {
 }
 
 .race-chip .race-result {
-  background: var(--success-bg);
-  border: 1px solid var(--success-border);
+  background: var(--surface-hover);
+  border: 1px solid var(--edge-soft);
   border-radius: 4px;
   font-size: 0.88rem;
   font-weight: 700;
@@ -2701,8 +2701,8 @@ label {
 }
 
 .chip-result {
-  background: var(--success-bg);
-  color: var(--success-dark);
+  background: var(--surface-hover);
+  color: var(--ink);
 }
 
 .secondary-action-sm {
@@ -4660,8 +4660,8 @@ textarea:disabled {
 }
 
 .month-race-result {
-  background: var(--success-bg);
-  border: 1px solid var(--success-border);
+  background: var(--surface-hover);
+  border: 1px solid var(--edge-soft);
   border-radius: 4px;
   color: var(--ink);
   font-weight: 700;
@@ -7711,7 +7711,7 @@ input.needs-value {
   font-weight: 700;
 }
 
-/* "🏆 Rekords" next to a race result: the race the current personal record was set in. */
+/* "🏆 PB" next to a race result: the race the current personal record was set in. */
 .chip-record {
   background: #fff1c2;
   border-radius: 4px;
