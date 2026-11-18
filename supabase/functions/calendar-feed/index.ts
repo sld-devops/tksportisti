@@ -85,7 +85,28 @@ function badgeForTitle(title) {
   return "🎲";
 }
 
-const TOD_LABEL = { morning: "rīts", afternoon: "pusdiena", evening: "vakars" };
+// Where the day-part shows up in the calendar. A training with a day-part is a
+// one-hour event at a representative hour (a watch shows "Visa diena" for an
+// all-day event, which says nothing); one without stays all-day. The hours are
+// stand-ins, not real times, and the description says so in words ("No rīta").
+const TOD_START_HOUR = { morning: 7, afternoon: 12, evening: 18 };
+const TOD_NICE = { morning: "No rīta", afternoon: "Pusdienā", evening: "Vakarā" };
+
+function timedEvent({ uid, date, hour, summary, description, now }) {
+  const hh = (h) => String(h).padStart(2, "0") + "0000";
+  const lines = [
+    "BEGIN:VEVENT",
+    `UID:${uid}`,
+    `DTSTAMP:${now}`,
+    // Floating local time (no Z / TZID): it means 07:00 wherever the athlete is.
+    `DTSTART:${compact(date)}T${hh(hour)}`,
+    `DTEND:${compact(date)}T${hh(hour + 1)}`,
+    `SUMMARY:${escapeText(summary)}`,
+  ];
+  if (description) lines.push(`DESCRIPTION:${escapeText(description)}`);
+  lines.push("TRANSP:TRANSPARENT", "END:VEVENT");
+  return lines.map(foldLine).join("\r\n");
+}
 
 function allDayEvent({ uid, date, summary, description, now }) {
   const lines = [
@@ -107,12 +128,20 @@ function buildCalendar({ plans, races, restDays, now }) {
   const events = [];
   for (const p of plans || []) {
     if (!p.date) continue;
-    const tod = TOD_LABEL[p.time_of_day];
-    const summary = `${p.custom_icon || badgeForTitle(p.title)} ${displayTitle(p.title)}${tod ? ` (${tod})` : ""}`;
+    const hour = TOD_START_HOUR[p.time_of_day];
+    // No emoji and no "(rīts)": a watch cuts the title at ~30 characters and the
+    // plain type name ("Atjaunojošais/lēnais skrējiens") only just fits. The
+    // day-part is the event's hour plus the first line of the description.
+    const summary = (p.title || "").replace(/\s*\(.*?\)\s*$/, "");
     const parts = [];
+    if (hour !== undefined) parts.push(TOD_NICE[p.time_of_day]);
     if (p.details) parts.push(p.details);
     if (p.coach_comment) parts.push(`Trenera komentārs: ${p.coach_comment}`);
-    events.push(allDayEvent({ uid: `plan-${p.id}@tksportisti`, date: p.date, summary, description: parts.join("\n\n"), now }));
+    const description = parts.join("\n\n");
+    const uid = `plan-${p.id}@tksportisti`;
+    events.push(hour === undefined
+      ? allDayEvent({ uid, date: p.date, summary, description, now })
+      : timedEvent({ uid, date: p.date, hour, summary, description, now }));
   }
   for (const r of races || []) {
     if (!r.date) continue;
