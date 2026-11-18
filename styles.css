@@ -1122,7 +1122,8 @@ h4 {
   font-size: 1.1rem;
   color: #3b82f6;
 }
-.diary-dropdown-badge {
+.diary-dropdown-badge,
+.question-dropdown-badge {
   margin-right: 4px;
   font-size: 0.95rem;
 }

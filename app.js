@@ -103,6 +103,16 @@ let weeklyReviews = [];
 let athleteHealthSet = new Set();
 let athleteNotCompletedSet = new Set();
 let athleteDiarySet = new Set();
+// Athletes with a "Jautājums trenerim" still waiting for the coach's answer.
+let athleteQuestionSet = new Set();
+
+async function refreshAthleteQuestionSet() {
+  try {
+    athleteQuestionSet = new Set(await getOpenQuestionAthleteIds());
+  } catch (e) {
+    athleteQuestionSet = new Set();
+  }
+}
 
 // Which athletes have a diary entry the coach has not read yet. "Read" is the
 // same per-browser record the Diary panel's red counter already uses
@@ -1073,6 +1083,7 @@ async function loadNonTemplateData() {
   // view never renders, so this would be a query with nowhere to show.
   if (activeRole === "coach") {
     await safeGet(refreshAthleteDiarySet(), undefined);
+    await safeGet(refreshAthleteQuestionSet(), undefined);
   }
 
   if (logEntries.length && (!weeklySummary || (!weeklySummary.run_km && !weeklySummary.run_min && !weeklySummary.vfs_sfs_min && !weeklySummary.velo_min && !weeklySummary.elipt_min))) {
@@ -1155,6 +1166,7 @@ async function initApp() {
         refreshAthleteHealthSet(),
         refreshAthleteNotCompletedSet(),
         refreshAthleteDiarySet(),
+        refreshAthleteQuestionSet(),
       ]);
       await refreshWeekStatuses();
     }
@@ -1254,7 +1266,7 @@ function renderAthleteDropdown() {
       const selectedHealthBadge = athleteHealthSet.has(selectedAthlete.id) ? '<span class="health-dropdown-badge">⚕</span> ' : "";
       const selectedNotCompletedBadge = athleteNotCompletedSet.has(selectedAthlete.id) ? '<span class="not-completed-icon">!</span> ' : "";
       const selectedDiaryBadge = athleteDiarySet.has(selectedAthlete.id) ? '<span class="diary-dropdown-badge" title="Jauns dienasgrāmatas ieraksts">📒</span> ' : "";
-      selected.innerHTML = `<span class="athlete-name">${selectedHealthBadge}${selectedNotCompletedBadge}${selectedDiaryBadge}${selectedAthlete.full_name}</span><span class="athlete-indicators">${weekIndicators(selectedAthlete.id)}</span>`;
+      selected.innerHTML = `<span class="athlete-name">${selectedHealthBadge}${selectedNotCompletedBadge}${selectedDiaryBadge}${athleteQuestionSet.has(selectedAthlete.id) ? '<span class="question-dropdown-badge" title="Jautājums gaida atbildi">❓</span> ' : ""}${selectedAthlete.full_name}</span><span class="athlete-indicators">${weekIndicators(selectedAthlete.id)}</span>`;
     } else {
       selected.innerHTML = "";
     }
@@ -1282,7 +1294,7 @@ function renderAthleteDropdown() {
       const notCompletedBadge = athleteNotCompletedSet.has(a.id) ? '<span class="not-completed-icon">!</span> ' : "";
       const diaryBadge = athleteDiarySet.has(a.id) ? '<span class="diary-dropdown-badge" title="Jauns dienasgrāmatas ieraksts">📒</span> ' : "";
       return `<div class="athlete-row ${isSelected ? "selected" : ""}" data-athlete-id="${a.id}">
-        <span class="athlete-name">${healthBadge}${notCompletedBadge}${diaryBadge}${a.full_name}</span>
+        <span class="athlete-name">${healthBadge}${notCompletedBadge}${diaryBadge}${athleteQuestionSet.has(a.id) ? '<span class="question-dropdown-badge" title="Jautājums gaida atbildi">❓</span> ' : ""}${a.full_name}</span>
         <span class="athlete-indicators">${weekIndicators(a.id)}</span>
       </div>`;
     })
@@ -4777,6 +4789,8 @@ async function sendQuestionAnswer(logId) {
       subject: `Treneris atbildēja uz Tavu jautājumu (${formatDateLV(log.date)})`,
       message: `Jautājums pie "${title}" (${formatDateLV(log.date)})${log.notes ? `:\n"${log.notes}"` : ""}\n\nTrenera atbilde:\n${answer}\n\nAtver lietotni: ${NOTIFY_APP_URL}`,
     });
+    await refreshAthleteQuestionSet();
+    renderAthleteDropdown();
     render();
   } catch (e) {
     alert("Neizdevās saglabāt atbildi: " + (e.message || e));
