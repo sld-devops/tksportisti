@@ -7711,3 +7711,10 @@ input.needs-value {
   font-size: 0.8rem;
   font-weight: 700;
 }
+
+.ws-caption {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
