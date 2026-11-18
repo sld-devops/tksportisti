@@ -835,6 +835,9 @@ function updateSaveTemplateForAthleteLabel() {
   if (!keyword) return;
   const athlete = athletes.find(a => a.id === getSelectedAthleteId());
   keyword.textContent = athlete ? athlete.full_name : "šim sportistam";
+  // The template dropdown beside it names the athlete too.
+  const dropLabel = document.getElementById("athleteTemplatesLabel");
+  if (dropLabel) dropLabel.textContent = athlete ? `Tikai ${athlete.full_name} sagataves` : "Tikai šī sportista sagataves";
 }
 
 function getWeekLabel(date) {
