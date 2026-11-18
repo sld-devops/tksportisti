@@ -85,22 +85,24 @@ function badgeForTitle(title) {
   return "🎲";
 }
 
-// Where the day-part shows up in the calendar. A training with a day-part is a
-// one-hour event at a representative hour (a watch shows "Visa diena" for an
-// all-day event, which says nothing); one without stays all-day. The hours are
-// stand-ins, not real times, and the description says so in words ("No rīta").
-const TOD_START_HOUR = { morning: 7, afternoon: 12, evening: 18 };
+// Where the day-part shows up in the calendar. A training with a day-part is an
+// event spanning that part of the day (a watch shows "Visa diena" for an all-day
+// event, which says nothing); one without stays all-day. The spans are the
+// owner's: rīts 04:00-11:00, pusdiena 11:00-16:00, vakars 16:00-24:00. They are
+// not real training times, and the description says so in words ("No rīta").
+const TOD_SPAN = { morning: [4, 11], afternoon: [11, 16], evening: [16, 24] };
 const TOD_NICE = { morning: "No rīta", afternoon: "Pusdienā", evening: "Vakarā" };
 
-function timedEvent({ uid, date, hour, summary, description, now }) {
-  const hh = (h) => String(h).padStart(2, "0") + "0000";
+function timedEvent({ uid, date, span, summary, description, now }) {
+  const at = (day, h) => `${compact(day)}T${String(h).padStart(2, "0")}0000`;
   const lines = [
     "BEGIN:VEVENT",
     `UID:${uid}`,
     `DTSTAMP:${now}`,
-    // Floating local time (no Z / TZID): it means 07:00 wherever the athlete is.
-    `DTSTART:${compact(date)}T${hh(hour)}`,
-    `DTEND:${compact(date)}T${hh(hour + 1)}`,
+    // Floating local time (no Z / TZID): it means 04:00 wherever the athlete is.
+    // 24:00 is written as 00:00 of the next day.
+    `DTSTART:${at(date, span[0])}`,
+    `DTEND:${span[1] >= 24 ? at(nextDay(date), 0) : at(date, span[1])}`,
     `SUMMARY:${escapeText(summary)}`,
   ];
   if (description) lines.push(`DESCRIPTION:${escapeText(description)}`);
@@ -128,20 +130,20 @@ function buildCalendar({ plans, races, restDays, now }) {
   const events = [];
   for (const p of plans || []) {
     if (!p.date) continue;
-    const hour = TOD_START_HOUR[p.time_of_day];
+    const span = TOD_SPAN[p.time_of_day];
     // No emoji and no "(rīts)": a watch cuts the title at ~30 characters and the
     // plain type name ("Atjaunojošais/lēnais skrējiens") only just fits. The
-    // day-part is the event's hour plus the first line of the description.
+    // day-part is the event's time span plus the first line of the description.
     const summary = (p.title || "").replace(/\s*\(.*?\)\s*$/, "");
     const parts = [];
-    if (hour !== undefined) parts.push(TOD_NICE[p.time_of_day]);
+    if (span) parts.push(TOD_NICE[p.time_of_day]);
     if (p.details) parts.push(p.details);
     if (p.coach_comment) parts.push(`Trenera komentārs: ${p.coach_comment}`);
     const description = parts.join("\n\n");
     const uid = `plan-${p.id}@tksportisti`;
-    events.push(hour === undefined
+    events.push(!span
       ? allDayEvent({ uid, date: p.date, summary, description, now })
-      : timedEvent({ uid, date: p.date, hour, summary, description, now }));
+      : timedEvent({ uid, date: p.date, span, summary, description, now }));
   }
   for (const r of races || []) {
     if (!r.date) continue;
