@@ -53,7 +53,17 @@
       .tip b { color: #7c5a08; }
       footer { color: var(--muted); font-size: 0.9rem; margin-top: 24px; text-align: center; }
       a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      /* Trenera sadaļas: redzamas tikai tad, ja instrukciju atver treneris (portāls pievieno ?trenerim=1). */
+      .coach-only { display: none !important; }
+      .is-coach .coach-only { display: block !important; }
+      nav.toc .toc-group { color: var(--muted); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.03em; margin: 8px 0 2px; text-transform: uppercase; }
+      section.coach-only { border-color: #b9d27a; }
     </style>
+    <script>
+      try {
+        if (new URLSearchParams(location.search).get("trenerim") === "1") document.documentElement.classList.add("is-coach");
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <main>
@@ -64,6 +74,17 @@
 
       <nav class="toc" aria-label="Saturs">
         <strong>Saturs</strong>
+        <span class="toc-group coach-only">Trenerim</span>
+        <a class="coach-only" href="#t1">T1. Sākums: ko redzi un kur kas atrodas</a>
+        <a class="coach-only" href="#t2">T2. Kā sastādīt treniņu</a>
+        <a class="coach-only" href="#t3">T3. Treniņu veidi un to lauki</a>
+        <a class="coach-only" href="#t4">T4. Sagataves, biežāk lietotie un vairāku sportistu plāns</a>
+        <a class="coach-only" href="#t5">T5. Nedēļas kalendārs: labot, kopēt, pārvietot, nodzēst</a>
+        <a class="coach-only" href="#t6">T6. Izpilde, jautājumi un nedēļas apskate</a>
+        <a class="coach-only" href="#t7">T7. Sportista dati sānu panelī</a>
+        <a class="coach-only" href="#t8">T8. E-pasta paziņojumi</a>
+        <a class="coach-only" href="#t9">T9. Sportistu pārvaldība un konts</a>
+        <span class="toc-group coach-only">Sportistiem (arī trenerim der zināt)</span>
         <a href="#ieiet">1. Kā ieiet</a>
         <a href="#saites">2. Garmin un Strava saites (jāpievieno vienreiz)</a>
         <a href="#epasts">3. E-pasta paziņojumi</a>
@@ -80,6 +101,155 @@
         <a href="#zurnals">14. Veselības žurnāls un dienasgrāmata</a>
         <a href="#testi">15. Izmantojamie dati treniņu un slodzes sastādīšanai</a>
       </nav>
+
+      <section id="t1" class="coach-only">
+        <h2>T1. Sākums: ko redzi un kur kas atrodas</h2>
+        <p>Šīs sadaļas (T1–T9) redzi tikai tu kā treneris. Sportisti redz tikai instrukcijas 1.–15. punktu.</p>
+        <h3>Augšējā josla</h3>
+        <ul>
+          <li><b>Bibliotēka</b> un <b>Lietošanas instrukcija</b>: treniņu PDF un video pamācības (skatīt 6. punktu zemāk) un šī instrukcija.</li>
+          <li><span class="btn">Sportista skats</span> pārslēdz uz tavu sportista kontu (ja esi to piesaistījis), un <span class="btn">Trenera skats</span> atpakaļ.</li>
+          <li><span class="btn">Paziņojumu e-pasts</span>: tavs e-pasts, uz kuru nāk ziņas no sportistiem (skatīt T8).</li>
+          <li><span class="btn">Mainīt paroli</span>, <span class="btn">Iziet</span> un <span class="btn">Instalēt lietotni</span> (portāls kā lietotne, skatīt 4. punktu).</li>
+        </ul>
+        <h3>Sānu panelis</h3>
+        <ul>
+          <li><span class="btn">Gads 2026 | 2027 | Visi</span>: kura gada ierakstus rādīt sānu paneļu sarakstos un grafikos.</li>
+          <li><b>Sportistu pārvaldība</b>: jauns sportists, paroles maiņa, dzēšana (skatīt T9).</li>
+          <li><b>Nedēļu apskates reģistrs</b>: tabula, kurā redzi, kurām nedēļām un kuriem sportistiem ir atzīme “Nedēļa apskatīta” (pēdējās 13 nedēļas).</li>
+          <li><b>Sportisti</b>: izvēlies sportistu, un viss pārējais portālā attiecas uz viņu. Kamēr neviens nav izvēlēts, sānu paneļi ir aizvērti.</li>
+        </ul>
+        <h3>Zīmes pie sportista vārda</h3>
+        <ul>
+          <li><b>⚕</b>: šodien ir spēkā ieraksts viņa veselības žurnālā.</li>
+          <li><b>!</b>: sportists ir atzīmējis treniņu kā neizpildītu un tu to vēl neesi atvēris. Kad atver viņa kalendāru, zīme pazūd.</li>
+          <li><b>📒</b>: ir jauns dienasgrāmatas ieraksts, ko tu vēl neesi izlasījis.</li>
+          <li><b>❓</b>: sportists ir uzdevis jautājumu, uz kuru vēl nav atbildes (skatīt T6).</li>
+          <li><b>Četri kvadrāti</b>: šī nedēļa un nākamās trīs. Krusts nozīmē, ka visas septiņas dienas ir nosegtas (ar plānu, brīvdienu, sacensībām, ierobežojumu vai sportista paša ierakstu). Rāmja krāsa rāda nedēļas veidu: oranžs ir Slodze, zils Sacensības, dzeltens Atpūta. Sarkans rāmis ir nedēļa bez veida, kas vēl nav nosegta. Poga <span class="btn">↻</span> atsvaidzina šīs zīmes.</li>
+        </ul>
+      </section>
+
+      <section id="t2" class="coach-only">
+        <h2>T2. Kā sastādīt treniņu</h2>
+        <ol>
+          <li>Izvēlies sportistu sarakstā.</li>
+          <li>Atver <b>🏃 Treniņu plānošana</b> (virs kalendāra). Sadaļā <b>Izveidot jaunu treniņu</b> izvēlies treniņa veidu. Aizpildi laukus (skatīt T3). Labajā pusē <b>Treniņa priekšskatījums</b> rāda, kāds treniņš sportistam parādīsies.</li>
+          <li>Kalendārā tai dienai, kurā treniņš jāieliek, spied <span class="btn">Ieplānot no rīta</span>, <span class="btn">Ieplānot pusdienā</span> vai <span class="btn">Ieplānot vakarā</span>. Treniņš parādās kartītē ar to dienas daļu.</li>
+          <li>Brīvdienu ieliec ar <span class="btn">Ieplānot brīvdienu</span>. Uz brīvdienas un uz treniņa vari pierakstīt savu komentāru sportistam.</li>
+        </ol>
+        <div class="tip"><b>Dienas daļa, kurā sportists nevar trenēties</b> (ierobežojums, skatīt T7), ir bloķēta: tur pogas “Ieplānot” nav.</div>
+        <p>Ja izvēlies citu treniņa veidu, lauki tiek notīrīti, lai neatliek iepriekšējā treniņa skaitļi. Treniņu var arī ielādēt no sagataves vai no “Biežāk lietotajiem” (T4).</p>
+      </section>
+
+      <section id="t3" class="coach-only">
+        <h2>T3. Treniņu veidi un to lauki</h2>
+        <p>Parastajiem skrējieniem ir trīs daļas: <b>Iesildīšanās</b>, <b>Pamatdaļa</b>, <b>Atsildīšanās</b>. Katrai ir <b>Garums/ilgums</b>, <b>Pulss</b> (pamatdaļai arī <b>Temps</b>) un, iesildīšanās un atsildīšanās gadījumā, <b>Papildus uzdevums</b>. Daļa tiek ierakstīta treniņā tikai tad, ja aizpildīts tās garums vai ilgums.</p>
+        <ul>
+          <li><b>Atjaunojošais/lēnais</b>, <b>Vidējas intensitātes</b>, <b>Garais skrējiens</b>: trīs daļas. Pievienot vari <b>Drills</b>, <b>Naglenes</b> vai <b>Sacensību apavus</b>. <b>Sacensību uzturs</b> ir tikai smagajiem treniņiem (intervāliem, garajam un tempa skrējienam) un brīvā teksta veidiem.</li>
+          <li><b>Tempa skrējiens</b>: tāpat.</li>
+          <li><b>Intervāli (vienāda garuma/ilguma)</b>: pamatdaļā ieraksti <b>Reizes</b>, garumu (400m vai 4min), tempu un <b>Atpūtu</b> starp atkārtojumiem.</li>
+          <li><b>Intervāli (dažāda garuma/ilguma)</b>: spied <span class="btn">Pievienot segmentu</span> katram garumam (piemēram, 6×400m un 4×200m). Katram segmentam ir savas <b>Reizes</b> (cik reizes tas atkārtojas vienā apļa piegājienā). <b>Apļi</b> ir tas, cik reižu visa kopa atkārtojas, bet <b>Atpūta starp segmentiem</b> ir pauze starp apļiem.</li>
+          <li><b>Taku/kalnu skrējiens</b> un <b>Cita veida treniņš</b>: brīvs teksts pamatdaļā jebkuram uzdevumam. Taku skrējienam nosaukums ir fiksēts un naglenu izvēles nav. “Cita veida treniņam” <b>nosaukumu vajag ierakstīt</b> (bez tā treniņu nevar saglabāt) un vari izvēlēties ikonu.</li>
+          <li><b>VFS</b> un <b>SFS</b>: spēka treniņi bez iesildīšanās un atsildīšanās.</li>
+          <li><b>Velo</b> un <b>Eliptiskais</b>: viena rindiņa (laiks un pulss), bez iesildīšanās, atsildīšanās un drills.</li>
+        </ul>
+        <div class="tip"><b>Ko rakstīt laukos:</b> garumu vai ilgumu vari rakstīt <i>45min</i>, <i>1h30m</i>, <i>10km</i> vai <i>400m</i>. Vienmēr pieraksti mērvienību, lai sportists un portāls saprot, vai tas ir laiks vai attālums.</div>
+      </section>
+
+      <section id="t4" class="coach-only">
+        <h2>T4. Sagataves, biežāk lietotie un vairāku sportistu plāns</h2>
+        <h3>Sagataves</h3>
+        <ul>
+          <li>Pabeigtu treniņu vari saglabāt kā sagatavi: <span class="btn">Saglabāt jaunu visiem</span> (redzama visiem sportistiem) vai <span class="btn">Saglabāt jaunu tikai [sportista vārds]</span>.</li>
+          <li>Sarakstos <b>Visas sagataves</b> un <b>Tikai [vārds] sagataves</b> izvēlies sagatavi, un tā ielādējas treniņu laukos. Tad vari to mainīt un saglabāt ar <span class="btn">Saglabāt izmaiņas</span> vai izdzēst ar <span class="btn">Dzēst sagatavi</span>.</li>
+        </ul>
+        <h3>Biežāk lietotie treniņi</h3>
+        <p>Zem formas atveras panelis <b>⭐ Biežāk lietotie treniņi</b>. Tajā katram treniņa veidam redzami 5 treniņi, ko pēdējos 4 mēnešos visbiežāk esi iedevis visiem sportistiem. Uzspied uz treniņa, un tas ielādējas laukos. Tempi un pulsi netiek skaitīti, tāpēc atšķirīgus tempus ar vienādu uzbūvi uzskata par vienu un to pašu treniņu.</p>
+        <h3>Piemērot vairākiem sportistiem</h3>
+        <p>Kad treniņš sastādīts, spied <span class="btn">Piemērot vairākiem sportistiem</span>. Izvēlies <b>datumu</b>, <b>dienas daļu</b> un atzīmē sportistus (ar <span class="btn">Atzīmēt visus</span> visus uzreiz), tad spied <span class="btn">Piemērot</span>. Treniņš tiek ielikts visu izvēlēto kalendārā.</p>
+      </section>
+
+      <section id="t5" class="coach-only">
+        <h2>T5. Nedēļas kalendārs: labot, kopēt, pārvietot, nodzēst</h2>
+        <h3>Kartīte kalendārā</h3>
+        <ul>
+          <li><b>✏️</b> atver treniņa labošanu (viss tāpat kā veidojot, dialoga logā). <b>✕</b> izdzēš treniņu.</li>
+          <li><b>Kopēt</b> (trešā ikona): kopē treniņu kopā ar tavu komentāru. Tad blakus “Ieplānot…” pogām parādās ielīmēšanas ikona, ar kuru treniņu ieliec citā dienā vai citā nedēļā. Kopēšana paliek ieslēgta, kamēr nospied “Atcelt” joslā augšā vai <b>Esc</b>. Tāpat var kopēt brīvdienu.</li>
+          <li><b>Pārvilkšana:</b> uzspied uz kartītes un velc to uz citu dienu. Sportists par izmaiņu uzzina e-pastā (skatīt T8).</li>
+          <li>Trenera komentārs ir rakstāms tieši kartītē. Tas saglabājas pats.</li>
+        </ul>
+        <h3>Nedēļas darbības (virs kalendāra)</h3>
+        <ul>
+          <li><span class="btn">Iepriekšējā nedēļa</span>, <span class="btn">Nākamā nedēļa</span>, <span class="btn">Uz šo nedēļu</span>.</li>
+          <li><b>Slodze, Sacensības, Atpūta</b>: nedēļas veids. Tas iekrāso kvadrātus sportistu sarakstā.</li>
+          <li><span class="btn">Nokopēt plānu</span>: izvēlies kādu iepriekšējo nedēļu, un tās treniņi tiek iekopēti šajā nedēļā.</li>
+          <li><span class="btn">Nodzēst plānu</span>: izdzēš visu šīs nedēļas plānu un brīvdienas. Netiek dzēsti treniņi, kuriem sportists jau ierakstījis izpildi, sacensības, ierobežojumi un komentāri. Vispirms prasa apstiprinājumu, un atcelt vairs nevar.</li>
+          <li><b>Nedēļas komentāri</b>: “Trenera komentārs par aizvadīto/gaidāmo nedēļu” raksti tu, “Sportista komentārs” raksta sportists.</li>
+          <li><span class="btn">Horizontāls</span> / <span class="btn">Vertikāls</span> maina kalendāra izkārtojumu, <span class="btn">Mēneša plāns</span> rāda visu mēnesi. Ierakstus labot var tikai nedēļas skatā.</li>
+        </ul>
+      </section>
+
+      <section id="t6" class="coach-only">
+        <h2>T6. Izpilde, jautājumi un nedēļas apskate</h2>
+        <ul>
+          <li><b>Sportista izpilde</b> parādās zem treniņa kartītes (laiki, pulss, pašsajūta, komentārs, kurā dienas daļā izpildīts). Intervāliem laikus rāda pa blokiem ar vidējo katram.</li>
+          <li><b>Neizpildīts treniņš:</b> ja sportists atzīmē šo, kartītē parādās “!”, un sarakstā pie viņa vārda arī. Viņa piezīmi “Kas noticis?” redzi kartītē.</li>
+          <li><b>Sportista paša ieraksts</b> (📝): treniņš, ko tu nebiji ieplānojis. Atbildi raksti tajā pašā dienas komentārā.</li>
+          <li><b>Jautājums trenerim:</b> ja sportists atzīmējis jautājumu, pie viņa vārda ir ❓, bet kartītē zem komentāra ir lauks <b>Īsa atbilde</b>. Uzraksti atbildi un spied <span class="btn">Atbildēt</span> (vai Enter). Atbilde saglabājas kā rinda ar ↩ trenera komentārā, un sportists saņem e-pastu. Ja sportistam tai dienā ir vairāki paša ieraksti bez plāna, atbilde attiecas uz visiem.</li>
+          <li><b>Nedēļa apskatīta:</b> ieķeksē, kad esi izskatījis sportista nedēļu. Sportists saņem e-pastu un redz atzīmi savā portālā. Reģistrā (sānu panelī) redzi to visiem.</li>
+        </ul>
+      </section>
+
+      <section id="t7" class="coach-only">
+        <h2>T7. Sportista dati sānu panelī</h2>
+        <p>Atverot sportistu, sānu panelī redzi viņa informāciju. Panelim ar sarkanu skaitli blakus ir jauns ieraksts, ko tu vēl neesi atvēris (skaitlis pazūd, atverot paneli).</p>
+        <ul>
+          <li><b>Garmin, Strava, Kalendāra arhīvs</b>: saites uz viņa profiliem.</li>
+          <li><b>Veselības žurnāls</b>: sportista ieraksti par sāpēm, traumām, medikamentiem. Tev nāk e-pasts par jaunu ierakstu.</li>
+          <li><b>Dienasgrāmata</b>: sportista piezīmes par pašsajūtu un treniņprocesu.</li>
+          <li><b>Ierobežojumi</b>: dienas vai dienas daļas, kad sportists nevar trenēties (slimība, darbs, darba maiņa). Šajās dienās kalendārā treniņus ielikt nevar. Rāda tikai spēkā esošus un nākamos.</li>
+          <li><b>Sirdsritma darba zonas</b>: pieci zonu intervāli un maksimālais pulss. Procentus rēķina pats. To labo gan tu, gan sportists.</li>
+          <li><b>Temps pret sirdsritmu</b>: kāds temps sportistam atbilst kādam pulsam. Labo abi, un otra puse redz atzīmi, ka kaut kas mainīts.</li>
+          <li><b>Sliekšņvērtības</b>: aerobais, anaerobais un laktāta slieksnis (temps un pulss).</li>
+          <li><b>Nesenākie intervālu un tempa skrējieni</b>: pēdējās sesijas pa garumiem, lai redzi progresu.</li>
+          <li><b>Personīgie rekordi</b>, <b>Laboratoriskie izmeklējumi</b>, <b>VFS pārbaudes paštests</b>, <b>Aerobās kapacitātes “Polar” tests</b>, <b>Fiziskās darbaspējas “Rufjē” tests</b>: sportista rezultāti, ko tu lasi.</li>
+          <li><b>Laktāta tests</b>: soļu tabula, no kuras portāls aprēķina LT1 un LT2 sliekšņus un uzzīmē līkni. Aizpildīt var abi.</li>
+          <li><b>Paveiktā statistika</b> (zem kalendāra): pieci nedēļas skaitļi, ko ieraksta sportists, un grafiki ar tendences līniju. Zīme virs tiem rāda, vai nedēļas izpilde ievadīta.</li>
+          <li><b>Sacensību kalendārs</b> (zem kalendāra): viņa sacensības. Atzīme 🏆 PB parāda sacensības, kurās uzstādīts pašreizējais rekords.</li>
+        </ul>
+        <div class="tip"><b>Gads:</b> sānu paneļu saraksti un grafiki seko gada izvēlei sānu paneļa augšā (2026, 2027 vai Visi).</div>
+      </section>
+
+      <section id="t8" class="coach-only">
+        <h2>T8. E-pasta paziņojumi</h2>
+        <h3>Tev</h3>
+        <p>Spied <span class="btn">Paziņojumu e-pasts</span> augšā un ieraksti savu e-pastu. Tu saņemsi ziņu, kad sportists:</p>
+        <ul>
+          <li>atzīmē treniņu kā neizpildītu;</li>
+          <li>uzdod jautājumu (“Jautājums trenerim”);</li>
+          <li>pievieno ierakstu veselības žurnālā vai ierobežojumu.</li>
+        </ul>
+        <div class="tip">Testa kontam “Testa Sportists” ziņas tev nenāk, lai testēšana netraucētu.</div>
+        <h3>Sportistam</h3>
+        <ul>
+          <li>Par treniņa maiņu, pārvietošanu vai dzēšanu sportists saņem <b>vienu e-pastu</b> pēc 10 minūtēm, kopš pēdējās izmaiņas, nevis katrai izmaiņai atsevišķi. Atceltās izmaiņas (kartīti pārvilki atpakaļ) no vēstules pazūd.</li>
+          <li>Kad nedēļa ir pilnībā aizpildīta, sportists saņem ziņu “Nedēļas plāns gatavs”.</li>
+          <li>Kad atzīmē “Nedēļa apskatīta”, un kad atbildi uz jautājumu, sportists saņem e-pastu uzreiz.</li>
+          <li>Ja ievieto jaunu treniņu, atsevišķs e-pasts nenāk. Sportists to uzzina nākamajā apkopojumā.</li>
+          <li>Ja sportists nav ierakstījis savu e-pastu, viņam nekas nenāk. Vienmēr paturi prātā aicināt viņus to izdarīt.</li>
+        </ul>
+      </section>
+
+      <section id="t9" class="coach-only">
+        <h2>T9. Sportistu pārvaldība un konts</h2>
+        <ul>
+          <li><b>Jauns sportists:</b> sānu panelī <b>Sportistu pārvaldība</b> spied <span class="btn">Pievienot</span>, ieraksti vārdu un uzvārdu. Lietotājvārds izveidojas pats, un portāls parāda lietotājvārdu un paroli, ko nodod sportistam.</li>
+          <li><b>Paroles maiņa sportistam:</b> atver paneli <b>Sportistu pārvaldība</b>, pie sportista spied <span class="btn">🔑 Mainīt paroli</span>.</li>
+          <li><b>Dzēst sportistu:</b> tajā pašā panelī <span class="btn">Dzēst sportistu</span>. Tas izdzēš kontu un viņa datus, tāpēc ir uzmanīgi.</li>
+          <li><b>Savu paroli</b> maini ar <span class="btn">Mainīt paroli</span> augšā.</li>
+        </ul>
+        <div class="tip"><b>Telefonā</b> trenera skatā der izmantot <span class="btn">Datora skats</span> (augšā), jo kalendārs ir plašāks un redzamāks. Tas jāieslēdz vienreiz, portāls to atceras.</div>
+      </section>
 
       <section id="ieiet">
         <h2>1. Kā ieiet</h2>

@@ -4166,7 +4166,8 @@ setupHeaderMenu(
 })();
 
 document.getElementById("guideBtn")?.addEventListener("click", () => {
-  window.open("pamaciba.html", "_blank", "noopener");
+  // The coach also gets sections T1-T9 (hidden for athletes); see pamaciba.html.
+  window.open(isCoach() ? "pamaciba.html?trenerim=1" : "pamaciba.html", "_blank", "noopener");
 });
 
 document.querySelectorAll("[data-layout]").forEach((btn) => {

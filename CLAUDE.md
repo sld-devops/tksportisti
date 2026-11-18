@@ -796,3 +796,7 @@ A phone in the desktop view (pinned to 1200px) showed the header's right-hand bu
 ### Race calendar and statistics sit under the calendar days (2026-11-18)
 
 `#raceCalendarPanel` and `#statsCollapsible` come after `#monthView` at the end of `.calendar-shell` (owner's call), no longer above the week header. Consequence worth knowing: the five weekly figures (`#weekNumbers`) and the red/green "Nedēļas izpilde ievadīta/neievadīta" badge are now at the bottom of the page, so an athlete has to scroll down past the week to fill them in. Nothing in JS depends on the order.
+
+### The manual has coach-only sections T1-T9 (2026-11-18)
+
+`pamaciba.html` opens with nine sections "Trenerim" (T1-T9: layout and signs, building a training, training types and their fields, templates/frequent/bulk apply, week calendar actions, execution/questions/week review, sidebar data, e-mails, athlete management). They carry `class="coach-only"` and are hidden (`display: none !important`) unless `<html>` has `is-coach`, which a tiny inline script sets when the URL has `?trenerim=1`. `#guideBtn` in `app.js` opens the manual with that parameter only for the coach. This is a convenience, not security: the text is in the page source. **When a coach-side feature changes, update the matching T section too.**
