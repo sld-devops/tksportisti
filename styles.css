@@ -8140,6 +8140,8 @@ input.needs-value {
    spring that pushes "Nodzēst plānu / Nokopēt plānu" to the right. */
 .week-nav-divider:not(#copyWeekDivider) {
   display: none;
+}
+
 /* The athlete's plan card: everything centred except the day-part badge (stays at
    the left) and the type icon (stays at the right); the planned-task box is only
    as wide as its text. The coach's card is untouched. */
