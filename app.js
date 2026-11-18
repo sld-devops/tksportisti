@@ -834,6 +834,13 @@ function getWeekLabel(date) {
   return `${formatter.format(monday)} - ${formatter.format(sunday)}`;
 }
 
+function weekRangeShort(date) {
+  const monday = getMonday(date);
+  const sunday = addDays(monday, 6);
+  const f = (d) => `${d.getDate()}.${d.getMonth() + 1}.`;
+  return `${f(monday)}-${f(sunday)}`;
+}
+
 function getWeekEnd(weekStart) {
   return addDays(weekStart, 6);
 }
@@ -3157,7 +3164,7 @@ function renderWeekNumbers() {
   const elipt = s.elipt_min || "";
 
   box.innerHTML = `
-    <p class="ws-caption">Šīs nedēļas paveiktais (kopā par visu nedēļu)</p>
+    <p class="ws-caption">Šīs nedēļas (${weekRangeShort(currentWeekStart)}) paveiktais (kopā par visu nedēļu)</p>
     <div class="ws-fields">
       <label>Kilometrāža <input id="wsRunKm" type="number" step="0.1" value="${runKm}" ${isAthleteView ? "" : "disabled"} /></label>
       <label>Kopējais laiks visos treniņos (h) <input id="wsRunMin" class="ws-time" type="text" value="${runMin}" ${isAthleteView ? "" : "disabled"} ${isAthleteView ? 'placeholder="piem. 10h45m"' : ""} /></label>
