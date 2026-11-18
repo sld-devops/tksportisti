@@ -7,8 +7,10 @@
 
 // #region State and metric definitions
 let statsPeriod = "week";
-let trendWeeks = 8;
-let trendMonths = 8;
+// A number = "the last N periods"; "year" = the year picked in the sidebar (or all
+// recorded time when that says "Visi").
+let trendWeeks = 12;
+let trendMonths = 12;
 let weeklyTrend = [];
 let monthlyTrend = [];
 
@@ -164,7 +166,9 @@ function buildFacetHtml(metric, data, withYear) {
   // and a row of "0.0" over every untrained week is noise, not information.
   // The label is clamped to the plot so a value at the very top or at either
   // end cannot be drawn outside the box.
-  const valueLabels = empty ? "" : points.map((p, i) => {
+  // Past 16 points the figures would sit on top of each other; the tooltip still
+  // gives every value.
+  const valueLabels = (empty || data.length > 16) ? "" : points.map((p, i) => {
     const val = data[i][metric.key] || 0;
     if (val <= 0) return "";
     const y = Math.max(11, p.y - 11);
@@ -202,8 +206,14 @@ function buildFacetHtml(metric, data, withYear) {
 // positions, so repeating the year four times is just clutter.
 function buildAxisLabels(data, plotBottom, withYear) {
   let lastYear = "";
+  // More than ~12 periods cannot all carry a date without the labels running into
+  // each other (a whole year of weeks), so only every step-th one is written -
+  // counted back from the newest, so the latest week is always labelled. Every
+  // point keeps its vertical hairline.
+  const step = Math.max(1, Math.ceil(data.length / 12));
   return data
     .map((d, i) => {
+      if ((data.length - 1 - i) % step !== 0) return "";
       const x = statsPointX(i, data.length).toFixed(1);
       const anchor = edgeAnchor(i, data.length);
       const year = (d.month_start || d.week_start || "").slice(0, 4);
@@ -217,38 +227,56 @@ function buildAxisLabels(data, plotBottom, withYear) {
 
 // #endregion
 
-// With a year picked in the sidebar the charts show that year (weeks of it, or
-// Jan-Dec); the 4/8/12 buttons only mean something for "Visi". A past year runs to
-// 31 December, the current one to today, a future one shows its first month.
+// What the charts load: "the last N periods" ending today, or - with the range
+// button "year" - the year picked in the sidebar (all recorded time for "Visi").
+// A past year runs to 31 December, the current one to today, a future one shows
+// its first month. In year mode the empty stretches at either end are cut off
+// afterwards (trimEmptyEnds), so a season that starts in June starts in June.
+function statsYearMode(kind) {
+  return (kind === "week" ? trendWeeks : trendMonths) === "year";
+}
 function statsYearArgs(kind) {
-  if (selectedYear === "all") return { n: kind === "week" ? trendWeeks : trendMonths, anchor: null };
+  if (!statsYearMode(kind)) return { n: kind === "week" ? trendWeeks : trendMonths, anchor: null };
   const now = new Date();
-  let end = new Date(selectedYear, 11, 31);
+  const fromYear = selectedYear === "all" ? YEAR_FIRST : selectedYear;
+  let end = selectedYear === "all" ? now : new Date(selectedYear, 11, 31);
   if (end > now) end = now;
-  if (selectedYear > now.getFullYear()) end = new Date(selectedYear, 0, 31);
-  if (kind === "month") return { n: end.getMonth() + 1, anchor: end };
-  const start = trendMonday(new Date(selectedYear, 0, 1));
+  if (selectedYear !== "all" && selectedYear > now.getFullYear()) end = new Date(selectedYear, 0, 31);
+  if (kind === "month") {
+    const months = (end.getFullYear() - fromYear) * 12 + end.getMonth() + 1;
+    return { n: Math.max(months, 1), anchor: end };
+  }
+  const start = trendMonday(new Date(fromYear, 0, 1));
   const weeks = Math.round((trendMonday(end) - start) / (7 * 24 * 60 * 60 * 1000)) + 1;
   return { n: Math.max(weeks, 1), anchor: end };
 }
-function loadWeeklyTrend(athleteId) {
-  const a = statsYearArgs("week");
-  return getWeeklyTrend(athleteId, a.n, a.anchor);
+// Drops the periods before the first and after the last one that has any figure.
+function trimEmptyEnds(data) {
+  const filled = (d) => STATS_METRICS.some((m) => (d[m.key] || 0) > 0);
+  const first = data.findIndex(filled);
+  if (first === -1) return [];
+  let last = data.length - 1;
+  while (last > first && !filled(data[last])) last--;
+  return data.slice(first, last + 1);
 }
-function loadMonthlyTrend(athleteId) {
+async function loadWeeklyTrend(athleteId) {
+  const a = statsYearArgs("week");
+  const data = await getWeeklyTrend(athleteId, a.n, a.anchor);
+  return statsYearMode("week") ? trimEmptyEnds(data) : data;
+}
+async function loadMonthlyTrend(athleteId) {
   const a = statsYearArgs("month");
-  return getMonthlyTrend(athleteId, a.n, a.anchor);
+  const data = await getMonthlyTrend(athleteId, a.n, a.anchor);
+  return statsYearMode("month") ? trimEmptyEnds(data) : data;
 }
 
 // #region Perioda/diapazona pogas
 function buildStatsRangeHtml() {
-  if (selectedYear !== "all") {
-    return `<div class="stats-range"><span class="muted">${selectedYear}. gads</span></div>`;
-  }
   const isWeek = statsPeriod === "week";
+  const yearLabel = selectedYear === "all" ? "Viss laiks" : `${selectedYear}. gads`;
   const ranges = isWeek
-    ? [{ val: 4, label: "4 nedēļas" }, { val: 8, label: "8 nedēļas" }, { val: 12, label: "12 nedēļas" }]
-    : [{ val: 4, label: "4 mēneši" }, { val: 8, label: "8 mēneši" }, { val: 12, label: "12 mēneši" }];
+    ? [{ val: 4, label: "4 nedēļas" }, { val: 8, label: "8 nedēļas" }, { val: 12, label: "12 nedēļas" }, { val: "year", label: yearLabel }]
+    : [{ val: 4, label: "4 mēneši" }, { val: 8, label: "8 mēneši" }, { val: 12, label: "12 mēneši" }, { val: "year", label: yearLabel }];
   const currentRange = isWeek ? trendWeeks : trendMonths;
   return `
     <div class="stats-range">
@@ -425,7 +453,7 @@ async function attachStatsRangeHandlers() {
   const athleteId = getSelectedAthleteId();
   statsBar.querySelectorAll("[data-stat-range]").forEach((btn) => {
     btn.addEventListener("click", async () => {
-      const val = parseInt(btn.dataset.statRange);
+      const val = btn.dataset.statRange === "year" ? "year" : parseInt(btn.dataset.statRange);
       if (statsPeriod === "week") {
         trendWeeks = val;
         try {
