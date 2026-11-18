@@ -3164,7 +3164,7 @@ function renderWeekNumbers() {
   const elipt = s.elipt_min || "";
 
   box.innerHTML = `
-    <p class="ws-caption">Šīs nedēļas (${weekRangeShort(currentWeekStart)}) paveiktais (kopā par visu nedēļu)</p>
+    <p class="ws-caption">Šīs nedēļas (${weekRangeShort(currentWeekStart)}) paveiktais</p>
     <div class="ws-fields">
       <label>Kilometrāža <input id="wsRunKm" type="number" step="0.1" value="${runKm}" ${isAthleteView ? "" : "disabled"} /></label>
       <label>Kopējais laiks visos treniņos (h) <input id="wsRunMin" class="ws-time" type="text" value="${runMin}" ${isAthleteView ? "" : "disabled"} ${isAthleteView ? 'placeholder="piem. 10h45m"' : ""} /></label>
