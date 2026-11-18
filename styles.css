@@ -4402,6 +4402,7 @@ label {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  max-height: calc(100vh - 24px);
   max-width: min(96vw, 1200px);
   padding: 20px;
   position: fixed;
@@ -4417,7 +4418,10 @@ label {
 .weekly-review-grid-wrap {
   border: 1px solid var(--line);
   border-radius: 6px;
-  max-height: 70vh;
+  /* As tall as the screen allows, so all athletes show without scrolling;
+     it only scrolls when even that is not enough. */
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
 }
 
@@ -4429,7 +4433,7 @@ label {
 .weekly-review-table th,
 .weekly-review-table td {
   border: 2px solid var(--ink);
-  padding: 6px 10px;
+  padding: 3px 10px;
   text-align: center;
   white-space: nowrap;
 }
@@ -7971,4 +7975,10 @@ input.needs-value {
 /* Race calendar and statistics now sit under the calendar days. */
 #monthView ~ #raceCalendarPanel {
   margin-top: 12px;
+}
+@media (min-width: 1400px) {
+  /* Under the 80% body zoom a vh-based height is 20% short. */
+  .weekly-review-dialog[open] {
+    max-height: calc((100vh - 24px) / 0.8);
+  }
 }
