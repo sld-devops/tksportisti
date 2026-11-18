@@ -200,8 +200,8 @@ button {
     0 5px 10px rgba(0, 0, 0, 0.16),
     0 14px 28px rgba(0, 0, 0, 0.3),
     0 30px 60px rgba(0, 0, 0, 0.38);
-  max-width: 500px;
-  padding: 36px;
+  max-width: 660px;
+  padding: clamp(24px, 5vw, 52px);
   width: 100%;
 }
 
@@ -216,7 +216,7 @@ button {
 .auth-eyebrow {
   color: #23272d;
   display: inline-block;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   font-weight: 800;
   letter-spacing: 0.02em;
   margin: 0;
@@ -227,7 +227,7 @@ button {
 .auth-card h1 {
   color: #23272d;
   display: inline-block;
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-size: clamp(1.7rem, 4vw, 2.7rem);
   line-height: 1.1;
   margin: 0;
   font-weight: 900;
@@ -241,13 +241,13 @@ button {
 }
 
 .auth-form label {
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: var(--ink);
 }
 
 .auth-form input {
-  font-size: 1rem;
-  padding: 12px 14px;
+  font-size: 1.15rem;
+  padding: 15px 16px;
 }
 
 .auth-card .checkbox-row {
@@ -265,9 +265,9 @@ button {
 }
 
 #loginBtn {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   margin-top: 18px;
-  padding: 14px;
+  padding: 17px;
   width: 100%;
 }
 
