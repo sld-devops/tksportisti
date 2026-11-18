@@ -379,7 +379,7 @@ function renderRestrictionCards() {
       <div class="mini-calendar" id="miniCalendar"></div>
       <div class="selected-dates-list" id="selectedDatesList"></div>
       <div class="tod-radio-group">${todRadiosHtml}</div>
-      <label>Iemesls <textarea id="restrictionReasonInput" class="restriction-input" rows="2">${editing ? escapeHtml(editing.reason || "") : ""}</textarea></label>
+      <label>Iemesls - uzraksti iemeslu vai izvēlies darba maiņu <textarea id="restrictionReasonInput" class="restriction-input" rows="2">${editing ? escapeHtml(editing.reason || "") : ""}</textarea></label>
       <div class="shift-presets" id="shiftPresets">
         ${SHIFT_PRESETS.map(name => `<button class="shift-preset-btn${name === restrictionShift ? " is-selected" : ""}" type="button" aria-pressed="${name === restrictionShift}" data-shift-preset="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join("")}
       </div>
