@@ -750,3 +750,7 @@ The coach used to answer athletes' comment-questions on WhatsApp. Now the athlet
 - **The answer is a line starting with `↩ ` inside the coach comment that already exists** (`plans.coach_comment`; for a plan-less log or a self-log `day_notes.coach_comment`). "Answered" = such a line exists. Reason: the coach's write access to `log_entries` is unproven (nothing in the code ever updates a log as the coach) and the owner cannot add columns or policies. Cost: several records on one day share the day comment, so one answer marks all of that day's plan-less questions answered.
 - The coach sees a one-line reply box (`.question-reply`, handled by `sendQuestionAnswer()`) on a pending question; it appends to the comment (reading the live textarea first, like copy does) and e-mails the athlete straight away via `queueNotificationEmail` (7 s). A new question e-mails the coach (`notifyCoachOfQuestion()`); re-saving an already flagged record does not re-send.
 - Week view only; no "pending question" icon in the athlete list yet (would need a cross-athlete query).
+
+### The test account never e-mails the coach (2026-11-18)
+
+`isTestAthleteActive()` in `db.js` (profile or selected athlete named "Testa Sportists") makes both senders (`sendNotificationEmail`, `sendNotificationEmailOnLeave`) drop every `target: "coach"` message, so testing as that athlete cannot reach the real coach. E-mails to the athlete are untouched. It goes by the name, so renaming the test account switches the exception off.
