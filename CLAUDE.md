@@ -796,3 +796,7 @@ A phone in the desktop view (pinned to 1200px) showed the header's right-hand bu
 ### Race calendar and statistics sit under the calendar days (2026-11-18)
 
 `#raceCalendarPanel` and `#statsCollapsible` come after `#monthView` at the end of `.calendar-shell` (owner's call), no longer above the week header. Consequence worth knowing: the five weekly figures (`#weekNumbers`) and the red/green "Nedēļas izpilde ievadīta/neievadīta" badge are now at the bottom of the page, so an athlete has to scroll down past the week to fill them in. Nothing in JS depends on the order.
+
+### Dialogs may use the whole screen height (2026-11-18)
+
+Every dialog's maximum height comes from one variable, `--dlg-h` (`:root`, top of `styles.css`): the screen height minus 12px (`100dvh` where supported, so a phone's address bar is not counted; `/ 0.8` from 1400px up because of the body zoom). The session, edit and month dialogs and their forms (`- 48px` / `- 40px` for the dialog's own padding) read it. It used to be a hard `90vh` in four places. Measured headless at 1200/1600px and phone width: the log dialog (easy run and intervals), the edit dialog, race/record/password/etc. dialogs do not scroll on a ~820px-high screen; the self-test dialog (about 920px of form) legitimately still does. A new dialog should use the variable, not its own vh number.

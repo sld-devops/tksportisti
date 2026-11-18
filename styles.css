@@ -1,4 +1,7 @@
 :root {
+  /* Tallest a dialog may be: the whole screen minus a small margin, so forms
+     scroll only when they really cannot fit (owner, 2026-11-18). */
+  --dlg-h: calc(100vh - 12px);
   color-scheme: light;
   --ink: #15171a;
   --muted: #566073;
@@ -4354,7 +4357,7 @@ label {
   box-shadow: 0 24px 80px rgba(16, 24, 40, 0.25);
   max-width: 520px;
   width: calc(100% - 32px);
-  max-height: 90vh;
+  max-height: var(--dlg-h);
   animation: dialog-in 0.2s ease-out;
 }
 
@@ -4367,7 +4370,7 @@ label {
   display: grid;
   gap: 14px;
   overflow-y: auto;
-  max-height: calc(90vh - 48px);
+  max-height: calc(var(--dlg-h) - 48px);
   padding: 16px;
   padding-bottom: 8px;
   -webkit-overflow-scrolling: touch;
@@ -4535,12 +4538,12 @@ textarea:disabled {
 
 .edit-dialog {
   max-width: 560px;
-  max-height: 90vh;
+  max-height: var(--dlg-h);
 }
 
 .edit-dialog form {
   overflow-y: auto;
-  max-height: calc(90vh - 40px);
+  max-height: calc(var(--dlg-h) - 40px);
   padding: 24px;
   padding-right: 20px;
   -webkit-overflow-scrolling: touch;
@@ -4550,14 +4553,14 @@ textarea:disabled {
 .month-dialog {
   max-width: 920px;
   width: calc(100% - 32px);
-  max-height: 90vh;
+  max-height: var(--dlg-h);
 }
 
 .month-dialog form {
   display: grid;
   gap: 14px;
   overflow-y: auto;
-  max-height: calc(90vh - 40px);
+  max-height: calc(var(--dlg-h) - 40px);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -7930,13 +7933,16 @@ input.needs-value {
     grid-column: 3;
   }
 }
+@supports (height: 100dvh) {
+  /* A phone's address bar makes 100vh taller than what is visible. */
+  :root {
+    --dlg-h: calc(100dvh - 12px);
+  }
+}
 @media (min-width: 1400px) {
   /* Under the 80% body zoom a vh-based height is 20% short. */
-  .edit-dialog {
-    max-height: calc(90vh / 0.8);
-  }
-  .edit-dialog form {
-    max-height: calc(90vh / 0.8 - 40px);
+  :root {
+    --dlg-h: calc((100vh - 12px) / 0.8);
   }
 }
 
