@@ -754,7 +754,7 @@ The coach used to answer athletes' comment-questions on WhatsApp. Now the athlet
 
 - **The answer is a line starting with `↩ ` inside the coach comment that already exists** (`plans.coach_comment`; for a plan-less log or a self-log `day_notes.coach_comment`). "Answered" = such a line exists. Reason: the coach's write access to `log_entries` is unproven (nothing in the code ever updates a log as the coach) and the owner cannot add columns or policies. Cost: several records on one day share the day comment, so one answer marks all of that day's plan-less questions answered.
 - The coach sees a one-line reply box (`.question-reply`, handled by `sendQuestionAnswer()`) on a pending question; it appends to the comment (reading the live textarea first, like copy does) and e-mails the athlete straight away via `queueNotificationEmail` (7 s). A new question e-mails the coach (`notifyCoachOfQuestion()`); re-saving an already flagged record does not re-send.
-- Week view only; no "pending question" icon in the athlete list yet (would need a cross-athlete query).
+- **A ❓ in front of the athlete's name** (`athleteQuestionSet`, `getOpenQuestionAthleteIds()` in `db.js`: flagged logs of the last 60 days whose plan/day coach comment has no `↩ ` line; refreshed with the other name badges and after an answer). Week view only for the reply box.
 
 ### The test account never e-mails the coach (2026-11-18)
 

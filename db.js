@@ -1223,6 +1223,44 @@ async function deleteLactateTest(id) {
 // #endregion
 
 // #region Coach reminders (⚕/!/📒 icons) and weekly reviews
+// Athletes who have asked the coach a question ("Jautājums trenerim", last 60
+// days) that has no answer line yet. Answered = the coach comment of the plan
+// (or of the day, for a plan-less record) holds a line starting with
+// ANSWER_PREFIX (app.js). Same test as questionAnswered(), done in bulk.
+async function getOpenQuestionAthleteIds() {
+  const since = new Date(Date.now() - 60 * 86400000);
+  const sinceStr = `${since.getFullYear()}-${String(since.getMonth() + 1).padStart(2, "0")}-${String(since.getDate()).padStart(2, "0")}`;
+  const logs = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase
+      .from("log_entries")
+      .select("athlete_id, date, plan_id, log_data")
+      .gte("date", sinceStr)
+      .range(from, from + 999);
+    if (error) throw error;
+    logs.push(...(data || []));
+    if (!data || data.length < 1000) break;
+  }
+  const asked = logs.filter(loggedQuestion);
+  if (!asked.length) return [];
+  const planIds = [...new Set(asked.filter((l) => l.plan_id).map((l) => l.plan_id))];
+  const planText = new Map();
+  if (planIds.length) {
+    const { data } = await supabase.from("plans").select("id, coach_comment").in("id", planIds);
+    (data || []).forEach((p) => planText.set(p.id, p.coach_comment || ""));
+  }
+  const dayText = new Map();
+  if (asked.some((l) => !l.plan_id)) {
+    const { data } = await supabase.from("day_notes").select("athlete_id, date, coach_comment").gte("date", sinceStr);
+    (data || []).forEach((n) => dayText.set(`${n.athlete_id}|${n.date}`, n.coach_comment || ""));
+  }
+  const answered = (text) => text.split("\n").some((l) => l.startsWith(ANSWER_PREFIX));
+  const open = asked.filter((l) =>
+    !answered(l.plan_id ? (planText.get(l.plan_id) || "") : (dayText.get(`${l.athlete_id}|${l.date}`) || ""))
+  );
+  return [...new Set(open.map((l) => l.athlete_id))];
+}
+
 async function getNotCompletedAthleteIds() {
   const { data } = await supabase
     .from("plans")
