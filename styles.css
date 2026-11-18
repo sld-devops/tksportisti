@@ -7921,3 +7921,24 @@ input.needs-value {
   font-weight: 700;
   padding: 2px 6px;
 }
+/* Safety net for the 1041-1460px header (a phone in the desktop view is pinned to
+   1200px): if the real font - or the extra "Telefona skats" button a phone shows -
+   makes the row wider than the screen, the right-hand group drops to a second row
+   instead of being cut off at the edge (owner, 2026-11-16). Nothing changes while
+   it fits, so it is limited to this range: on wider screens a wrapping header
+   changed the layout (see CLAUDE.md, "The header fits from 1100px up"). */
+@media (min-width: 1041px) and (max-width: 1460px) {
+  .app-header {
+    flex-wrap: wrap;
+  }
+  .header-left {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+  .header-right {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin-left: auto;
+    row-gap: 6px;
+  }
+}
