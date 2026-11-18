@@ -2924,7 +2924,7 @@ function renderCalendar() {
                   ${r.distance ? `<span class="race-dist-line"><strong class="race-distance">${r.distance}</strong>${r.terrain ? ` · ${capitalize(r.terrain)}` : ""}</span>` : r.terrain ? `<span class="race-dist-line"><span class="race-distance">${capitalize(r.terrain)}</span></span>` : ""}
                   ${r.target_time ? `<span>Mērķis: ${r.target_time}${r.target_pace ? " (" + r.target_pace.replace(/\/km\s*$/i, "") + "/km)" : ""}</span>` : ""}
                 </div>
-                ${hasResult ? `<div class="race-result">✅ ${r.result_time}${r.result_pace ? " (" + r.result_pace.replace(/\/km\s*$/i, "") + "/km)" : ""}</div>` : ""}
+                ${hasResult ? `<div class="race-result">${r.result_time}${r.result_pace ? " (" + r.result_pace.replace(/\/km\s*$/i, "") + "/km)" : ""}</div>` : ""}
                 ${isAthleteOwner ? `<button class="add-day-button" data-log-race="${r.id}" type="button">${hasResult ? "✏️ Labot rezultātu" : "Pievienot rezultātu"}</button>` : ""}
                 ${activeRole === "coach" && !dayPlans.length && raceIdx === dayRaces.length - 1
                   ? `<div class="comment-label">Trenera komentārs/padomi</div><textarea class="inline-comment" data-comment-day="${dateStr}" placeholder="Komentārs...">${dayNote?.coach_comment || ""}</textarea>`
@@ -3516,7 +3516,7 @@ function renderMonthViewInline() {
           <span class="month-race-name">${r.name}</span>
           ${r.location ? `<span class="month-race-location">${r.location}</span>` : ""}
           ${r.distance ? `<strong class="month-race-dist">${r.distance}</strong>` : ""}
-          ${monthSubMode === "done" && hasResult ? `<span class="month-race-result">✅ ${r.result_time}${r.result_pace ? " (" + r.result_pace.replace(/\/km\s*$/i, "") + "/km)" : ""}</span>` : ""}
+          ${monthSubMode === "done" && hasResult ? `<span class="month-race-result">${r.result_time}${r.result_pace ? " (" + r.result_pace.replace(/\/km\s*$/i, "") + "/km)" : ""}</span>` : ""}
         </div>
       `;
       }).join("");

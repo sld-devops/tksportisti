@@ -2570,8 +2570,8 @@ label {
 }
 
 .race-chip .race-result {
-  background: var(--success-bg);
-  border: 1px solid var(--success-border);
+  background: var(--surface-hover);
+  border: 1px solid var(--edge-soft);
   border-radius: 4px;
   font-size: 0.88rem;
   font-weight: 700;
@@ -2653,6 +2653,22 @@ label {
   align-items: baseline;
 }
 
+/* A faint straight line between the race name and its date (owner, 2026-11-16),
+   like the dividers in the week-navigation row. */
+.race-list-main > strong:first-child {
+  border-right: 1px solid var(--line);
+  padding-right: 10px;
+}
+.race-list-main .race-terrain {
+  border-left: 1px solid var(--line);
+  margin-left: 10px;
+  padding-left: 10px;
+}
+.race-list-main .race-loc {
+  border-left: 1px solid var(--line);
+  padding-left: 10px;
+}
+
 .race-distance {
   font-weight: 700;
   color: var(--ink);
@@ -2708,8 +2724,8 @@ label {
 }
 
 .chip-result {
-  background: var(--success-bg);
-  color: var(--success-dark);
+  background: var(--surface-hover);
+  color: var(--ink);
 }
 
 .secondary-action-sm {
@@ -4681,8 +4697,8 @@ textarea:disabled {
 }
 
 .month-race-result {
-  background: var(--success-bg);
-  border: 1px solid var(--success-border);
+  background: var(--surface-hover);
+  border: 1px solid var(--edge-soft);
   border-radius: 4px;
   color: var(--ink);
   font-weight: 700;
@@ -7896,4 +7912,12 @@ input.needs-value {
   .edit-dialog form {
     max-height: calc(90vh / 0.8 - 40px);
   }
+/* "🏆 PB" next to a race result: the race the current personal record was set in. */
+.chip-record {
+  background: #fff1c2;
+  border-radius: 4px;
+  color: #6b4e00;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 2px 6px;
 }

@@ -168,6 +168,19 @@ function getUpcomingRaces(allRaces) {
   return allRaces.filter((r) => !r.result_time);
 }
 
+// Is this finished race the one the athlete's personal record for its distance was
+// set in? A record saved from a race ("Saglabāt kā rekordu") carries the race's own
+// date, distance and time, so those three agreeing is the test. A better record
+// set elsewhere later replaces the row, and the mark moves with it.
+function isRaceCurrentRecord(race) {
+  const sec = raceTimeToSeconds(race.result_time);
+  const meters = distanceToMeters(race.distance);
+  if (!sec || !meters || !race.date) return false;
+  return records.some((rec) =>
+    rec.date === race.date && distanceToMeters(rec.distance) === meters && raceTimeToSeconds(rec.time) === sec
+  );
+}
+
 function renderRaceTabFromRaces(allRaces, tab) {
   const athleteId = getSelectedAthleteId();
   // Year filter: the list shows one season; raceCalendarRaces below keeps every race.
@@ -184,12 +197,13 @@ function renderRaceTabFromRaces(allRaces, tab) {
   const isAthleteOwner = (activeRole === "athlete") && currentUser.id === athleteId;
   content.innerHTML = races.map((r) => {
     const hasResult = !!r.result_time;
+    const isRecord = tab === "past" && hasResult && isRaceCurrentRecord(r);
     return `
       <div class="race-list-item">
         <div class="race-list-main">
           <strong>${escapeHtml(r.name)}</strong>
-          <span class="muted">${formatDateLV(r.date)}${r.location ? " · " + escapeHtml(r.location) : ""}</span>
-          ${r.distance ? `<span class="race-dist-line"><strong class="race-distance">${escapeHtml(r.distance)}</strong>${r.terrain ? ` · ${escapeHtml(capitalize(r.terrain))}` : ""}</span>` : r.terrain ? `<span class="race-dist-line"><span class="race-distance">${escapeHtml(capitalize(r.terrain))}</span></span>` : ""}
+          <span class="muted">${formatDateLV(r.date)}</span>${r.location ? `<span class="muted race-loc">${escapeHtml(r.location)}</span>` : ""}
+          ${r.distance ? `<span class="race-dist-line"><strong class="race-distance">${escapeHtml(r.distance)}</strong>${r.terrain ? `<span class="race-terrain">${escapeHtml(capitalize(r.terrain))}</span>` : ""}</span>` : r.terrain ? `<span class="race-dist-line"><span class="race-distance">${escapeHtml(capitalize(r.terrain))}</span></span>` : ""}
         </div>
         <div class="race-list-details">
           ${tab === "upcoming"
@@ -197,7 +211,7 @@ function renderRaceTabFromRaces(allRaces, tab) {
               ? `<span class="chip-target">Mērķis: ${escapeHtml(r.target_time)}${r.target_pace ? " (" + escapeHtml(r.target_pace.replace(/\/km\s*$/i, "")) + "/km)" : ""}</span>`
               : `<span class="muted">— Nav mērķa</span>`)
             : (hasResult
-              ? `<span class="chip-result">✅ ${escapeHtml(r.result_time)}${r.result_pace ? " (" + escapeHtml(r.result_pace.replace(/\/km\s*$/i, "")) + "/km)" : ""}</span>`
+              ? `<span class="chip-result">${escapeHtml(r.result_time)}${r.result_pace ? " (" + escapeHtml(r.result_pace.replace(/\/km\s*$/i, "")) + "/km)" : ""}</span>${isRecord ? ' <span class="chip-record" title="Šeit uzstādīts pašreizējais personīgais rekords">🏆 PB</span>' : ""}`
               : `<span class="muted">— Nav rezultāta</span>`)
           }
         </div>
@@ -209,7 +223,7 @@ function renderRaceTabFromRaces(allRaces, tab) {
                so a saved time could never be corrected and an old race could
                never be given one at all. -->
           <button class="secondary-action-sm" data-race-log="${r.id}" type="button">${hasResult ? "✏️ Labot rezultātu" : "📝 Pievienot rezultātu"}</button>
-          ${tab === "past" && hasResult && distanceToMeters(r.distance)
+          ${tab === "past" && hasResult && !isRecord && distanceToMeters(r.distance)
             ? `<button class="secondary-action-sm" data-race-record="${r.id}" type="button">🏅 Saglabāt kā rekordu</button>`
             : ""}
         </div>` : ""}
@@ -286,10 +300,9 @@ async function saveRaceAsRecord(raceId, btn) {
     }
     records = await getRecords(getSelectedAthleteId());
     render();
-    if (btn) {
-      btn.textContent = "✅ Saglabāts";
-      btn.disabled = true;
-    }
+    // Redraw the list: the race now carries the 🏆 mark and loses its button.
+    const activeTab = document.querySelector("#raceCalendarPanel [data-race-tab].active");
+    renderRaceTabFromRaces(raceCalendarRaces, activeTab ? activeTab.dataset.raceTab : "past");
   } catch (e) {
     console.error(e);
     alert("Saglabāšana neizdevās (iespējams, trūkst tiesību).");
