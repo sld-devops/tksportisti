@@ -3806,6 +3806,7 @@ label {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   margin-bottom: 10px;
   padding: 4px;
@@ -3817,7 +3818,7 @@ label {
   border-radius: 6px;
   color: var(--muted);
   cursor: pointer;
-  flex: 1;
+  flex: 1 1 auto;
   font-size: 0.75rem;
   font-weight: 700;
   padding: 6px 10px;

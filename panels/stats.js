@@ -275,8 +275,8 @@ function buildStatsRangeHtml() {
   const isWeek = statsPeriod === "week";
   const yearLabel = selectedYear === "all" ? "Viss laiks" : `${selectedYear}. gads`;
   const ranges = isWeek
-    ? [{ val: 4, label: "4 nedēļas" }, { val: 8, label: "8 nedēļas" }, { val: 12, label: "12 nedēļas" }, { val: "year", label: yearLabel }]
-    : [{ val: 4, label: "4 mēneši" }, { val: 8, label: "8 mēneši" }, { val: 12, label: "12 mēneši" }, { val: "year", label: yearLabel }];
+    ? [{ val: 4, label: "Pēdējās 4 nedēļas" }, { val: 8, label: "Pēdējās 8 nedēļas" }, { val: 12, label: "Pēdējās 12 nedēļas" }, { val: "year", label: yearLabel }]
+    : [{ val: 4, label: "Pēdējie 4 mēneši" }, { val: 8, label: "Pēdējie 8 mēneši" }, { val: 12, label: "Pēdējie 12 mēneši" }, { val: "year", label: yearLabel }];
   const currentRange = isWeek ? trendWeeks : trendMonths;
   return `
     <div class="stats-range">
