@@ -7286,7 +7286,7 @@ body.is-dragging .session-card.is-draggable {
    writes its name into the box. Compact chips so all four fit a ~300px column. */
 .shift-presets {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
   margin: 8px 0 10px;
 }
@@ -7302,8 +7302,21 @@ body.is-dragging .session-card.is-draggable {
   padding: 6px 10px;
 }
 
+.shift-preset-btn {
+  text-align: left;
+  width: 100%;
+}
+
 .shift-preset-btn:hover {
   background: var(--surface-hover);
+}
+
+/* The pressed shift: dark grey, white text. */
+.shift-preset-btn.is-selected,
+.shift-preset-btn.is-selected:hover {
+  background: #4b5563;
+  border-color: #374151;
+  color: #fff;
 }
 
 /* A work shift is information the coach must not miss when planning, so its

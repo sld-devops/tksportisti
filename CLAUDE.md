@@ -796,3 +796,7 @@ A phone in the desktop view (pinned to 1200px) showed the header's right-hand bu
 ### Race calendar and statistics sit under the calendar days (2026-11-18)
 
 `#raceCalendarPanel` and `#statsCollapsible` come after `#monthView` at the end of `.calendar-shell` (owner's call), no longer above the week header. Consequence worth knowing: the five weekly figures (`#weekNumbers`) and the red/green "Nedēļas izpilde ievadīta/neievadīta" badge are now at the bottom of the page, so an athlete has to scroll down past the week to fill them in. Nothing in JS depends on the order.
+
+### A work shift is saved only through its button (2026-11-18)
+
+`restrictionShift` (`panels/restrictions.js`) holds the pressed shift button (null = none); the four `SHIFT_PRESETS` buttons are stacked, the pressed one is dark grey (`.is-selected`). Typing the shift name by hand does not make a shift: `saveRestrictionForm()` refuses with an alert, and editing the reason text after pressing un-presses the button, turning it into an ordinary restriction (which needs a day-part). Rows already saved are still read as shifts by their reason text (`isShiftRestriction()`); editing one shows its button as pressed.
