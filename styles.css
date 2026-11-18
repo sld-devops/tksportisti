@@ -2953,7 +2953,8 @@ label {
 }
 
 .session-card .log-plan-button {
-  padding: 4px 6px;
+  width: fit-content;
+  padding: 4px 10px;
   font-size: 0.7rem;
   margin-top: 4px;
   margin-bottom: 0;
