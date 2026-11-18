@@ -2274,7 +2274,14 @@ label {
    this the button and the checkbox sat flush together and a hurried tap could miss. */
 .not-completed-row {
   display: flex;
-  margin: 8px auto 0;
+  gap: 6px;
+  margin: 10px auto 0;
+  padding: 7px 8px;
+}
+
+.not-completed-row input {
+  height: 26px;
+  width: 26px;
 }
 
 .field-grid {
@@ -2955,9 +2962,10 @@ label {
 .session-card .log-plan-button {
   display: block;
   width: fit-content;
-  margin: 4px auto 0;
-  padding: 4px 10px;
-  font-size: 0.7rem;
+  margin: 6px auto 0;
+  padding: 9px 8px;
+  font-size: 0.78rem;
+  white-space: nowrap;
 }
 
 .log-inline {
