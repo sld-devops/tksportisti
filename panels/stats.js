@@ -147,6 +147,21 @@ function buildFacetHtml(metric, data, withYear) {
     ? `${linePath} L ${points[points.length - 1].x.toFixed(1)} ${plotBottom} L ${points[0].x.toFixed(1)} ${plotBottom} Z`
     : "";
 
+  // Average trend: a least-squares straight line through the points, drawn thin
+  // and dashed. Clamped to the plot so a steep slope cannot leave the box.
+  let trendLine = "";
+  if (!empty && points.length > 1) {
+    const n = points.length;
+    const vals = data.map((d) => d[metric.key] || 0);
+    const mx = (n - 1) / 2;
+    const my = vals.reduce((a, b) => a + b, 0) / n;
+    let num = 0, den = 0;
+    vals.forEach((v, i) => { num += (i - mx) * (v - my); den += (i - mx) * (i - mx); });
+    const slope = den ? num / den : 0;
+    const at = (i) => Math.min(plotBottom, Math.max(plotTop, yAt(my + slope * (i - mx))));
+    trendLine = `<line class="chart-trend" x1="${points[0].x.toFixed(1)}" y1="${at(0).toFixed(1)}" x2="${points[n - 1].x.toFixed(1)}" y2="${at(n - 1).toFixed(1)}" />`;
+  }
+
   // Horizontal hairlines for reading height, plus one vertical hairline per
   // period so it is obvious at a glance which point belongs to which month.
   const grid = [plotTop, plotTop + plotH / 2, plotBottom]
@@ -187,6 +202,7 @@ function buildFacetHtml(metric, data, withYear) {
         ${grid}
         ${empty ? "" : `<path class="chart-area" d="${areaPath}" />`}
         ${empty ? "" : `<path class="chart-line" d="${linePath}" />`}
+        ${trendLine}
         ${dots}
         ${empty ? "" : `<circle class="chart-cursor-dot" cx="-99" cy="-99" r="6" />`}
         ${valueLabels}
