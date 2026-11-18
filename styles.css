@@ -890,11 +890,10 @@ h4 {
   font-style: italic;
 }
 
-/* Frosted-glass card: translucent silver over the photo, a bright top edge. */
+/* Glass-look card: silver over the photo, a bright top edge. No backdrop-filter on
+   purpose - blurring a fixed photo behind ~20 large cards made scrolling lag. */
 .panel {
-  -webkit-backdrop-filter: blur(14px) saturate(1.1);
-  backdrop-filter: blur(14px) saturate(1.1);
-  background: linear-gradient(160deg, rgba(250, 251, 253, 0.8) 0%, rgba(214, 220, 228, 0.78) 100%);
+  background: linear-gradient(160deg, rgba(250, 251, 253, 0.93) 0%, rgba(214, 220, 228, 0.92) 100%);
   border: 1px solid rgba(255, 255, 255, 0.75);
   border-left: 3px solid var(--edge);
   border-radius: 12px;
@@ -904,9 +903,7 @@ h4 {
 }
 
 .calendar-shell {
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  background: linear-gradient(180deg, rgba(248, 249, 251, 0.86) 0%, rgba(222, 227, 234, 0.86) 100%);
+  background: linear-gradient(180deg, rgba(248, 249, 251, 0.94) 0%, rgba(222, 227, 234, 0.94) 100%);
   border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 14px;
   box-shadow:
@@ -7706,9 +7703,7 @@ input.needs-value {
 .year-filter {
   align-items: center;
   /* The same card as every sidebar panel (.panel): frosted glass, silver left edge. */
-  -webkit-backdrop-filter: blur(14px) saturate(1.1);
-  backdrop-filter: blur(14px) saturate(1.1);
-  background: linear-gradient(160deg, rgba(250, 251, 253, 0.8) 0%, rgba(214, 220, 228, 0.78) 100%);
+  background: linear-gradient(160deg, rgba(250, 251, 253, 0.93) 0%, rgba(214, 220, 228, 0.92) 100%);
   border: 1px solid rgba(255, 255, 255, 0.75);
   border-left: 3px solid var(--edge);
   border-radius: 12px;
