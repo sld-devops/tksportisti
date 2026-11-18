@@ -674,7 +674,7 @@ The weekly figures ("Paveiktā statistika") got a fifth box, `wsElipt` ("Eliptis
 
 ### The portal can be installed as an app (2026-11-15)
 
-`manifest.webmanifest` + `sw.js` + icons in `images/app/` (192/512 for Android, 180 for iPhone; a dark-brown square with a peach "TK", drawn with PIL - replace with a real logo if the owner has one). Installed, it opens full screen with no browser bar.
+`manifest.webmanifest` + `sw.js` + icons in `images/app/` (192/512 for Android, 180 for iPhone; a silver glass "TK" plate on dark steel, drawn with PIL (2026-11-18) - replace with a real logo if the owner has one). Installed, it opens full screen with no browser bar.
 
 - **`sw.js` caches nothing, on purpose.** It exists only so Android Chrome offers "Install"; every request still goes to the network, so the `?v=` cache-busting and a fresh deploy behave exactly as before. Don't add caching without thinking about stale code staying on phones.
 - **`#installAppBtn` sits under "Pievienot e-pastu paziņojumiem" in the sidebar's `#calendarLinkBox`** (moved there from the header at the owner's request, which also keeps the cramped header alone). A coach never sees that box, so there is a second button, `#installAppBtnCoach`, in the header's right-hand group (owner's choice; short label "Instalēt" where the other header buttons are short); `refreshInstallButtons()` (called from `render()`) shows it only to a coach (`setupInstallBtn()` in `app.js`, next to `setupScreenViewBtn()`): shown on Android only after the browser fires `beforeinstallprompt`, on iPhone always (an alert explains Share -> Add to Home Screen, there is no install prompt on iOS), never when already running standalone.
