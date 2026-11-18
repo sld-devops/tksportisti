@@ -7967,3 +7967,8 @@ input.needs-value {
     row-gap: 6px;
   }
 }
+
+/* Race calendar and statistics now sit under the calendar days. */
+#monthView ~ #raceCalendarPanel {
+  margin-top: 12px;
+}

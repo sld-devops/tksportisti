@@ -47,7 +47,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=280" />
+    <link rel="stylesheet" href="styles.css?v=295" />
   </head>
   <body>
     <div id="authView">
@@ -515,42 +515,6 @@
             </div>
           </div>
 
-          <div class="stats-collapsible collapsible collapsed" id="raceCalendarPanel">
-            <div class="panel-header">
-              <h2>📅 Sacensību kalendārs</h2>
-              <button class="collapse-toggle" type="button" aria-label="Rādīt sacensību kalendāru">▶</button>
-            </div>
-            <div class="panel-body">
-              <button id="openRaceBtn" class="secondary-action" type="button">🏁 Pievienot sacensības</button>
-              <div class="choice-tabs race-tabs">
-                <button class="active" data-race-tab="upcoming" type="button">Gaidāmās</button>
-                <button data-race-tab="past" type="button">Notikušās</button>
-              </div>
-              <!-- The same year switch as the sidebar's (shared state, see panels/year-filter.js). -->
-              <div class="year-filter-inline" data-year-filter role="group" aria-label="Gads"></div>
-              <div id="raceCalendarContent"></div>
-            </div>
-          </div>
-
-          <!-- Sits directly under the race calendar, above the week header: the
-               four weekly figures that feed these charts are typed in here now
-               (#weekNumbers), so the panel had to be where the athlete looks
-               while filling the week in, not at the bottom of the page. It stays
-               collapsed on every load - there is no stored open/closed state. -->
-          <div class="stats-collapsible collapsible collapsed" id="statsCollapsible">
-            <div class="panel-header">
-              <div class="stats-header-text">
-                <h2>📈 Paveiktā statistika</h2>
-                <span class="week-entry-badge" id="weekEntryBadge" hidden></span>
-              </div>
-              <button class="collapse-toggle" type="button" aria-label="Rādīt statistiku">▶</button>
-            </div>
-            <div class="panel-body">
-              <div id="weekNumbers"></div>
-              <div class="stats-bar" id="statsBar"></div>
-            </div>
-          </div>
-
           <div class="week-label-row">
             <h2 id="weekLabel"></h2>
             <h2 id="monthViewTitleInline" class="month-view-title" hidden></h2>
@@ -639,6 +603,39 @@
 
           <div id="monthView" hidden>
             <div id="monthGridInline"></div>
+          </div>
+
+          <div class="stats-collapsible collapsible collapsed" id="raceCalendarPanel">
+            <div class="panel-header">
+              <h2>📅 Sacensību kalendārs</h2>
+              <button class="collapse-toggle" type="button" aria-label="Rādīt sacensību kalendāru">▶</button>
+            </div>
+            <div class="panel-body">
+              <button id="openRaceBtn" class="secondary-action" type="button">🏁 Pievienot sacensības</button>
+              <div class="choice-tabs race-tabs">
+                <button class="active" data-race-tab="upcoming" type="button">Gaidāmās</button>
+                <button data-race-tab="past" type="button">Notikušās</button>
+              </div>
+              <!-- The same year switch as the sidebar's (shared state, see panels/year-filter.js). -->
+              <div class="year-filter-inline" data-year-filter role="group" aria-label="Gads"></div>
+              <div id="raceCalendarContent"></div>
+            </div>
+          </div>
+
+          <!-- Under the calendar days (owner's call 2026-11-18). The weekly figures
+               (#weekNumbers) are typed in here. It stays collapsed on every load. -->
+          <div class="stats-collapsible collapsible collapsed" id="statsCollapsible">
+            <div class="panel-header">
+              <div class="stats-header-text">
+                <h2>📈 Paveiktā statistika</h2>
+                <span class="week-entry-badge" id="weekEntryBadge" hidden></span>
+              </div>
+              <button class="collapse-toggle" type="button" aria-label="Rādīt statistiku">▶</button>
+            </div>
+            <div class="panel-body">
+              <div id="weekNumbers"></div>
+              <div class="stats-bar" id="statsBar"></div>
+            </div>
           </div>
 
         </section>
