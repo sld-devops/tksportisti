@@ -285,6 +285,7 @@ async function saveLabTest() {
         file_name: file.name,
         file_type: file.type,
       });
+      await revealYearOf(date);
     } catch (e) {
       alert("Neizdevās saglabāt: " + (e.message || e));
       return;

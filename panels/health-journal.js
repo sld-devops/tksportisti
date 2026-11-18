@@ -194,6 +194,7 @@ async function saveHealthEntry() {
       await updateHealthEntry(editingHealthId, data);
     } else {
       await insertHealthEntry(data);
+      await revealYearOf(data.start_date);
     }
     if (!isCoach()) {
       const who = currentProfile?.full_name || "Sportists";
