@@ -2921,10 +2921,6 @@ label {
   margin-bottom: 0;
 }
 
-.log-plan-button:hover {
-  background: var(--surface-hover);
-}
-
 .log-inline {
   margin-top: 8px;
   border-radius: 6px;
@@ -3381,6 +3377,7 @@ label {
 
 .save-template-athlete-btn:hover {
   background: var(--btn-bg-hover);
+  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(21, 23, 26, 0.18);
 }
 
@@ -6769,7 +6766,9 @@ body.is-dragging .session-card.is-draggable {
    its own, and this button overrides the background to white, so it needs its
    own rule or nothing happens under the pointer at all. */
 .self-log-add-btn:hover {
-  background: var(--surface-hover);
+  background: var(--btn-bg-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(21, 23, 26, 0.18);
 }
 
 .self-log-form {
