@@ -1,0 +1,17 @@
+TOMA KOMASA SPORTISTU PORTĀLS: KAS IR JAUNS (18.11.2026., otrais papildinājums)
+
+SPORTISTIEM
+
+* Portālam ir jauns izskats: sniega fons, sudraba "stikla" pogas un kartes, un jauna lietotnes ikona.
+* Darba maiņu atzīmē ar pogu: sāni "Ierobežojumi", zem iemesla lodziņa ir četras pogas viena zem otras. Izvēlētā maiņa kļūst tumša, un dienas daļu lodziņi (Rīts, Pusdiena, Vakars) pazūd, jo tie nav vajadzīgi. Spiežot uz izvēlētās vēlreiz, izvēle tiek noņemta. Maiņu ar roku uzrakstīt vairs nevar.
+* Ja ieraksti rekordu vai testu no cita gada, portāls pats pārslēdz gada izvēli uz "Visi", lai ieraksts neizzustu. Personīgie rekordi sānu panelī vienmēr rāda visus rekordus, neatkarīgi no gada.
+* Rekordu logs tagad saka, ja nav izvēlēta distance vai ierakstīts laiks, un parāda kļūdu, ja saglabāšana neizdodas.
+* Datuma kalendārs logos (rekordi, testi, sacensības) vairs neliek logam ritināties: logs kļūst garāks vai kalendārs atveras uz augšu. Arī pārējie logi ir garāki, lai viss ietilptu bez ritināšanas.
+* Treniņu kalendārs telefonā, Garmin pulkstenī un Google kalendārā tagad rāda treniņa dienas daļu: rīts 4:00-11:00, pusdiena 11:00-16:00, vakars 16:00-24:00 (līdz šim bija "Visa diena"). Nosaukums ir pilns, bez emoji.
+* Kalendāra dienas vairs nav izstieptas ar tukšu vietu zem īsiem treniņiem.
+
+TRENERIM
+
+* Lietošanas instrukcijā ir deviņas trenera sadaļas (T1-T9) ar visu, kā plānot, labot, kopēt, atbildēt uz jautājumiem un pārvaldīt sportistus. Tās redzamas tikai tad, ja instrukciju atver treneris.
+
+Ja kaut kas nestrādā vai nav skaidrs, pajautā WhatsApp grupā "Toma sportisti".
