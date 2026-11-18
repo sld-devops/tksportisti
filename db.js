@@ -103,7 +103,21 @@ async function getAthletes() {
 //
 // This never throws: a failed or slow email must never block or break the
 // save it's attached to, so every error is swallowed here and only logged.
+// The test account ("Testa Sportists") must never e-mail the real coach: anything
+// done in or by that profile (athlete side) is skipped for target "coach".
+const TEST_ATHLETE_NAME = "Testa Sportists";
+function isTestAthleteActive() {
+  try {
+    if (currentProfile?.role === "athlete" && currentProfile.full_name === TEST_ATHLETE_NAME) return true;
+    const sel = typeof getSelectedAthleteId === "function" ? getSelectedAthleteId() : "";
+    return !!sel && athletes.some((a) => a.id === sel && a.full_name === TEST_ATHLETE_NAME);
+  } catch (e) {
+    return false;
+  }
+}
+
 async function sendNotificationEmail({ target, athleteId, subject, message }) {
+  if (target === "coach" && isTestAthleteActive()) return;
   try {
     const { data: session } = await supabase.auth.getSession();
     if (!session?.session?.access_token) return;
@@ -137,6 +151,7 @@ supabase.auth.onAuthStateChange((_event, session) => { cachedAccessToken = sessi
 
 function sendNotificationEmailOnLeave(payload) {
   if (!cachedAccessToken) return;
+  if (payload?.target === "coach" && isTestAthleteActive()) return;
   try {
     fetch("https://yqaabswcvwkiimpoxsfj.supabase.co/functions/v1/send-notification", {
       method: "POST",

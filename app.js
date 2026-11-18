@@ -2180,6 +2180,42 @@ function loggedTodNoteHtml(log, plan) {
   return `<div class="log-tod-note">Izpildīts: <span class="tod-badge tod-${tod}">${todLabel(tod)}</span></div>`;
 }
 
+// "Jautājums trenerim": the athlete ticks it on a record (stored as a bare
+// { section: "_q" } bookkeeping entry in log_data, or `q: true` on the self-log
+// object - no new column). The coach's one-line answer goes into the coach
+// comment that already exists (plans.coach_comment for a plan, day_notes for a
+// day or a self-log) as a line starting with ANSWER_PREFIX; "answered" simply
+// means such a line exists. The athlete reads it where the coach comment is
+// already shown, and gets an e-mail.
+const ANSWER_PREFIX = "\u21a9 ";
+
+function loggedQuestion(log) {
+  return (log?.log_data || []).some((e) => e && (e.q || e.section === "_q"));
+}
+
+function questionCoachText(log) {
+  if (log?.plan_id) return plans.find((p) => p.id === log.plan_id)?.coach_comment || "";
+  return dayNotes.find((n) => n.date === log?.date)?.coach_comment || "";
+}
+
+function questionAnswered(log) {
+  return questionCoachText(log).split("\n").some((l) => l.startsWith(ANSWER_PREFIX));
+}
+
+function logQuestionCheckboxHtml(checked) {
+  return `<label class="checkbox-row log-question-row"><input type="checkbox" id="logQuestion" ${checked ? "checked" : ""} /> \u2753 Jautājums trenerim</label>`;
+}
+
+// The tag under the athlete's note (both roles) and, for the coach while it is
+// still unanswered, the one-line reply box.
+function questionBlockHtml(log) {
+  if (!loggedQuestion(log)) return "";
+  const answered = questionAnswered(log);
+  const tag = `<div class="question-tag${answered ? " is-answered" : ""}">\u2753 Jautājums trenerim · ${answered ? "\u2714 atbildēts" : "gaida atbildi"}</div>`;
+  if (answered || activeRole !== "coach") return tag;
+  return `${tag}<div class="question-reply"><input class="question-reply-input" data-question-input="${log.id}" type="text" placeholder="Īsa atbilde..." maxlength="300" /><button class="secondary-action-sm" data-question-send="${log.id}" type="button">Atbildēt</button></div>`;
+}
+
 const LOG_TOD_OPTIONS = [
   { value: "morning", label: "🌄 Rīts" },
   { value: "afternoon", label: "☀️ Pusdiena" },
@@ -2695,7 +2731,7 @@ function renderPlanCard(plan) {
   if (isCoach) {
     const isCopied = copiedItem?.kind === "plan" && copiedItem.planId === plan.id;
     const logBlock = planLog
-      ? `<div class="log-card log-inline">${loggedTodNoteHtml(planLog, plan)}${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details, false, "week") : ""}${feelingBadge}${planLogNotes}</div>`
+      ? `<div class="log-card log-inline">${loggedTodNoteHtml(planLog, plan)}${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details, false, "week") : ""}${feelingBadge}${planLogNotes}${questionBlockHtml(planLog)}</div>`
       : "";
 
     return `
@@ -2716,7 +2752,7 @@ function renderPlanCard(plan) {
   const logActions = planLog ? `<div class="log-actions"><button class="edit-log-btn icon-action-btn" data-log-plan="${plan.id}" type="button" title="Rediģēt">✏️</button><button class="log-delete-btn icon-action-btn is-delete" data-delete-log="${planLog.id}" type="button" title="Dzēst">✕</button></div>` : "";
 
   const logBlock = planLog
-    ? `<div class="log-card log-inline">${loggedTodNoteHtml(planLog, plan)}${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details, false, "week") : ""}${feelingBadge}${planLogNotes}</div>`
+    ? `<div class="log-card log-inline">${loggedTodNoteHtml(planLog, plan)}${planLogData.length ? renderLogEntryLines(planLogData, paceBoundsMap, plannedIntervalCount, plan.details, false, "week") : ""}${feelingBadge}${planLogNotes}${questionBlockHtml(planLog)}</div>`
     : `<button class="add-day-button log-plan-button" data-log-plan="${plan.id}" type="button">IERAKSTĪT IZPILDI</button>`;
 
   return `
@@ -2750,7 +2786,7 @@ function renderLogCard(log, dayCommentTaken) {
   const logNotes = log?.notes ? `<div class="log-notes">${log.notes}</div>` : "";
   const athleteIsOwner = (activeRole === "athlete") && currentUser.id === getSelectedAthleteId();
   const logActions = athleteIsOwner ? `<div class="log-actions"><button class="edit-log-btn icon-action-btn" data-log-day="${log.date}" type="button" title="Rediģēt">✏️</button><button class="log-delete-btn icon-action-btn is-delete" data-delete-log="${log.id}" type="button" title="Dzēst">✕</button></div>` : "";
-  return `<div class="session-card log-card">${items}${feelingBadge}${logNotes}${athleteIsOwner ? `<div class="card-actions">${logActions}</div>` : ""}</div>`;
+  return `<div class="session-card log-card">${items}${feelingBadge}${logNotes}${questionBlockHtml(log)}${athleteIsOwner ? `<div class="card-actions">${logActions}</div>` : ""}</div>`;
 }
 // #endregion
 
@@ -4718,6 +4754,53 @@ customType.addEventListener("change", () => {
   includeDrills.checked = t === SAME_INTERVAL_TYPE || t === "Intervāli" || t === VAR_INTERVAL_TYPE || t === "Tempa skrējiens";
 });
 
+// Coach answers an athlete's question: one line, saved into the coach comment
+// that already exists (see ANSWER_PREFIX), then e-mailed to the athlete.
+async function sendQuestionAnswer(logId) {
+  const log = logEntries.find((l) => l.id === logId);
+  const input = calendarGrid.querySelector(`[data-question-input="${logId}"]`);
+  const answer = input?.value.trim() || "";
+  if (!log || !answer) { input?.focus(); return; }
+  const athleteId = getSelectedAthleteId();
+  const withAnswer = (cur) => (cur ? cur.replace(/\s+$/, "") + "\n" : "") + ANSWER_PREFIX + answer;
+  try {
+    if (log.plan_id) {
+      const plan = plans.find((p) => p.id === log.plan_id);
+      const box = calendarGrid.querySelector(`[data-comment-plan="${log.plan_id}"][data-comment-type="coach"]`);
+      const value = withAnswer(box ? box.value : (plan?.coach_comment || ""));
+      await updatePlan(log.plan_id, { coach_comment: value });
+      if (plan) plan.coach_comment = value;
+    } else {
+      const box = calendarGrid.querySelector(`[data-comment-day="${log.date}"]`);
+      const note = dayNotes.find((n) => n.date === log.date);
+      const value = withAnswer(box ? box.value : (note?.coach_comment || ""));
+      await upsertDayNote({ athlete_id: athleteId, date: log.date, coach_comment: value });
+      if (note) note.coach_comment = value;
+      else dayNotes.push({ date: log.date, coach_comment: value, athlete_comment: "" });
+    }
+    const title = (log.plan_id ? plans.find((p) => p.id === log.plan_id)?.title : getSelfLogData(log).title) || "treniņš";
+    queueNotificationEmail(`answer:${logId}`, {
+      target: "athlete",
+      athleteId,
+      subject: `Treneris atbildēja uz Tavu jautājumu (${formatDateLV(log.date)})`,
+      message: `Jautājums pie "${title}" (${formatDateLV(log.date)})${log.notes ? `:\n"${log.notes}"` : ""}\n\nTrenera atbilde:\n${answer}\n\nAtver lietotni: ${NOTIFY_APP_URL}`,
+    });
+    render();
+  } catch (e) {
+    alert("Neizdevās saglabāt atbildi: " + (e.message || e));
+  }
+}
+
+calendarGrid.addEventListener("click", (event) => {
+  const btn = event.target.closest("[data-question-send]");
+  if (btn) sendQuestionAnswer(btn.dataset.questionSend);
+});
+calendarGrid.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  const inp = event.target.closest?.("[data-question-input]");
+  if (inp) { event.preventDefault(); sendQuestionAnswer(inp.dataset.questionInput); }
+});
+
 calendarGrid.addEventListener("click", async (event) => {
   const dayButton = event.target.closest("[data-day]");
   const logDayButton = event.target.closest("[data-log-day]");
@@ -5610,6 +5693,7 @@ saveLogBtn.addEventListener("click", async () => {
   const planTitle = planTitleEl ? planTitleEl.textContent : "";
   const activityType = getActivityType(planTitle);
 
+  let wasAsked = false;
   try {
     const entries = [];
     document.querySelectorAll("[data-log-section]").forEach((el) => {
@@ -5650,6 +5734,8 @@ saveLogBtn.addEventListener("click", async () => {
     });
     // Nothing to hang the part of the day on (see logSectionEntries): keep it anyway.
     if (doneTod && !entries.length) entries.push({ section: "_tod", tod: doneTod });
+    const asksQuestion = !!document.getElementById("logQuestion")?.checked;
+    if (asksQuestion) entries.push({ section: "_q" });
     if (logDialogPlanId) {
       // Looked up straight from the database (not the in-memory `logEntries`
       // array, which is scoped to whatever week is currently loaded and can
@@ -5659,6 +5745,7 @@ saveLogBtn.addEventListener("click", async () => {
       // view's "Izpildīts" tab. Deletes every match, in case a stale-data
       // save already created a duplicate before this fix.
       const existing = await getLogEntriesByPlanId(logDialogPlanId);
+      wasAsked = existing.some(loggedQuestion);
       for (const e of existing) await deleteLogEntry(e.id);
       await insertLogEntry({
         athlete_id: athleteId,
@@ -5687,6 +5774,7 @@ saveLogBtn.addEventListener("click", async () => {
       // athlete's own records too (panels/self-log.js), would have deleted those
       // as well. Only its own kind is replaced.
       const existing = logEntries.filter((l) => l.date === logDialogDate && !l.plan_id && !isSelfLog(l));
+      wasAsked = existing.some(loggedQuestion);
       for (const e of existing) {
         await deleteLogEntry(e.id);
       }
@@ -5702,12 +5790,27 @@ saveLogBtn.addEventListener("click", async () => {
         distance_km: runningKm,
       });
     }
+    if (asksQuestion && !wasAsked) {
+      const planTitleForMail = plans.find((p) => p.id === logDialogPlanId)?.title || "treniņš";
+      notifyCoachOfQuestion(athleteId, logDialogDate, planTitleForMail, notes);
+    }
     logDialog.close();
     await loadNonTemplateData();
   } catch (e) {
     console.error(e);
   }
 });
+
+// E-mail to the coach when an athlete asks a question (also used by the
+// self-log form) and to the athlete when the coach answers.
+function notifyCoachOfQuestion(athleteId, dateStr, title, text) {
+  const who = currentProfile?.full_name || "Sportists";
+  queueNotificationEmail(`question:${athleteId}:${dateStr}:${title}`, {
+    target: "coach",
+    subject: `Jautājums: ${who} — ${title} (${formatDateLV(dateStr)})`,
+    message: `${who} uzdod jautājumu pie "${title}" (${formatDateLV(dateStr)}).${text ? `\n\n"${text}"` : ""}\n\nAtver lietotni: ${NOTIFY_APP_URL}`,
+  });
+}
 // #endregion
 
 // #region Log dialog (recording what was actually done)
@@ -6014,6 +6117,7 @@ function openPlanLogDialog(planId) {
 
   html += getRatingHtml(plan.title, plan.custom_icon);
   html += `<div class="comment-label">Papildus komentāri un piezīmes par treniņa norisi</div><textarea class="inline-comment" id="logAthleteComment" rows="5"></textarea>`;
+  html += logQuestionCheckboxHtml(loggedQuestion(existingLog));
   logFormContent.innerHTML = html;
 
   if (existingLog?.log_data) {
@@ -6157,6 +6261,7 @@ function openLogDialog(dateStr) {
 
   html += getRatingHtml(dayPlans[0].title, dayPlans[0].custom_icon);
   html += `<div class="comment-label">Papildus komentāri un piezīmes par treniņa norisi</div><textarea class="inline-comment" id="logAthleteComment" rows="5"></textarea>`;
+  html += logQuestionCheckboxHtml(loggedQuestion(existingLog));
   logFormContent.innerHTML = html;
 
   if (existingLog?.log_data) {

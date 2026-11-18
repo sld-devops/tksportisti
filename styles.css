@@ -2921,10 +2921,6 @@ label {
   margin-bottom: 0;
 }
 
-.log-plan-button:hover {
-  background: var(--surface-hover);
-}
-
 .log-inline {
   margin-top: 8px;
   border-radius: 6px;
@@ -3381,6 +3377,7 @@ label {
 
 .save-template-athlete-btn:hover {
   background: var(--btn-bg-hover);
+  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(21, 23, 26, 0.18);
 }
 
@@ -6770,7 +6767,9 @@ body.is-dragging .session-card.is-draggable {
    its own, and this button overrides the background to white, so it needs its
    own rule or nothing happens under the pointer at all. */
 .self-log-add-btn:hover {
-  background: var(--surface-hover);
+  background: var(--btn-bg-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(21, 23, 26, 0.18);
 }
 
 .self-log-form {
@@ -7726,4 +7725,39 @@ input.needs-value {
   opacity: 0.85;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
+}
+
+/* "Jautājums trenerim": tag under the athlete's note + the coach's one-line reply */
+.log-question-row {
+  margin-top: 10px;
+}
+
+.question-tag {
+  background: #fff3e0;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-top: 6px;
+  padding: 3px 8px;
+  width: fit-content;
+}
+
+.question-tag.is-answered {
+  background: var(--surface-alt);
+  color: var(--muted);
+}
+
+.question-reply {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.question-reply-input {
+  flex: 1 1 auto;
+  font-size: 0.85rem;
+  min-width: 0;
+  padding: 4px 8px;
 }
