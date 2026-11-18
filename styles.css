@@ -7982,3 +7982,25 @@ input.needs-value {
     max-height: calc((100vh - 24px) / 0.8);
   }
 }
+
+/* The athlete's plan card: everything centred except the day-part badge (stays at
+   the left) and the type icon (stays at the right); the planned-task box is only
+   as wide as its text. The coach's card is untouched. */
+.plan-card-centered {
+  text-align: center;
+}
+
+.plan-card-centered h3 {
+  padding-left: 24px;
+}
+
+.plan-card-centered .task-card {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
+  width: fit-content;
+}
+
+.plan-card-centered .tod-badge {
+  text-align: left;
+}
