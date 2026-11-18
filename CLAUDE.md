@@ -800,3 +800,7 @@ A phone in the desktop view (pinned to 1200px) showed the header's right-hand bu
 ### Dialogs may use the whole screen height (2026-11-18)
 
 Every dialog's maximum height comes from one variable, `--dlg-h` (`:root`, top of `styles.css`): the screen height minus 12px (`100dvh` where supported, so a phone's address bar is not counted; `/ 0.8` from 1400px up because of the body zoom). The session, edit and month dialogs and their forms (`- 48px` / `- 40px` for the dialog's own padding) read it. It used to be a hard `90vh` in four places. Measured headless at 1200/1600px and phone width: the log dialog (easy run and intervals), the edit dialog, race/record/password/etc. dialogs do not scroll on a ~820px-high screen; the self-test dialog (about 920px of form) legitimately still does. A new dialog should use the variable, not its own vh number.
+
+### After every push to main, write a "kas ir jauns" text file (owner's rule, 2026-11-18)
+
+Right before (or as part of) each release to `main`, create a new plain-text file in `kas-jauns/` named after the date (`2026-11-18.txt`, a second release the same day gets `-2`): a short Latvian summary of what changed and improved, split into "SPORTISTIEM" and "TRENERIM", written for athletes and the coach to be shared as-is (no technical words, no branch names). Only user-visible changes; mention a new SQL step only if the reader has to do something. Tell the owner the file name.
