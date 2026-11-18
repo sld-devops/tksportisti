@@ -452,6 +452,14 @@ function renderRestrictionCards() {
     document.querySelectorAll("[data-shift-preset]").forEach(btn => {
       btn.addEventListener("click", () => {
         const reasonBox = document.getElementById("restrictionReasonInput");
+        // Pressing the pressed button again lets go of it: nothing is chosen and the
+        // day-part boxes come back (the reason box is emptied if it only held the shift).
+        if (restrictionShift === btn.dataset.shiftPreset) {
+          if (reasonBox && reasonBox.value.trim() === restrictionShift) reasonBox.value = "";
+          restrictionShift = null;
+          markShiftButtons();
+          return;
+        }
         restrictionShift = btn.dataset.shiftPreset;
         if (reasonBox) reasonBox.value = restrictionShift;
         document.querySelectorAll('input[name="restrictionTod"]').forEach(cb => { cb.checked = false; });
