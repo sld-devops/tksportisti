@@ -496,7 +496,7 @@ Three things worth knowing before touching this:
   rendered stacked, box above its own words. That is why it is not enough to drop
   a `.checkbox-row` into that panel.
 
-**"Nedēļas izpilde ievadīta / neievadīta" — a badge with words, not a counter.**
+**"Šīs nedēļas izpilde ievadīta / vēl nav ievadīta" — a badge with words, not a counter.**
 `renderWeekEntryBadge()` writes `#weekEntryBadge` in the stats panel header:
 red while none of the four figures is above zero, green once one is.
 
@@ -795,4 +795,4 @@ A phone in the desktop view (pinned to 1200px) showed the header's right-hand bu
 
 ### Race calendar and statistics sit under the calendar days (2026-11-18)
 
-`#raceCalendarPanel` and `#statsCollapsible` come after `#monthView` at the end of `.calendar-shell` (owner's call), no longer above the week header. Consequence worth knowing: the five weekly figures (`#weekNumbers`) and the red/green "Nedēļas izpilde ievadīta/neievadīta" badge are now at the bottom of the page, so an athlete has to scroll down past the week to fill them in. Nothing in JS depends on the order.
+`#raceCalendarPanel` and `#statsCollapsible` come after `#monthView` at the end of `.calendar-shell` (owner's call), no longer above the week header. Consequence worth knowing: the five weekly figures (`#weekNumbers`) and the red/green "Šīs nedēļas izpilde ievadīta / vēl nav ievadīta" badge are now at the bottom of the page, so an athlete has to scroll down past the week to fill them in. Nothing in JS depends on the order.
