@@ -206,7 +206,17 @@ saveRecordBtn.addEventListener("click", async () => {
     competition_name: recordCompetition.value.trim(),
     date: recordDate.value,
   };
-  if (!distance) return;
+  // Say what is missing: this used to just return, and the dialog looked dead.
+  if (!distance) {
+    alert(recordDistSelect.value === "__other__" ? "Ieraksti distanci." : "Izvēlies distanci.");
+    (recordDistSelect.value === "__other__" ? recordCustomDist : recordDistSelect).focus();
+    return;
+  }
+  if (!data.time) {
+    alert("Ieraksti laiku, piemēram, 1:22:57.");
+    recordTimeInput.focus();
+    return;
+  }
   try {
     if (editingRecordId) {
       await updateRecord(editingRecordId, data);
@@ -218,6 +228,8 @@ saveRecordBtn.addEventListener("click", async () => {
     render();
   } catch (e) {
     console.error(e);
+    // Keep the dialog open and say so: a refused save (e.g. missing rights) used to be silent.
+    alert("Neizdevās saglabāt rekordu: " + (e.message || e));
   }
 });
 
