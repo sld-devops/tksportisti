@@ -789,3 +789,6 @@ A phone in the desktop view (pinned to 1200px) showed the header's right-hand bu
 ### The builder's section row wraps instead of squeezing (2026-11-18)
 
 `.builder-sections-row` (Iesildīšanās | Pamatdaļa | Atsildīšanās | preview) is a **wrapping flex row**, not the old `auto auto auto 300px` grid. At 1041-1460px (a laptop, or a phone pinned to 1200px) the grid squeezed the main-part column to ~60px and its fields spilled over the neighbours. Verified headless at 1050/1100/1200/1300/1460/1600px for all 12 types: no column or control overlaps, and the edit, log and race dialogs are clean too. The ≤1040px blocks switch it back to `display: grid; 1fr`. (The ▲▼ stepper arrows sitting over an interval box are by design.)
+### "Biežāk lietotie" lives inside "Treniņu plānošana" (2026-11-18)
+
+`#frequentPanel` is no longer a separate card under the planning bar: it is the last child of `.training-bar-content`, after the form, so it collapses and opens with the bar and stays closed inside it. Two CSS consequences: the bar's open arrow rule is scoped to `.training-bar-header` (the old `.training-bar:not(.collapsed) .collapse-toggle` would have kept the nested arrow turned all the time), and the open bar's `max-height` is 8000px (it was 2000px with `overflow: visible`, which would let a tall bar spill over the panels below).

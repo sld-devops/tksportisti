@@ -47,7 +47,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=260" />
+    <link rel="stylesheet" href="styles.css?v=270" />
   </head>
   <body>
     <div id="authView">
@@ -502,17 +502,16 @@
                   <button id="deleteTemplateBtn" class="delete-template-btn delete-template-btn-danger" type="button" hidden data-delete-template>Dzēst sagatavi</button>
                 </div>
                 </form>
+            <div class="stats-collapsible collapsible collapsed" id="frequentPanel" hidden>
+              <div class="panel-header">
+                <h2>⭐ Biežāk lietotie treniņi</h2>
+                <button class="collapse-toggle" type="button" aria-label="Rādīt biežāk lietotos treniņus">▶</button>
+              </div>
+              <div class="panel-body">
+                <div id="frequentTable"></div>
               </div>
             </div>
-          </div>
-
-          <div class="stats-collapsible collapsible collapsed" id="frequentPanel" hidden>
-            <div class="panel-header">
-              <h2>⭐ Biežāk lietotie treniņi</h2>
-              <button class="collapse-toggle" type="button" aria-label="Rādīt biežāk lietotos treniņus">▶</button>
-            </div>
-            <div class="panel-body">
-              <div id="frequentTable"></div>
+              </div>
             </div>
           </div>
 

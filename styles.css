@@ -1463,12 +1463,18 @@ h4 {
 }
 
 .training-bar:not(.collapsed) .training-bar-body {
-  max-height: 2000px;
+  max-height: 8000px;
   overflow: visible;
 }
 
-.training-bar:not(.collapsed) .collapse-toggle {
+/* Only the bar's own arrow: "Biežāk lietotie" now sits inside the bar and has an arrow of its own. */
+.training-bar:not(.collapsed) > .training-bar-header .collapse-toggle {
   transform: rotate(90deg);
+}
+
+.training-bar-content > #frequentPanel {
+  margin-bottom: 0;
+  margin-top: 12px;
 }
 
 .training-bar-content {
