@@ -7710,3 +7710,38 @@ input.needs-value {
   font-size: 0.8rem;
   font-weight: 700;
 }
+
+/* "Jautājums trenerim": tag under the athlete's note + the coach's one-line reply */
+.log-question-row {
+  margin-top: 10px;
+}
+
+.question-tag {
+  background: #fff3e0;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-top: 6px;
+  padding: 3px 8px;
+  width: fit-content;
+}
+
+.question-tag.is-answered {
+  background: var(--surface-alt);
+  color: var(--muted);
+}
+
+.question-reply {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.question-reply-input {
+  flex: 1 1 auto;
+  font-size: 0.85rem;
+  min-width: 0;
+  padding: 4px 8px;
+}

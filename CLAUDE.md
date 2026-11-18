@@ -742,3 +742,11 @@ Opening "Sportisti" sets `#dropdownList`'s `max-height` to the room between the 
 Under the 80% body zoom every `100vh`-based height must be divided by 0.8 (the sidebar scroll box `.planner-panel__scroll` and `#exerciseMenuList` are, in the last `@media (min-width: 1400px)` block of `styles.css`), or the box ends 20% short of the screen. Do the same for any new viewport-height box.
 
 The year switch also appears inside the race calendar panel (`.year-filter-inline`, above the list). Every `[data-year-filter]` element is drawn by `renderYearFilter()` and clicks are delegated on the document, so the sidebar one and this one always show the same year; an empty list says "Nav sacensību".
+
+### "Jautājums trenerim" - one question, one short answer on the record (2026-11-18)
+
+The coach used to answer athletes' comment-questions on WhatsApp. Now the athlete ticks "❓ Jautājums trenerim" in the log dialog (both builders) or the self-log form; it is stored as a bookkeeping `{ section: "_q" }` entry in `log_data` (or `q: true` on the `_self` object) - no new column. `loggedQuestion()`, `questionBlockHtml()` and friends sit next to `loggedTod()` in `app.js`.
+
+- **The answer is a line starting with `↩ ` inside the coach comment that already exists** (`plans.coach_comment`; for a plan-less log or a self-log `day_notes.coach_comment`). "Answered" = such a line exists. Reason: the coach's write access to `log_entries` is unproven (nothing in the code ever updates a log as the coach) and the owner cannot add columns or policies. Cost: several records on one day share the day comment, so one answer marks all of that day's plan-less questions answered.
+- The coach sees a one-line reply box (`.question-reply`, handled by `sendQuestionAnswer()`) on a pending question; it appends to the comment (reading the live textarea first, like copy does) and e-mails the athlete straight away via `queueNotificationEmail` (7 s). A new question e-mails the coach (`notifyCoachOfQuestion()`); re-saving an already flagged record does not re-send.
+- Week view only; no "pending question" icon in the athlete list yet (would need a cross-athlete query).

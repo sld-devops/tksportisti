@@ -129,6 +129,7 @@ function renderSelfLogForm(dateStr) {
       ${selfLogRatingHtml(existing?.feeling || "")}
       <div class="self-log-field-label">Komentārs</div>
       <textarea class="self-log-comment inline-comment" rows="2" placeholder="Sportista komentārs...">${escapeHtml(existing?.notes || "")}</textarea>
+      ${logQuestionCheckboxHtml(!!d.q)}
       <div class="self-log-form-actions">
         <button class="add-day-button self-log-save-btn" data-self-log-save="${dateStr}" type="button">Saglabāt</button>
         <button class="cancel-action self-log-cancel-btn" data-self-log-cancel="1" type="button">Atcelt</button>
@@ -185,6 +186,7 @@ function renderSelfLogCard(log, dayCommentTaken) {
         ${feelingBadge}
       </div>
       ${notesHtml}
+      ${questionBlockHtml(log)}
       ${coachBlock}
       ${athleteIsOwner
         ? `<div class="card-actions"><div class="log-actions"><button class="edit-log-btn icon-action-btn" data-self-log-edit="${log.id}" type="button" title="Rediģēt">✏️</button><button class="log-delete-btn icon-action-btn is-delete" data-delete-log="${log.id}" type="button" title="Dzēst">✕</button></div></div>`
@@ -221,6 +223,8 @@ async function saveSelfLogForm() {
   const saveBtn = form.querySelector("[data-self-log-save]");
   if (saveBtn) saveBtn.disabled = true;
   const oldId = selfLogEditingId;
+  const asksQuestion = !!form.querySelector("#logQuestion")?.checked;
+  const wasAsked = oldId ? loggedQuestion(logEntries.find((l) => l.id === oldId)) : false;
 
   try {
     // Insert first, delete the old row afterwards: if the insert is refused
@@ -229,7 +233,7 @@ async function saveSelfLogForm() {
       athlete_id: athleteId,
       date: dateStr,
       activity_type: getActivityType(title),
-      log_data: [{ section: SELF_LOG_SECTION, title, icon: emojiOnlyIcon(badgeForTitle(title)), tod, text }],
+      log_data: [{ section: SELF_LOG_SECTION, title, icon: emojiOnlyIcon(badgeForTitle(title)), tod, text, ...(asksQuestion ? { q: true } : {}) }],
       feeling,
       feeling_tags: null,
       notes,
@@ -237,6 +241,7 @@ async function saveSelfLogForm() {
       distance_km: 0,
     });
     if (oldId) await deleteLogEntry(oldId);
+    if (asksQuestion && !wasAsked) notifyCoachOfQuestion(athleteId, dateStr, title, notes || text);
     selfLogFormDate = null;
     selfLogEditingId = null;
     await loadNonTemplateData();
