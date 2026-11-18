@@ -1713,6 +1713,13 @@ h4 {
   margin-top: 12px;
 }
 
+/* The interval blocks keep their heading and fields inside a wrapper of their own,
+   so the sibling rule above never reached them: the gap under "PAMATDAĻA" was
+   smaller than under "IESILDĪŠANĀS" (owner, 2026-11-16). */
+:is(#intervalFields, #varIntervalFields, #epIntervalFields, #epVarIntervalFields) > .section-label + * {
+  margin-top: 12px;
+}
+
 #customNameRow {
   margin-bottom: 16px;
 }
@@ -7822,5 +7829,71 @@ input.needs-value {
   #activeAthleteName {
     font-size: 0.75rem;
     padding: 4px 8px;
+/* The label look (grid, 6px gap) on a div, for a field that holds a custom dropdown. */
+.field-like {
+  color: var(--ink);
+  display: grid;
+  font-size: 0.88rem;
+  font-weight: 600;
+  gap: 6px;
+}
+#epTypeDropdown .dropdown-list {
+  background: #fff;
+}
+#epTypeDropdown .type-dropdown-item.selected:not(:hover) {
+  background: #fff;
+  border-color: transparent;
+}
+
+/* A coach's plan card has three icons (pencil, cross, copy). On a touch screen each
+   was at least 44px wide with a 12px gap = 156px, and a day column in the phone's
+   desktop view gives a card ~115px, so the copy icon fell outside the card
+   (2026-11-16). The three share the row instead and keep a 40px-tall target. */
+@media (pointer: coarse) {
+  .card-actions {
+    gap: 6px;
+  }
+  .card-actions .icon-action-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+/* Edit-training dialog on a wide screen: wider, with Iesildīšanās | Pamatdaļa |
+   Atsildīšanās side by side like the builder, so it fits without scrolling down
+   (owner, 2026-11-16). Narrower screens keep the single column and its scroll. */
+@media (min-width: 1000px) {
+  #editPlanDialog {
+    max-width: min(1180px, calc(100% - 48px));
+  }
+  #editPlanDialog form {
+    align-items: start;
+    column-gap: 22px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr);
+    row-gap: 14px;
+  }
+  #editPlanDialog form > * {
+    grid-column: 1 / -1;
+  }
+  #editPlanDialog #epWarmupSection {
+    grid-column: 1;
+  }
+  #editPlanDialog .ep-main-column {
+    grid-column: 2;
+  }
+  #editPlanDialog #epCooldownSection {
+    grid-column: 3;
+  }
+}
+@media (min-width: 1400px) {
+  /* Under the 80% body zoom a vh-based height is 20% short. */
+  .edit-dialog {
+    max-height: calc(90vh / 0.8);
+  }
+  .edit-dialog form {
+    max-height: calc(90vh / 0.8 - 40px);
   }
 }

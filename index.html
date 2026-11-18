@@ -652,9 +652,11 @@
 
     <dialog class="session-dialog edit-dialog" id="editPlanDialog">
       <form method="dialog">
-        <label>
+        <!-- Not a <label>: a click on the dropdown inside one is forwarded to the
+             select and closes it again. .field-like is the label's look. -->
+        <div class="field-like">
           Treniņa tips
-           <select id="epType">
+           <select id="epType" hidden>
             <option value="Atjaunojošais/lēnais skrējiens">🐢 Atjaunojošais/lēnais skrējiens</option>
             <option value="Vidējas intensitātes skrējiens">🛳️ Vidējas intensitātes skrējiens</option>
             <option value="Garais skrējiens">⌛ Garais skrējiens</option>
@@ -666,8 +668,15 @@
             <option value="VFS">💪 VFS</option>
             <option value="SFS">💪 SFS</option>
             <option value="Velo">🚴 Velo</option>
-            <option value="Eliptiskais">Eliptiskais</option>
+            <option value="Eliptiskais" data-icon-img="1">Eliptiskais</option>
           </select>
+          <div class="custom-dropdown template-dropdown" id="epTypeDropdown">
+            <div class="dropdown-trigger">
+              <span class="dropdown-selected">Izvēlies treniņa tipu</span>
+              <span class="dropdown-arrow">▼</span>
+            </div>
+            <div class="dropdown-list"></div>
+          </div>
           <span class="icon-picker" id="epIconPicker" hidden>
             <button type="button" class="icon-btn" data-icon="🐢" title="Lēnais">🐢</button>
             <button type="button" class="icon-btn" data-icon="🛳️" title="Vidējas intensitātes">🛳️</button>
@@ -679,7 +688,7 @@
             <button type="button" class="icon-btn" data-icon="🌲" title="Taku/kalnu">🌲</button>
             <button type="button" class="icon-btn" data-icon='<img class="type-icon" src="images/eliptiskais.png" alt="" width="16" height="16">' title="Eliptiskais"><img class="type-icon" src="images/eliptiskais.png" alt="" width="16" height="16"></button>
           </span>
-        </label>
+        </div>
 
         <label class="checkbox-row" id="epRaceNutritionRow">
           <input id="epRaceNutrition" type="checkbox" />
