@@ -2278,7 +2278,14 @@ label {
    this the button and the checkbox sat flush together and a hurried tap could miss. */
 .not-completed-row {
   display: flex;
-  margin: 8px auto 0;
+  gap: 6px;
+  margin: 10px auto 0;
+  padding: 7px 8px;
+}
+
+.not-completed-row input {
+  height: 26px;
+  width: 26px;
 }
 
 .field-grid {
@@ -2956,10 +2963,12 @@ label {
 }
 
 .session-card .log-plan-button {
-  padding: 4px 6px;
-  font-size: 0.7rem;
-  margin-top: 4px;
-  margin-bottom: 0;
+  display: block;
+  width: fit-content;
+  margin: 6px auto 0;
+  padding: 9px 8px;
+  font-size: 0.78rem;
+  white-space: nowrap;
 }
 
 .log-inline {
@@ -8131,4 +8140,24 @@ input.needs-value {
    spring that pushes "Nodzēst plānu / Nokopēt plānu" to the right. */
 .week-nav-divider:not(#copyWeekDivider) {
   display: none;
+/* The athlete's plan card: everything centred except the day-part badge (stays at
+   the left) and the type icon (stays at the right); the planned-task box is only
+   as wide as its text. The coach's card is untouched. */
+.plan-card-centered {
+  text-align: center;
+}
+
+.plan-card-centered h3 {
+  padding-left: 24px;
+}
+
+.plan-card-centered .task-card {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
+  width: fit-content;
+}
+
+.plan-card-centered .tod-badge {
+  text-align: left;
 }

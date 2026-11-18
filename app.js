@@ -2772,7 +2772,7 @@ function renderPlanCard(plan) {
     : `<button class="add-day-button log-plan-button" data-log-plan="${plan.id}" type="button">IERAKSTĪT IZPILDI</button>`;
 
   return `
-    <article class="session-card${notCompleted ? " not-completed" : ""}${newPlanClass(plan.id)}" data-plan-id="${plan.id}">
+    <article class="session-card plan-card-centered${notCompleted ? " not-completed" : ""}${newPlanClass(plan.id)}" data-plan-id="${plan.id}">
       ${todBadge}
       <h3>${displayTitle(plan.title)}</h3>
       ${movedBadge}
