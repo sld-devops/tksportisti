@@ -106,8 +106,9 @@ function renderRecords() {
 
   const recordDistances = RECORD_DISTANCES;
 
-  // Year filter: a record counts for the year it was set in.
-  const shownRecords = filterByYear(records);
+  // No year filter here (owner, 2026-11-18): a personal record is the best ever,
+  // whatever year it was set in, so every year shows all of them.
+  const shownRecords = records;
   const standardDists = new Set(recordDistances.map((d) => d.value));
   const customRecords = shownRecords.filter((r) => !standardDists.has(r.distance));
 
@@ -220,10 +221,8 @@ saveRecordBtn.addEventListener("click", async () => {
   try {
     if (editingRecordId) {
       await updateRecord(editingRecordId, data);
-      await revealYearOf(data.date);
     } else {
       await insertRecord(data);
-      await revealYearOf(data.date);
     }
     recordDialog.close();
     records = await getRecords(getSelectedAthleteId());
