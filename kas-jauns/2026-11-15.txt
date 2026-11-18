@@ -1,0 +1,17 @@
+TOMA KOMASA SPORTISTU PORTĀLS: KAS IR JAUNS (15.11.2026.)
+
+SPORTISTIEM
+
+* Gada izvēle. Sānu paneļa augšā ir "Gads 2026 | 2027 | Visi". Ar to izvēlies, kura gada ierakstus rādīt veselības žurnālā, dienasgrāmatā, rekordos, testos, statistikā un sacensību sarakstā. Sacensību kalendārā ir tāda pati izvēle. Līdz 2027. gada 1. februārim pēc noklusējuma ir izvēlēts 2026.
+* Ja kādā sānu paneļa sarakstā nav ierakstu, tur tagad rakstīts "Nav veiktu ierakstu", nevis tukša vieta.
+* Portālu var uzstādīt kā lietotni telefonā vai datorā (Chrome, Edge). Instrukcijā ir pierakstīts, ko tas maina un ko ne.
+* "Video pamācības" tagad ir vingrinājumu bibliotēkas saraksta apakšā.
+
+TRENERIM
+
+* Jauns treniņa veids: "Taku/kalnu skrējiens" (zem Tempa skrējiena, ikona 🌲). Tam ir brīvs teksts, bet nav naglenu un Drills.
+* "Cita veida treniņš": tagad ir arī izvēles "Sacensību uzturs", "Naglenes" un "Sacensību apavi", kā arī ikonas 🌲 un Eliptiskais. Nosaukumu vajag ierakstīt.
+* Iesildīšanās un atsildīšanās atzīmējamie lodziņi ir noņemti. Lauki rādīti vienmēr, un daļa tiek ierakstīta tikai tad, ja aizpildīts garums vai ilgums.
+* "Biežāk lietotie treniņi": Velo un Eliptiskais ir katrs savā rindā.
+
+Ja kaut kas nestrādā vai nav skaidrs, pajautā WhatsApp grupā "Toma sportisti".

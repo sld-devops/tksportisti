@@ -1,0 +1,20 @@
+TOMA KOMASA SPORTISTU PORTĀLS: KAS IR JAUNS (18.11.2026.)
+
+SPORTISTIEM
+
+* Jautājums trenerim. Izpildes logā un savā ierakstā (bez plāna) vari atzīmēt "Jautājums trenerim". Treneris to redz, uzraksta īsu atbildi, un tev atnāk e-pasts. Atbilde paliek pie treniņa. Garākām sarunām joprojām der WhatsApp.
+* "Nedēļa apskatīta" ķeksis tagad ir redzams arī tev, un tas ir labi pamanāms. Iepriekš treneris to ielika, bet tev ķeksis neparādījās.
+* Grafiki ir sakārtoti: nedēļu skatā redzamas pēdējās 16 nedēļas, mēnešu skatā pēdējie 12 mēneši. Periodi, kad vēl nebija datu, vairs netiek rādīti. Katrā grafikā ir plāna raustīta līnija, kas rāda vidējo tendenci.
+* Sacensību kalendārs un Paveiktā statistika tagad ir zem kalendāra dienām. Virs nedēļas skaitļiem ir uzraksts, kurai nedēļai tie attiecas.
+* Sacensībās tavs pašreizējais rekords ir atzīmēts ar "🏆 PB".
+* Telefonā datora skatā galvenes pogas un treniņu veidošanas lauki vairs nepārklājas un ietilpst ekrānā.
+* Portāla lietošanas instrukcija ir pārkārtota: vispirms viss, ko vajag izdarīt vienreiz (ieiet, saites, e-pasts, lietotne), tad ikdienas darbības. Atjaunoti arī vecie teksti.
+
+TRENERIM
+
+* Neatbildētie jautājumi: pie sportista vārda sarakstā parādās ❓, bet pie treniņa kartītes ir lauks "Īsa atbilde" ar pogu "Atbildēt". Atbilde aiziet sportistam e-pastā.
+* "Biežāk lietotie treniņi" tagad ir iekšā "Treniņu plānošanā".
+* Treniņu veidošanas laukumā lauki vairs nepārklājas šaurākos ekrānos.
+* Testa konts "Testa Sportists" vairs nesūta e-pastus trenerim.
+
+Ja kaut kas nestrādā vai nav skaidrs, pajautā WhatsApp grupā "Toma sportisti".
