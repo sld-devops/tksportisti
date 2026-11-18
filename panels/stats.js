@@ -227,37 +227,14 @@ function buildAxisLabels(data, plotBottom, withYear) {
 
 // #endregion
 
-// What the charts load: "the last N periods" ending today, or - with the range
-// button "year" - the year picked in the sidebar (all recorded time for "Visi").
-// A past year runs to 31 December, the current one to today, a future one shows
-// its first month. In year mode the empty stretches at either end are cut off
-// afterwards (trimEmptyEnds), so a season that starts in June starts in June.
-function statsYearMode(kind) {
-  return (kind === "week" ? trendWeeks : trendMonths) === "year";
-}
+// Always the last 12 periods; the sidebar's year decides where they end: a past
+// year ends on 31 December, the current year (and "Visi") today, a future year
+// on its 31 December (nothing there yet).
 function statsYearArgs(kind) {
-  if (!statsYearMode(kind)) return { n: kind === "week" ? trendWeeks : trendMonths, anchor: null };
   const now = new Date();
-  const fromYear = selectedYear === "all" ? YEAR_FIRST : selectedYear;
-  let end = selectedYear === "all" ? now : new Date(selectedYear, 11, 31);
-  if (end > now) end = now;
-  if (selectedYear !== "all" && selectedYear > now.getFullYear()) end = new Date(selectedYear, 0, 31);
-  if (kind === "month") {
-    const months = (end.getFullYear() - fromYear) * 12 + end.getMonth() + 1;
-    return { n: Math.max(months, 1), anchor: end };
-  }
-  const start = trendMonday(new Date(fromYear, 0, 1));
-  const weeks = Math.round((trendMonday(end) - start) / (7 * 24 * 60 * 60 * 1000)) + 1;
-  return { n: Math.max(weeks, 1), anchor: end };
-}
-// Drops the periods before the first and after the last one that has any figure.
-function trimEmptyEnds(data) {
-  const filled = (d) => STATS_METRICS.some((m) => (d[m.key] || 0) > 0);
-  const first = data.findIndex(filled);
-  if (first === -1) return [];
-  let last = data.length - 1;
-  while (last > first && !filled(data[last])) last--;
-  return data.slice(first, last + 1);
+  let anchor = now;
+  if (selectedYear !== "all" && selectedYear !== now.getFullYear()) anchor = new Date(selectedYear, 11, 31);
+  return { n: 12, anchor };
 }
 // Last-N views: only the empty periods before the first data are cut (the
 // portal did not exist yet); the recent end is kept as it is.
@@ -268,29 +245,17 @@ function trimLeadingEmpty(data) {
 async function loadWeeklyTrend(athleteId) {
   const a = statsYearArgs("week");
   const data = await getWeeklyTrend(athleteId, a.n, a.anchor);
-  return statsYearMode("week") ? trimEmptyEnds(data) : trimLeadingEmpty(data);
+  return trimLeadingEmpty(data);
 }
 async function loadMonthlyTrend(athleteId) {
   const a = statsYearArgs("month");
   const data = await getMonthlyTrend(athleteId, a.n, a.anchor);
-  return statsYearMode("month") ? trimEmptyEnds(data) : trimLeadingEmpty(data);
+  return trimLeadingEmpty(data);
 }
 
 // #region Perioda/diapazona pogas
 function buildStatsRangeHtml() {
-  const isWeek = statsPeriod === "week";
-  const yearLabel = selectedYear === "all" ? "Viss laiks" : `${selectedYear}. gads`;
-  const ranges = isWeek
-    ? [{ val: 4, label: "Pēdējās 4 nedēļas" }, { val: 8, label: "Pēdējās 8 nedēļas" }, { val: 12, label: "Pēdējās 12 nedēļas" }, { val: "year", label: yearLabel }]
-    : [{ val: 4, label: "Pēdējie 4 mēneši" }, { val: 8, label: "Pēdējie 8 mēneši" }, { val: 12, label: "Pēdējie 12 mēneši" }, { val: "year", label: yearLabel }];
-  const currentRange = isWeek ? trendWeeks : trendMonths;
-  return `
-    <div class="stats-range">
-      ${ranges.map((r) => `
-        <button class="${r.val === currentRange ? "active" : ""}" data-stat-range="${r.val}" type="button">${r.label}</button>
-      `).join("")}
-    </div>
-  `;
+  return "";
 }
 
 function renderStats() {
