@@ -3,37 +3,37 @@
      scroll only when they really cannot fit (owner, 2026-11-18). */
   --dlg-h: calc(100vh - 12px);
   color-scheme: light;
-  --ink: #15171a;
-  --muted: #566073;
-  --line: #d9dee7;
-  --panel: #fcf2e7;
+  --ink: #161b22;
+  --muted: #4f5a69;
+  --line: #c3cad4;
+  --panel: #e9edf2;
   /* Fixed page background photo (rotation removed 2026-09-03 at the owner's
      request - was a per-day pick set by an inline script in index.html). */
-  --page-bg-image: url("images/bg-rotate-5.jpg");
-  --page-bg-position: right center;
-  --page: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.3) 100%),
+  --page-bg-image: url("images/bg-snow.jpg?v=1");
+  --page-bg-position: center 60%;
+  --page: linear-gradient(180deg, rgba(10, 14, 20, 0.1) 0%, rgba(10, 14, 20, 0.3) 100%),
     var(--page-bg-image);
   /* Warm sand-to-peach surfaces (2026-11-14, replacing the lime-tinted set the
      owner found glaring). --surface-hover is the darkest tone red accent text
      ever sits on and is held at 4.5:1 against --accent - do not darken it. */
-  --surface: #fcf2e7;
-  --surface-alt: #f9e9d8;
-  --surface-hover: #f7e3cf;
-  --panel-row-hover: #fbefe2;
+  --surface: #e9edf2;
+  --surface-alt: #e4e8ee;
+  --surface-hover: #e1e6ec;
+  --panel-row-hover: #e6eaf0;
   /* Buttons carry a soft top-to-bottom gradient. Ink text only: the lower end
      is too dark for red text (4.2:1), which is why .delete-action keeps the
      flat --surface-alt instead. */
-  --btn-bg: linear-gradient(180deg, #fef7ee 0%, #f5ddc4 100%);
-  --btn-bg-hover: linear-gradient(180deg, #fbecda 0%, #f1d3b3 100%);
+  --btn-bg: linear-gradient(180deg, #ffffff 0%, #e4e8ee 46%, #c9d0da 50%, #e9edf2 100%);
+  --btn-bg-hover: linear-gradient(180deg, #ffffff 0%, #eef1f5 46%, #d6dce5 50%, #f2f5f8 100%);
   /* The one strong UI colour: save buttons, the selected athlete's name tag,
      ticked checkboxes. White text on it is 13.6:1. */
-  --brand: #3b2a22;
-  --brand-dark: #2a1d17;
+  --brand: #222a35;
+  --brand-dark: #161c25;
   /* Peach edge on cards and the glow around them. */
-  --edge: #e09a5f;
-  --edge-soft: #ecc9a6;
-  --edge-glow: rgba(224, 154, 95, 0.45);
-  --edge-glow-soft: rgba(224, 154, 95, 0.25);
+  --edge: #8793a3;
+  --edge-soft: #b9c2ce;
+  --edge-glow: rgba(255, 255, 255, 0);
+  --edge-glow-soft: rgba(255, 255, 255, 0);
   --accent: #c91f2f;
   --accent-dark: #9e1724;
   /* Lime is no longer a UI colour - it survives only as the "excellent" status
@@ -74,8 +74,8 @@
   /* Week-calendar card fills: a faint pink for the coach's planned task,
      a faint lime for the athlete's execution. ~40% lighter than
      --danger-bg / --lime-bg so adjacent cards don't read as one colour. */
-  --card-plan-bg: #fef4f4;
-  --card-done-bg: #f8fdec;
+  --card-plan-bg: rgba(255, 255, 255, 0.88);
+  --card-done-bg: rgba(242, 248, 244, 0.9);
   --card-race-bg: #f1f6fe;
 
   --info: #435068;
@@ -187,13 +187,10 @@ button {
    bottom edge to give the card thickness, then shadows at three distances so
    it reads as lifted off the photo rather than pasted onto it. */
 .auth-card {
-  background: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.97) 0%,
-    rgba(243, 243, 243, 0.94) 45%,
-    rgba(226, 226, 226, 0.93) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  background: linear-gradient(160deg, rgba(250, 251, 253, 0.88) 0%, rgba(214, 220, 228, 0.86) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
   border-bottom: 4px solid var(--edge);
   border-radius: 14px;
   box-shadow:
@@ -291,10 +288,10 @@ button {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.05) 100%),
-    url("images/header-banner.jpg?v=3");
+    linear-gradient(180deg, rgba(70, 80, 94, 0.8) 0%, rgba(30, 36, 46, 0.55) 100%),
+    url("images/bg-snow.jpg?v=1");
   background-size: cover;
-  background-position: center 40%;
+  background-position: center 55%;
   /* Eased fade-out. A plain two-stop gradient has a kink where the ramp starts,
      and the banner's dark streaks make that kink read as a horizontal line
      across the header; these stops approximate an S-curve so there is no edge. */
@@ -896,23 +893,25 @@ h4 {
   font-style: italic;
 }
 
+/* Glass-look card: silver over the photo, a bright top edge. No backdrop-filter on
+   purpose - blurring a fixed photo behind ~20 large cards made scrolling lag. */
 .panel {
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95) 0%, rgba(253, 240, 226, 0.95) 100%);
-  border: 1px solid #e2e2e2;
+  background: linear-gradient(160deg, rgba(250, 251, 253, 0.93) 0%, rgba(214, 220, 228, 0.92) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
   border-left: 3px solid var(--edge);
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow:
-    0 4px 10px rgba(0, 0, 0, 0.2),
-    0 0 0 2px var(--edge-glow);
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 6px 18px rgba(0, 0, 0, 0.35);
 }
 
 .calendar-shell {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82) 0%, rgba(237, 237, 237, 0.82) 100%);
-  border: 1px solid #e2e2e2;
-  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(248, 249, 251, 0.94) 0%, rgba(222, 227, 234, 0.94) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 14px;
   box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.4),
-    0 0 0 2px var(--edge-glow-soft);
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 18px 40px rgba(0, 0, 0, 0.45);
 }
 
 #activeAthleteName {
@@ -1432,9 +1431,10 @@ h4 {
 
 /* ---- Training Bar ---- */
 .training-bar {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  background: rgba(250, 251, 253, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  box-shadow: 0 1px 0 #fff inset, 0 4px 14px rgba(0, 0, 0, 0.28);
   margin-bottom: 12px;
   overflow: visible;
 }
@@ -1852,9 +1852,10 @@ h4 {
 
 /* ---- Stats collapsible ---- */
 .stats-collapsible {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  background: rgba(250, 251, 253, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  box-shadow: 0 1px 0 #fff inset, 0 4px 14px rgba(0, 0, 0, 0.28);
   margin-bottom: 12px;
 }
 
@@ -2367,7 +2368,7 @@ label {
    and stays white. */
 #customPreview,
 #epPreview {
-  background: #fef8f1;
+  background: rgba(255, 255, 255, 0.7);
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
 }
 
@@ -2400,7 +2401,6 @@ label {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(180px, 1fr));
-  min-height: 580px;
   overflow-x: auto;
 }
 
@@ -2471,7 +2471,7 @@ label {
 }
 
 .day-column:hover {
-  background: rgba(224, 154, 95, 0.1);
+  background: rgba(135, 147, 163, 0.14);
 }
 
 .day-column.today {
@@ -6124,7 +6124,6 @@ textarea:disabled {
 
   .calendar-grid {
     grid-template-columns: repeat(7, minmax(min(82vw, 300px), 1fr));
-    min-height: 400px;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
   }
@@ -6618,7 +6617,7 @@ body.is-dragging .session-card.is-draggable {
 /* Same dashed peach as a copied card (.is-copied): "this is where it goes".
    Translucent, so the day's own buttons and cards stay readable under it. */
 .day-column.drag-target {
-  background: rgba(224, 154, 95, 0.16);
+  background: rgba(135, 147, 163, 0.22);
   outline: 2px dashed var(--edge);
   outline-offset: -2px;
   border-radius: 8px;
@@ -7706,14 +7705,14 @@ input.needs-value {
 /* Year switch at the top of the sidebar (panels/year-filter.js). */
 .year-filter {
   align-items: center;
-  /* The same card as every sidebar panel (.panel): gradient, peach left edge, glow. */
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95) 0%, rgba(253, 240, 226, 0.95) 100%);
-  border: 1px solid #e2e2e2;
+  /* The same card as every sidebar panel (.panel): frosted glass, silver left edge. */
+  background: linear-gradient(160deg, rgba(250, 251, 253, 0.93) 0%, rgba(214, 220, 228, 0.92) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
   border-left: 3px solid var(--edge);
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow:
-    0 4px 10px rgba(0, 0, 0, 0.2),
-    0 0 0 2px var(--edge-glow);
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 6px 18px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -7796,7 +7795,7 @@ input.needs-value {
 }
 
 .question-tag {
-  background: #fff3e0;
+  background: #eef1f5;
   border: 1px solid var(--edge);
   border-radius: 6px;
   color: var(--ink);
@@ -7987,4 +7986,136 @@ input.needs-value {
   .weekly-review-dialog[open] {
     max-height: calc((100vh - 24px) / 0.8);
   }
+}
+
+
+/* ==== Look "D": silver glass and metal over the snow photo (2026-11-18) ====
+   Cards and the header are set in place above (tokens in :root). This block is the
+   buttons: pill-shaped, a glassy highlight with a darker band across the middle,
+   a bright rim. Text on the header and on the login card is light/dark to suit. */
+.add-day-button,
+.secondary-action,
+.secondary-action-sm,
+.primary-action,
+.save-template-athlete-btn,
+.cancel-action {
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 999px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 -1px 1px rgba(110, 122, 138, 0.45) inset,
+    0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.add-day-button:hover,
+.secondary-action:hover,
+.secondary-action-sm:hover,
+.primary-action:hover,
+.save-template-athlete-btn:hover {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 -1px 1px rgba(110, 122, 138, 0.45) inset,
+    0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.cancel-action {
+  background: linear-gradient(180deg, #f2f4f7 0%, #d5dae2 100%);
+}
+
+/* The day-part buttons keep their own colours and a softer corner. */
+.time-of-day-buttons .add-day-button {
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 2px 5px rgba(0, 0, 0, 0.28);
+}
+
+.app-header h1,
+.app-header .eyebrow {
+  color: #f4f6f9;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.auth-card h1,
+.auth-eyebrow {
+  text-shadow: none;
+}
+
+/* Segmented toggles (Horizontāls | Vertikāls, Nedēļas | Mēneša plāns, stats tabs and
+   ranges, race tabs, interval-history switches, the year switch): an inset glass
+   groove with the selected segment standing up as a glossy metal pill. */
+.choice-tabs,
+.view-tabs,
+.stats-tabs,
+.stats-range {
+  background: linear-gradient(180deg, #cdd3dc 0%, #e8ecf1 100%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 999px;
+  box-shadow: 0 2px 4px rgba(60, 70, 85, 0.28) inset, 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.stats-range {
+  border-radius: 22px;
+}
+
+.choice-tabs button,
+.view-tabs button,
+.stats-tabs button,
+.stats-range button,
+.year-btn {
+  background: transparent;
+  border-radius: 999px;
+  color: var(--muted);
+}
+
+.choice-tabs button:not(.active):hover,
+.view-tabs button:not(.active):hover,
+.stats-tabs button:not(.active):hover,
+.stats-range button:not(.active):hover,
+.year-btn:not(.active):hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.choice-tabs button.active,
+.view-tabs button.active,
+.stats-tabs button.active,
+.stats-range button.active,
+.year-btn.active {
+  background: var(--btn-bg);
+  border-color: transparent;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 -1px 1px rgba(110, 122, 138, 0.45) inset,
+    0 2px 5px rgba(0, 0, 0, 0.35);
+  color: var(--ink);
+}
+
+.year-btn {
+  border-color: transparent;
+}
+
+/* Week type (Slodze / Sacensības / Atpūta) and the interval-history tabs:
+   separate glass pills. The week types keep their colour once ticked. */
+.wbt-option {
+  background: var(--btn-bg);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 999px;
+  padding-left: 18px;
+  padding-right: 18px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 -1px 1px rgba(110, 122, 138, 0.45) inset,
+    0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.interval-tab {
+  background: var(--btn-bg);
+  border-radius: 999px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+/* The thin vertical rules between the week buttons are gone in look D; the
+   buttons' own gap separates them. #copyWeekDivider stays: it is the invisible
+   spring that pushes "Nodzēst plānu / Nokopēt plānu" to the right. */
+.week-nav-divider:not(#copyWeekDivider) {
+  display: none;
 }
