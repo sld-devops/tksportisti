@@ -263,8 +263,8 @@ function renderStats() {
 
   const tabsHtml = `
     <div class="stats-tabs">
-      <button class="${statsPeriod === "week" ? "active" : ""}" data-stat-period="week">Nedēļa</button>
-      <button class="${statsPeriod === "month" ? "active" : ""}" data-stat-period="month">Mēnesis</button>
+      <button class="${statsPeriod === "week" ? "active" : ""}" data-stat-period="week">Pēdējās 16 nedēļas</button>
+      <button class="${statsPeriod === "month" ? "active" : ""}" data-stat-period="month">Pēdējie 12 mēneši</button>
     </div>
   `;
 
