@@ -796,3 +796,9 @@ A phone in the desktop view (pinned to 1200px) showed the header's right-hand bu
 ### Race calendar and statistics sit under the calendar days (2026-11-18)
 
 `#raceCalendarPanel` and `#statsCollapsible` come after `#monthView` at the end of `.calendar-shell` (owner's call), no longer above the week header. Consequence worth knowing: the five weekly figures (`#weekNumbers`) and the red/green "Nedēļas izpilde ievadīta/neievadīta" badge are now at the bottom of the page, so an athlete has to scroll down past the week to fill them in. Nothing in JS depends on the order.
+
+### The look is silver glass over a snow photo, not sand and peach (2026-11-18, "variant D")
+
+Supersedes "The UI colour is warm sand and peach" and the notes that say peach: the owner chose a metallic look with a snow-street photo (`images/bg-snow.jpg`, 1920px, ~600KB; source unknown, licence not checked). Same token names, new values in `:root`: `--surface*` cool greys (`--surface-hover` #e1e6ec is the floor: `--accent` red text on it is 4.5:1, on `--surface-alt` 4.6:1 - do not darken them), `--btn-bg` a glassy gradient with a darker band across the middle (ink text only; `.delete-action` stays flat for red text, as before), `--edge` silver, `--brand` dark slate (ticked checkboxes, selected athlete tag). `.panel`, `.calendar-shell`, `.stats-collapsible`, `.training-bar`, `.auth-card` and `.year-filter` are frosted glass (`backdrop-filter`) with a bright top edge; buttons are pills (block "Look D" at the end of `styles.css`, the day-part buttons keep their colours and a 10px corner); the header shows the photo under a dark scrim with light text. Dialogs and chart colours are unchanged. The app icon (`images/app/`) is still the old dark-brown "TK" - replace it if the owner wants it to match.
+
+Also in this change: `.calendar-grid` has no `min-height` any more (it was 580px, which left a big empty block under days with little in them); the grid is as tall as the tallest day.
