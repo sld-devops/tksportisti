@@ -20,6 +20,10 @@ let restrictionCalMonth = new Date().getMonth();
 const SHIFT_PRESETS = ["12h dienas maiņa", "12h nakts maiņa", "24h maiņa", "Stundas līdz naktij"];
 // Old name of the last preset: entries saved under it must still count as shifts.
 const SHIFT_LEGACY_NAMES = ["Nakts bankets"];
+// Which shift button is pressed in the open form (null = none). A shift is saved
+// ONLY through a button (owner, 2026-11-18): typing the same words by hand is
+// refused, because the form could not tell a typed text from a pressed button.
+let restrictionShift = null;
 function isShiftRestriction(r) {
   const reason = (r?.reason || "").trim();
   return !!r && (SHIFT_PRESETS.includes(reason) || SHIFT_LEGACY_NAMES.includes(reason));
@@ -69,6 +73,7 @@ function startRestrictionEdit(idsCsv) {
   restrictionSelectedDates = new Set();
   restrictionCalYear = new Date().getFullYear();
   restrictionCalMonth = new Date().getMonth();
+  restrictionShift = null;
 
   if (restrictionEditingIds.length) {
     // All rows in a group share the same date(s) - only the first is needed.
@@ -85,6 +90,8 @@ function startRestrictionEdit(idsCsv) {
       }
       restrictionCalYear = new Date(r.start_date).getFullYear();
       restrictionCalMonth = new Date(r.start_date).getMonth();
+      // Editing an existing shift: its button shows as pressed.
+      if (SHIFT_PRESETS.includes((r.reason || "").trim())) restrictionShift = r.reason.trim();
     }
   }
 
@@ -93,6 +100,7 @@ function startRestrictionEdit(idsCsv) {
 }
 
 function cancelRestrictionEdit() {
+  restrictionShift = null;
   restrictionEditingIds = [];
   restrictionSelectedDates = new Set();
   renderRestrictionCards();
@@ -201,7 +209,11 @@ async function saveRestrictionForm() {
   const todBoxes = [...document.querySelectorAll('input[name="restrictionTod"]:checked')];
   // A work shift blocks nothing, so it needs no day-part; it is stored as one
   // whole-day row (time_of_day null) that isTimeSlotRestricted() ignores.
-  const isShift = SHIFT_PRESETS.includes(reason) || SHIFT_LEGACY_NAMES.includes(reason);
+  const isShift = (restrictionShift !== null && reason === restrictionShift) || SHIFT_LEGACY_NAMES.includes(reason);
+  if (!isShift && SHIFT_PRESETS.includes(reason)) {
+    alert("Darba maiņu izvēlies ar pogu zem iemesla lodziņa, nevis raksti ar roku.");
+    return;
+  }
   if (todBoxes.length === 0 && !isShift) { alert("Lūdzu, izvēlieties vismaz vienu dienas laiku!"); return; }
   const tods = todBoxes.length ? todBoxes.map(cb => cb.value || null) : [null];
   const athleteId = getSelectedAthleteId();
@@ -259,6 +271,7 @@ async function saveRestrictionForm() {
         message: `${who} pievienoja/mainīja ierobežojumu (${rangeText}).\nIemesls: ${reason}\n\nAtver lietotni: https://tksportisti.netlify.app`,
       });
     }
+    restrictionShift = null;
     restrictionEditingIds = [];
     restrictionSelectedDates = new Set();
     await loadNonTemplateData();
@@ -365,10 +378,10 @@ function renderRestrictionCards() {
       <h3 class="restriction-form-title">${editing ? "Rediģēt ierobežojumu" : "Jauns ierobežojums"}</h3>
       <div class="mini-calendar" id="miniCalendar"></div>
       <div class="selected-dates-list" id="selectedDatesList"></div>
-      <div class="tod-radio-group">${todRadiosHtml}</div>
-      <label>Iemesls <textarea id="restrictionReasonInput" class="restriction-input" rows="2">${editing ? escapeHtml(editing.reason || "") : ""}</textarea></label>
+      <div class="tod-radio-group" id="restrictionTodGroup" ${restrictionShift !== null ? "hidden" : ""}>${todRadiosHtml}</div>
+      <label>Iemesls - uzraksti iemeslu vai izvēlies darba maiņu <textarea id="restrictionReasonInput" class="restriction-input" rows="2">${editing ? escapeHtml(editing.reason || "") : ""}</textarea></label>
       <div class="shift-presets" id="shiftPresets">
-        ${SHIFT_PRESETS.map(name => `<button class="shift-preset-btn" type="button" data-shift-preset="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join("")}
+        ${SHIFT_PRESETS.map(name => `<button class="shift-preset-btn${name === restrictionShift ? " is-selected" : ""}" type="button" aria-pressed="${name === restrictionShift}" data-shift-preset="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join("")}
       </div>
       <div class="restriction-form-actions">
         ${editing ? `<button class="cancel-action panel-add-btn" id="cancelRestrictionEditBtn" type="button">Atcelt</button>` : ""}
@@ -426,12 +439,40 @@ function renderRestrictionCards() {
     // A shift fills the reason and ticks NOTHING: it blocks no part of the day
     // (see isShiftRestriction), so no day-part has to be chosen. The date comes
     // from the calendar above; nothing is saved until "Pievienot".
+    const markShiftButtons = () => {
+      document.querySelectorAll("[data-shift-preset]").forEach(b => {
+        const on = b.dataset.shiftPreset === restrictionShift;
+        b.classList.toggle("is-selected", on);
+        b.setAttribute("aria-pressed", String(on));
+      });
+      // A shift needs no day-part, so the day-part boxes are out of the way while one is pressed.
+      const todGroup = document.getElementById("restrictionTodGroup");
+      if (todGroup) todGroup.hidden = restrictionShift !== null;
+    };
     document.querySelectorAll("[data-shift-preset]").forEach(btn => {
       btn.addEventListener("click", () => {
         const reasonBox = document.getElementById("restrictionReasonInput");
-        if (reasonBox) reasonBox.value = btn.dataset.shiftPreset;
+        // Pressing the pressed button again lets go of it: nothing is chosen and the
+        // day-part boxes come back (the reason box is emptied if it only held the shift).
+        if (restrictionShift === btn.dataset.shiftPreset) {
+          if (reasonBox && reasonBox.value.trim() === restrictionShift) reasonBox.value = "";
+          restrictionShift = null;
+          markShiftButtons();
+          return;
+        }
+        restrictionShift = btn.dataset.shiftPreset;
+        if (reasonBox) reasonBox.value = restrictionShift;
         document.querySelectorAll('input[name="restrictionTod"]').forEach(cb => { cb.checked = false; });
+        markShiftButtons();
+        updateSaveButtonState();
       });
+    });
+    // Changing the words by hand un-presses the button: it is an ordinary restriction again.
+    document.getElementById("restrictionReasonInput")?.addEventListener("input", (e) => {
+      if (restrictionShift !== null && e.target.value.trim() !== restrictionShift) {
+        restrictionShift = null;
+        markShiftButtons();
+      }
     });
     document.getElementById("saveRestrictionBtn")?.addEventListener("click", saveRestrictionForm);
     document.getElementById("cancelRestrictionEditBtn")?.addEventListener("click", cancelRestrictionEdit);
