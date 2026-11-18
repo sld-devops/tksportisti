@@ -7799,6 +7799,8 @@ input.needs-value {
   font-size: 0.85rem;
   min-width: 0;
   padding: 4px 8px;
+}
+
 /* Week toolbar in the narrow desktop view (1041-1460px, which includes a phone in
    the desktop view): two rows instead of three (owner, 2026-11-16).
    Row 1: date + Slodze/Sacensības/Atpūta + Nedēļas/Mēneša plāns; row 2: the week
@@ -7845,6 +7847,9 @@ input.needs-value {
   #activeAthleteName {
     font-size: 0.75rem;
     padding: 4px 8px;
+  }
+}
+
 /* The label look (grid, 6px gap) on a div, for a field that holds a custom dropdown. */
 .field-like {
   color: var(--ink);
@@ -7912,6 +7917,8 @@ input.needs-value {
   .edit-dialog form {
     max-height: calc(90vh / 0.8 - 40px);
   }
+}
+
 /* "🏆 PB" next to a race result: the race the current personal record was set in. */
 .chip-record {
   background: #fff1c2;
