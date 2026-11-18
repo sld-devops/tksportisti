@@ -3197,7 +3197,7 @@ function renderWeekEntryBadge() {
   const badge = document.getElementById("weekEntryBadge");
   if (!badge) return;
   const filled = isWeekEntryFilled();
-  badge.textContent = filled ? "Nedēļas izpilde ievadīta" : "Nedēļas izpilde neievadīta";
+  badge.textContent = filled ? "Šīs nedēļas izpilde ievadīta" : "Šīs nedēļas izpilde vēl nav ievadīta";
   badge.classList.toggle("is-filled", filled);
   badge.hidden = viewMode !== "week" || !getSelectedAthleteId() || isCoach();
 }
