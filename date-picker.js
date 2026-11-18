@@ -42,6 +42,7 @@ function closeDatePicker() {
   document.querySelectorAll(".dp-overflow-open").forEach((el) => {
     el.classList.remove("dp-overflow-open");
   });
+  dpOpenPopup._dpCleanup?.();
   dpOpenPopup.remove();
   dpOpenPopup = null;
 }
@@ -141,9 +142,35 @@ function openDatePicker(input, display) {
   popup.closest(".panel-body")?.classList.add("dp-overflow-open");
   popup.closest(".panel")?.classList.add("dp-overflow-open");
 
+  // In a dialog the form scrolls (overflow-y: auto), and a calendar hanging below
+  // the last field only made it scroll instead of making the dialog taller. While
+  // it is open the form gets exactly as much bottom padding as the calendar
+  // sticks out below its last child, so the dialog grows (up to its maximum).
+  const dlgForm = popup.closest("dialog form");
+  if (dlgForm) {
+    const adjust = () => {
+      const last = dlgForm.lastElementChild;
+      if (!last || popup.classList.contains("dp-up")) return;
+      const zoom = typeof uiZoom === "function" ? uiZoom() : 1;
+      const need = (popup.getBoundingClientRect().bottom - last.getBoundingClientRect().bottom + 16) / zoom;
+      dlgForm.style.paddingBottom = Math.max(8, Math.ceil(need)) + "px";
+      // Even the tallest dialog cannot hold it (a short screen): open the calendar
+      // upwards, over the fields above, instead of making the form scroll.
+      if (dlgForm.scrollHeight > dlgForm.clientHeight + 1) {
+        popup.classList.add("dp-up");
+        dlgForm.style.paddingBottom = "";
+      }
+    };
+    const ro = new ResizeObserver(adjust);
+    ro.observe(popup);
+    popup._dpCleanup = () => { ro.disconnect(); dlgForm.style.paddingBottom = ""; };
+    popup._dpAdjust = adjust;
+  }
+
   const start = /^(\d{4})-(\d{2})-/.exec(input.value);
   const base = start ? new Date(Number(start[1]), Number(start[2]) - 1, 1) : new Date();
   dpRenderMonth(popup, input, display, base.getFullYear(), base.getMonth());
+  popup._dpAdjust?.();
 }
 
 function attachDatePicker(input) {

@@ -7040,6 +7040,12 @@ body.is-dragging .session-card.is-draggable {
 
 /* Sits inside the field's own wrapper rather than on <body>: half these fields
    are inside a <dialog>, and a body-level popup paints underneath it. */
+/* Opened upwards when the dialog is too short to hold it below the field. */
+.dp-popup.dp-up {
+  bottom: calc(100% + 4px);
+  top: auto;
+}
+
 .dp-popup {
   background: #fff;
   border: 1px solid var(--line);

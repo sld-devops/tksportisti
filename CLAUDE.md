@@ -815,3 +815,7 @@ Also in this change: `.calendar-grid` has no `min-height` any more (it was 580px
 ### The manual has coach-only sections T1-T9 (2026-11-18)
 
 `pamaciba.html` opens with nine sections "Trenerim" (T1-T9: layout and signs, building a training, training types and their fields, templates/frequent/bulk apply, week calendar actions, execution/questions/week review, sidebar data, e-mails, athlete management). They carry `class="coach-only"` and are hidden (`display: none !important`) unless `<html>` has `is-coach`, which a tiny inline script sets when the URL has `?trenerim=1`. `#guideBtn` in `app.js` opens the manual with that parameter only for the coach. This is a convenience, not security: the text is in the page source. **When a coach-side feature changes, update the matching T section too.**
+
+### A date calendar inside a dialog grows the dialog instead of making it scroll (2026-11-18)
+
+`openDatePicker()` (`date-picker.js`) gives the dialog's form exactly as much bottom padding as the calendar sticks out below its last child, so the dialog gets taller (up to `--dlg-h`); if even that cannot hold it (a short screen) the calendar opens **upwards** (`.dp-popup.dp-up`) over the fields above. Padding is removed when the calendar closes. Measured headless at 1200x800, 1200x1100, 1600x900 and 500x900 on the record dialog: no scrolling in any. Layout is forced by calling the adjust function synchronously after render (a `ResizeObserver` alone did not fire reliably in headless).
