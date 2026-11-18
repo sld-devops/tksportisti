@@ -227,14 +227,14 @@ function buildAxisLabels(data, plotBottom, withYear) {
 
 // #endregion
 
-// Always the last 12 periods; the sidebar's year decides where they end: a past
+// Always the last 16 weeks or 12 months; the sidebar's year decides where they end: a past
 // year ends on 31 December, the current year (and "Visi") today, a future year
 // on its 31 December (nothing there yet).
 function statsYearArgs(kind) {
   const now = new Date();
   let anchor = now;
   if (selectedYear !== "all" && selectedYear !== now.getFullYear()) anchor = new Date(selectedYear, 11, 31);
-  return { n: 12, anchor };
+  return { n: kind === "week" ? 16 : 12, anchor };
 }
 // Last-N views: only the empty periods before the first data are cut (the
 // portal did not exist yet); the recent end is kept as it is.
