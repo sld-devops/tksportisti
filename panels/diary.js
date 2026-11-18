@@ -160,6 +160,7 @@ function renderDiary() {
     if (!date || !content) { alert("Lūdzu, aizpildiet datumu un saturu!"); return; }
     try {
       await insertDiaryEntry({ athlete_id: athleteId, date, content });
+      await revealYearOf(date);
       document.getElementById("newDiaryDate").value = formatDateISO(new Date());
       document.getElementById("newDiaryContent").value = "";
       diaryEntries = await getDiaryEntries(athleteId);

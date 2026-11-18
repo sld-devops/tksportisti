@@ -135,6 +135,7 @@ document.getElementById("savePolarTestBtn")?.addEventListener("click", async () 
       await updatePolarTest(editingPolarTestId, data);
     } else {
       await insertPolarTest(data);
+      await revealYearOf(date);
     }
     polarTests = await getPolarTests(athleteId);
     renderPolarTests();

@@ -796,3 +796,7 @@ A phone in the desktop view (pinned to 1200px) showed the header's right-hand bu
 ### Race calendar and statistics sit under the calendar days (2026-11-18)
 
 `#raceCalendarPanel` and `#statsCollapsible` come after `#monthView` at the end of `.calendar-shell` (owner's call), no longer above the week header. Consequence worth knowing: the five weekly figures (`#weekNumbers`) and the red/green "Nedēļas izpilde ievadīta/neievadīta" badge are now at the bottom of the page, so an athlete has to scroll down past the week to fill them in. Nothing in JS depends on the order.
+
+### A saved entry from another year switches the year to "Visi" (2026-11-18)
+
+Records (and tests, health journal, diary, lab and lactate tests) are filtered by the sidebar year when drawn, so a record dated 2025 saved while "2026" is selected vanished from the list - the owner read it as "it did not save" (and 2025 is not even a button: the years start at `YEAR_FIRST`). `revealYearOf(dateStr)` (`panels/year-filter.js`) is called by each panel right after it inserts (records also after an edit): if the date's year differs from the selected one it sets the switch to "Visi", redraws (`applyYearFilter()`, not awaited) and says so in an alert. A new dated list panel needs the same call.

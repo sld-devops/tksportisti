@@ -71,4 +71,17 @@ document.addEventListener("click", async (e) => {
   await applyYearFilter();
 });
 
+// A saved entry dated in a year other than the selected one would vanish from its
+// list right after saving ("it did not save"). So the switch goes to "Visi" and the
+// person is told why. Called by the panels after they save a dated entry.
+async function revealYearOf(dateStr) {
+  const y = parseInt(String(dateStr || "").slice(0, 4), 10);
+  if (selectedYear === "all" || Number.isNaN(y) || y === selectedYear) return;
+  selectedYear = "all";
+  renderYearFilter();
+  alert(`Ieraksts ir saglabāts. Tas ir no ${y}. gada, tāpēc gada izvēle pārslēgta uz "Visi", lai tu to redzētu.`);
+  // Not awaited: the caller reloads its own list and redraws straight after.
+  applyYearFilter();
+}
+
 renderYearFilter();

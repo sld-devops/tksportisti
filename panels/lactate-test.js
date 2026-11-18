@@ -475,6 +475,7 @@ async function saveLactateTest() {
       // the `payload` fields into the new object, and `athlete_id` is added alongside.
       // More convenient than writing out each `payload` field separately again.
       await insertLactateTest({ athlete_id: athleteId, ...payload });
+      await revealYearOf(date);
     }
   } catch (e) {
     alert("Neizdevās saglabāt: " + (e.message || e));

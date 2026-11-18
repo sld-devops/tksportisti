@@ -190,6 +190,7 @@ async function saveRuffierTest() {
       await updateRuffierTest(editingRuffierTestId, { date, hr1, hr2, hr3 });
     } else {
       await insertRuffierTest({ athlete_id: athleteId, date, hr1, hr2, hr3 });
+      await revealYearOf(date);
     }
   } catch (e) {
     alert("Neizdevās saglabāt: " + (e.message || e));

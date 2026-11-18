@@ -210,8 +210,10 @@ saveRecordBtn.addEventListener("click", async () => {
   try {
     if (editingRecordId) {
       await updateRecord(editingRecordId, data);
+      await revealYearOf(data.date);
     } else {
       await insertRecord(data);
+      await revealYearOf(data.date);
     }
     recordDialog.close();
     records = await getRecords(getSelectedAthleteId());

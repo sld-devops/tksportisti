@@ -139,6 +139,7 @@ document.getElementById("saveSelfTestBtn")?.addEventListener("click", async () =
       await updateSelfTest(editingSelfTestId, updates);
     } else {
       await insertSelfTest(data);
+      await revealYearOf(date);
     }
     selfTests = await getSelfTests(athleteId);
     renderSelfTests();
