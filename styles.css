@@ -8111,3 +8111,10 @@ input.needs-value {
   border-radius: 999px;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 1px 3px rgba(0, 0, 0, 0.25);
 }
+
+/* The thin vertical rules between the week buttons are gone in look D; the
+   buttons' own gap separates them. #copyWeekDivider stays: it is the invisible
+   spring that pushes "Nodzēst plānu / Nokopēt plānu" to the right. */
+.week-nav-divider:not(#copyWeekDivider) {
+  display: none;
+}
