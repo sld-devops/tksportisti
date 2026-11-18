@@ -2278,6 +2278,7 @@ label {
    this the button and the checkbox sat flush together and a hurried tap could miss. */
 .not-completed-row {
   display: flex;
+  text-align: left;
   gap: 6px;
   margin: 10px auto 0;
   padding: 7px 8px;
@@ -8149,8 +8150,15 @@ input.needs-value {
   text-align: center;
 }
 
+/* Symmetric padding keeps the title centred. With the day-part badge above it the
+   top-right icon sits beside the badge row, so the title needs no room for it. */
 .plan-card-centered h3 {
   padding-left: 24px;
+}
+
+.plan-card-centered .tod-badge + h3 {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .plan-card-centered .task-card {
