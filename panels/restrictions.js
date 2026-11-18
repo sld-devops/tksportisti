@@ -378,7 +378,7 @@ function renderRestrictionCards() {
       <h3 class="restriction-form-title">${editing ? "Rediģēt ierobežojumu" : "Jauns ierobežojums"}</h3>
       <div class="mini-calendar" id="miniCalendar"></div>
       <div class="selected-dates-list" id="selectedDatesList"></div>
-      <div class="tod-radio-group">${todRadiosHtml}</div>
+      <div class="tod-radio-group" id="restrictionTodGroup" ${restrictionShift !== null ? "hidden" : ""}>${todRadiosHtml}</div>
       <label>Iemesls - uzraksti iemeslu vai izvēlies darba maiņu <textarea id="restrictionReasonInput" class="restriction-input" rows="2">${editing ? escapeHtml(editing.reason || "") : ""}</textarea></label>
       <div class="shift-presets" id="shiftPresets">
         ${SHIFT_PRESETS.map(name => `<button class="shift-preset-btn${name === restrictionShift ? " is-selected" : ""}" type="button" aria-pressed="${name === restrictionShift}" data-shift-preset="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join("")}
@@ -445,6 +445,9 @@ function renderRestrictionCards() {
         b.classList.toggle("is-selected", on);
         b.setAttribute("aria-pressed", String(on));
       });
+      // A shift needs no day-part, so the day-part boxes are out of the way while one is pressed.
+      const todGroup = document.getElementById("restrictionTodGroup");
+      if (todGroup) todGroup.hidden = restrictionShift !== null;
     };
     document.querySelectorAll("[data-shift-preset]").forEach(btn => {
       btn.addEventListener("click", () => {
