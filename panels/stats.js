@@ -259,15 +259,21 @@ function trimEmptyEnds(data) {
   while (last > first && !filled(data[last])) last--;
   return data.slice(first, last + 1);
 }
+// Last-N views: only the empty periods before the first data are cut (the
+// portal did not exist yet); the recent end is kept as it is.
+function trimLeadingEmpty(data) {
+  const first = data.findIndex((d) => STATS_METRICS.some((m) => (d[m.key] || 0) > 0));
+  return first > 0 ? data.slice(first) : data;
+}
 async function loadWeeklyTrend(athleteId) {
   const a = statsYearArgs("week");
   const data = await getWeeklyTrend(athleteId, a.n, a.anchor);
-  return statsYearMode("week") ? trimEmptyEnds(data) : data;
+  return statsYearMode("week") ? trimEmptyEnds(data) : trimLeadingEmpty(data);
 }
 async function loadMonthlyTrend(athleteId) {
   const a = statsYearArgs("month");
   const data = await getMonthlyTrend(athleteId, a.n, a.anchor);
-  return statsYearMode("month") ? trimEmptyEnds(data) : data;
+  return statsYearMode("month") ? trimEmptyEnds(data) : trimLeadingEmpty(data);
 }
 
 // #region Perioda/diapazona pogas
